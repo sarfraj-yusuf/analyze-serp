@@ -58,7 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           </div>
         </Link>
 
-        {/* Standardized Multi-Page Navigation Links */}
+        {/* Multi-Page Navigation Links */}
         <nav className="hidden md:flex items-center gap-1.5 bg-slate-100 dark:bg-white/5 p-1.5 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-semibold">
           <Link
             href="/"
@@ -69,43 +69,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             }`}
           >
             <Search className="w-3.5 h-3.5" />
-            <span>Competitor SEO Audit</span>
-          </Link>
-
-          <Link
-            href="/site-speed-checker"
-            className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
-              pathname === '/site-speed-checker'
-                ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-                : 'text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10'
-            }`}
-          >
-            <Zap className="w-3.5 h-3.5" />
-            <span>Site Speed Checker</span>
-          </Link>
-
-          <Link
-            href="/affiliate-link-checker"
-            className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
-              pathname === '/affiliate-link-checker'
-                ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-                : 'text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10'
-            }`}
-          >
-            <Link2 className="w-3.5 h-3.5" />
-            <span>Affiliate Link Checker</span>
-          </Link>
-
-          <Link
-            href="/serp-snippet-preview"
-            className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
-              pathname === '/serp-snippet-preview'
-                ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-                : 'text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10'
-            }`}
-          >
-            <Share2 className="w-3.5 h-3.5" />
-            <span>SERP Snippet Preview</span>
+            <span>Audit Suite</span>
           </Link>
 
           <Link
@@ -119,10 +83,47 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             <CreditCard className="w-3.5 h-3.5" />
             <span>Pricing</span>
           </Link>
+
+          <Link
+            href="/technical-health"
+            className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
+              pathname === '/technical-health'
+                ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
+                : 'text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10'
+            }`}
+          >
+            <Zap className="w-3.5 h-3.5" />
+            <span>Tech Health</span>
+          </Link>
+
+          <Link
+            href="/serp-simulator"
+            className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
+              pathname === '/serp-simulator'
+                ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
+                : 'text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10'
+            }`}
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span>SERP Simulator</span>
+          </Link>
+
+          <Link
+            href="/link-inspector"
+            className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
+              pathname === '/link-inspector'
+                ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
+                : 'text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10'
+            }`}
+          >
+            <Link2 className="w-3.5 h-3.5" />
+            <span>Link Inspector</span>
+          </Link>
         </nav>
 
-        {/* Theme Toggle & Pro Action */}
+        {/* Badges, Theme Toggle & Pro Action */}
         <div className="flex items-center gap-3 shrink-0">
+          {/* Light / Dark Mode Toggle Button */}
           <button
             onClick={toggleTheme}
             className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-sm"
