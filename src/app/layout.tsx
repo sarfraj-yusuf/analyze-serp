@@ -5,11 +5,13 @@ import "./globals.css";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  adjustFontFallback: false,
 });
 
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
+  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {

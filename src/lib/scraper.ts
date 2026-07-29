@@ -58,6 +58,9 @@ export async function scrapePage(targetUrl: string): Promise<ScrapedRawDOM> {
   const fetchTimeMs = Date.now() - startTime;
   const $ = cheerio.load(html);
 
+  // Clean junk meta tags from DOM inspection
+  $('meta[name="next-size-adjust"]').remove();
+
   // 1. Meta Data Extraction
   const title = $('title').first().text().trim() || $('meta[property="og:title"]').attr('content')?.trim() || '';
   const titleLength = title.length;
@@ -174,7 +177,7 @@ export async function scrapePage(targetUrl: string): Promise<ScrapedRawDOM> {
 
   // 5. DOM Sanitization & Clean Body Text Isolation
   const cleanDom = cheerio.load(html);
-  cleanDom('script, style, nav, footer, header, iframe, aside, noscript, svg, form').remove();
+  cleanDom('script, style, nav, footer, header, iframe, aside, noscript, svg, form, meta[name="next-size-adjust"]').remove();
 
   let primaryContainer = cleanDom('article');
   if (primaryContainer.length === 0) primaryContainer = cleanDom('main');
