@@ -119,6 +119,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-[var(--text-primary)] selection:bg-emerald-500 selection:text-black transition-colors duration-200">
+      <title>Competitor SEO Audit | AnalyzeSERP</title>
       <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
 
       {/* Daily Quota Freemium Bar */}
@@ -147,7 +148,7 @@ export default function Home() {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
-            Audit Competitor SERPs & <br />
+            Competitor SEO Audit & <br />
             <span className="gradient-text">Outrank Top Search Results</span>
           </h1>
 

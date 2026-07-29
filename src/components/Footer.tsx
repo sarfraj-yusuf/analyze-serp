@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Zap, ShieldCheck, Mail, FileText, Globe, ExternalLink, Heart } from 'lucide-react';
+import { Zap, ExternalLink } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
@@ -29,33 +29,33 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Tools Navigation */}
+          {/* Standardized SEO Audit Tools Navigation */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">SEO Audit Tools</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  Competitor Audit Suite
+                  Competitor SEO Audit
+                </Link>
+              </li>
+              <li>
+                <Link href="/site-speed-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                  Site Speed Checker
+                </Link>
+              </li>
+              <li>
+                <Link href="/affiliate-link-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                  Affiliate Link Checker
+                </Link>
+              </li>
+              <li>
+                <Link href="/serp-snippet-preview" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                  SERP Snippet Preview
                 </Link>
               </li>
               <li>
                 <Link href="/pricing" className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold text-emerald-600 dark:text-emerald-400 transition-colors">
                   Pricing & Pro Plans
-                </Link>
-              </li>
-              <li>
-                <Link href="/technical-health" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  Technical Speed Audit
-                </Link>
-              </li>
-              <li>
-                <Link href="/serp-simulator" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  SERP & Social Card Simulator
-                </Link>
-              </li>
-              <li>
-                <Link href="/link-inspector" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  Affiliate Link Inspector
                 </Link>
               </li>
             </ul>
