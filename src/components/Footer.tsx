@@ -39,6 +39,11 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/pricing" className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold text-emerald-600 dark:text-emerald-400 transition-colors">
+                  Pricing & Pro Plans
+                </Link>
+              </li>
+              <li>
                 <Link href="/technical-health" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                   Technical Speed Audit
                 </Link>
