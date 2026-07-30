@@ -72,6 +72,11 @@ export interface KeywordAnalysis {
   oneGram: KeywordItem[];
   twoGram: KeywordItem[];
   threeGram: KeywordItem[];
+  // Full un-truncated keyword arrays used internally by keyword-gap analysis.
+  // These are NOT sent to the UI — they exist only for accurate cross-page comparison.
+  fullOneGram?: KeywordItem[];
+  fullTwoGram?: KeywordItem[];
+  fullThreeGram?: KeywordItem[];
 }
 
 export interface ReadabilityMetrics {

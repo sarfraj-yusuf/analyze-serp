@@ -2,13 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { scrapeURL } from '@/lib/scraper';
 import { analyzePage } from '@/lib/analyzer';
 import { SinglePageAudit, BatchAuditResponse } from '@/types/seo';
-
-// 24-hour in-memory audit cache map
-const auditCache = new Map<string, { timestamp: number; data: SinglePageAudit }>();
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+import { auditRateLimiter } from '@/lib/rate-limiter';
+import { auditCache } from '@/lib/lru-cache';
+import { freemiumLimiter } from '@/lib/freemium-limiter';
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. IP Rate Limiting Check (burst limit)
+    const clientIp = auditRateLimiter.getClientIp(req);
+    const rateLimit = auditRateLimiter.check(clientIp);
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: `Rate limit exceeded. Too many audit requests from your IP. Please try again in ${Math.ceil(rateLimit.resetMs / 1000)} seconds.` },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': String(rateLimit.limit),
+            'X-RateLimit-Remaining': '0',
+            'Retry-After': String(Math.ceil(rateLimit.resetMs / 1000)),
+          },
+        }
+      );
+    }
+
     const body = await req.json();
     const { urls } = body as { urls: string[] };
 
@@ -22,25 +39,39 @@ export async function POST(req: NextRequest) {
     // Limit to maximum 5 URLs per request
     const targetUrls = urls.slice(0, 5).map((u) => u.trim()).filter(Boolean);
 
-    const now = Date.now();
+    // 2. Server-side Freemium Daily Quota Check
+    const quotaCheck = freemiumLimiter.check(clientIp, targetUrls.length);
+    if (!quotaCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: `Daily free quota limit reached (${quotaCheck.used}/${quotaCheck.limit} used today). Upgrade to Pro for unlimited audits.`,
+          isQuotaExceeded: true,
+        },
+        {
+          status: 403,
+          headers: {
+            'X-Daily-Quota-Limit': String(quotaCheck.limit),
+            'X-Daily-Quota-Remaining': '0',
+          },
+        }
+      );
+    }
+
     const auditPromises = targetUrls.map(async (url): Promise<SinglePageAudit> => {
       const normalizedUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`;
 
-      // Check cache first
+      // Check LRU cache first
       const cached = auditCache.get(normalizedUrl);
-      if (cached && now - cached.timestamp < CACHE_TTL_MS) {
-        return cached.data;
+      if (cached) {
+        return cached;
       }
 
       try {
         const scraped = await scrapeURL(normalizedUrl);
         const auditResult = analyzePage(scraped);
 
-        // Store in cache
-        auditCache.set(normalizedUrl, {
-          timestamp: now,
-          data: auditResult,
-        });
+        // Store in LRU cache
+        auditCache.set(normalizedUrl, auditResult);
 
         return auditResult;
       } catch (err: any) {
@@ -116,13 +147,24 @@ export async function POST(req: NextRequest) {
 
     const results = await Promise.all(auditPromises);
 
+    // Consume server-side freemium quota for successfully processed target URLs
+    freemiumLimiter.consume(clientIp, targetUrls.length);
+    const updatedQuota = freemiumLimiter.check(clientIp, 0);
+
     const responsePayload: BatchAuditResponse = {
       timestamp: new Date().toISOString(),
       totalUrls: results.length,
       results,
     };
 
-    return NextResponse.json(responsePayload);
+    return NextResponse.json(responsePayload, {
+      headers: {
+        'X-RateLimit-Limit': String(rateLimit.limit),
+        'X-RateLimit-Remaining': String(rateLimit.remaining),
+        'X-Daily-Quota-Limit': String(updatedQuota.limit),
+        'X-Daily-Quota-Remaining': String(updatedQuota.remaining),
+      },
+    });
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || 'Internal Server Error processing SEO audit request.' },

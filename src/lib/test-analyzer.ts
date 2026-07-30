@@ -5,6 +5,7 @@ console.log('--- Testing Non-AI SEO Scraper & Analyzer Engine ---');
 
 const mockScrapedDOM: ScrapedRawDOM = {
   url: 'https://example.com/best-seo-tools',
+  finalUrl: 'https://example.com/best-seo-tools',
   html: '<html><body><h1>Best SEO Tools Guide</h1><p>Learn how to optimize on-page SEO factors with competitor analysis tools and Keyword gap strategies.</p></body></html>',
   fetchTimeMs: 350,
   ttfbMs: 120,

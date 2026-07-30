@@ -8,13 +8,17 @@ export function countSyllables(word: string): number {
   if (!cleanWord) return 0;
   if (cleanWord.length <= 3) return 1;
 
-  // Syllable rules
-  let processed = cleanWord
-    .replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '') // Remove trailing silent 'e', 'es', 'ed'
-    .replace(/^y/, ''); // Remove leading 'y'
+  let processed = cleanWord;
+
+  // Do not strip -le ending (e.g. smile, scale, table, file)
+  if (!processed.endsWith('le')) {
+    processed = processed.replace(/(?:[^laeiouy]es|[^laeiouy]ed|[^laeiouy]e)$/, '');
+  }
+
+  processed = processed.replace(/^y/, '');
 
   const vowelMatches = processed.match(/[aeiouy]{1,2}/g);
-  let count = vowelMatches ? vowelMatches.length : 1;
+  const count = vowelMatches ? vowelMatches.length : 1;
 
   return Math.max(1, count);
 }
@@ -37,8 +41,13 @@ export function calculateReadability(cleanText: string): ReadabilityMetrics {
     };
   }
 
-  // 1. Sentence Segmentation
-  const sentences = cleanText
+  // 1. Pre-process text to mask periods inside common abbreviations before sentence segmentation
+  const sanitizedForSentences = cleanText.replace(
+    /\b(e\.g|i\.e|dr|mr|mrs|ms|prof|vs|inc|ltd|co|corp|dept|est|approx|fig|vol|no|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec|u\.s|u\.k)\./gi,
+    '$1'
+  );
+
+  const sentences = sanitizedForSentences
     .split(/[.!?]+\s+/)
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
@@ -48,6 +57,7 @@ export function calculateReadability(cleanText: string): ReadabilityMetrics {
   // 2. Word Tokenization & Syllable Counting
   const words = cleanText
     .toLowerCase()
+    .replace(/[''ʼ`]/g, '')
     .replace(/[^\w\s-]/g, ' ')
     .split(/\s+/)
     .filter((w) => w.length > 0 && /^[a-z]+$/i.test(w));

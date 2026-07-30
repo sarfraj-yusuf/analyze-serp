@@ -1,9 +1,11 @@
 import * as cheerio from 'cheerio';
 import { MetaData, HeadingItem, ImageAudit, ImageItem, LinkAudit, LinkItem } from '@/types/seo';
 import { enhanceLinkAudit } from './link-inspector';
+import { validateUrlSafety } from './ssrf-protection';
 
 export interface ScrapedRawDOM {
   url: string;
+  finalUrl: string;
   html: string;
   fetchTimeMs: number;
   ttfbMs: number;
@@ -31,6 +33,10 @@ export function normalizeUrl(inputUrl: string): string {
  */
 export async function scrapePage(targetUrl: string): Promise<ScrapedRawDOM> {
   const formattedUrl = normalizeUrl(targetUrl);
+
+  // Validate URL safety against SSRF before initiating fetch
+  await validateUrlSafety(formattedUrl);
+
   const startTime = Date.now();
 
   const controller = new AbortController();
@@ -53,6 +59,8 @@ export async function scrapePage(targetUrl: string): Promise<ScrapedRawDOM> {
   if (!response.ok) {
     throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
   }
+
+  const finalUrl = response.url || formattedUrl;
 
   const html = await response.text();
   const fetchTimeMs = Date.now() - startTime;
@@ -154,18 +162,21 @@ export async function scrapePage(targetUrl: string): Promise<ScrapedRawDOM> {
     const rel = $(el).attr('rel') || '';
     const isNofollow = rel.includes('nofollow');
 
-    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+    if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
 
     let isExternal = false;
+    let resolvedHref = href;
     try {
       const resolvedUrl = new URL(href, formattedUrl);
+      resolvedHref = resolvedUrl.href;
       isExternal = resolvedUrl.hostname !== baseUrlObj.hostname;
     } catch {
+      // If URL resolution fails entirely, keep the raw href
       isExternal = false;
     }
 
     rawLinks.push({
-      href,
+      href: resolvedHref,
       text,
       isExternal,
       isNofollow,
@@ -183,10 +194,18 @@ export async function scrapePage(targetUrl: string): Promise<ScrapedRawDOM> {
   if (primaryContainer.length === 0) primaryContainer = cleanDom('main');
   if (primaryContainer.length === 0) primaryContainer = cleanDom('body');
 
+  // Inject space markers before block-level elements so Cheerio's .text()
+  // doesn't merge words across tag boundaries (e.g., "<h1>Heading</h1><p>Text</p>" → "Heading Text")
+  const blockSelectors = 'p, div, h1, h2, h3, h4, h5, h6, li, tr, td, th, blockquote, section, article, main, dt, dd, figcaption, pre, br, hr';
+  primaryContainer.find(blockSelectors).each((_, el) => {
+    cleanDom(el).before(' ');
+  });
+
   const cleanBodyText = primaryContainer.text().replace(/\s+/g, ' ').trim();
 
   return {
     url: formattedUrl,
+    finalUrl,
     html,
     fetchTimeMs,
     ttfbMs,

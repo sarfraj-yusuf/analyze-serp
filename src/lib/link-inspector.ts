@@ -63,13 +63,45 @@ export function detectAffiliateNetwork(href: string): { isAffiliate: boolean; ne
   if (
     lowerHref.includes('aff=') ||
     lowerHref.includes('affiliate=') ||
-    lowerHref.includes('ref=') ||
+    /[?&]ref=/.test(lowerHref) ||
     lowerHref.includes('utm_medium=affiliate')
   ) {
     return { isAffiliate: true, network: 'Generic Affiliate' };
   }
 
   return { isAffiliate: false, network: null };
+}
+
+/**
+ * Extracts the brand-relevant portion of a hostname.
+ * Handles multi-part TLDs like .co.uk, .com.au, .co.in, etc.
+ * Returns the registrable domain name (e.g., "ahrefs" from "www.ahrefs.com").
+ */
+function extractBrandName(hostname: string): string {
+  const clean = hostname.replace(/^www\./, '');
+  const parts = clean.split('.');
+
+  // Common two-part TLDs that should NOT be treated as the brand name
+  const multiPartTlds = new Set([
+    'co.uk', 'co.in', 'co.jp', 'co.kr', 'co.nz', 'co.za', 'co.id',
+    'com.au', 'com.br', 'com.mx', 'com.sg', 'com.tw', 'com.hk',
+    'org.uk', 'org.au', 'net.au', 'ac.uk', 'gov.uk',
+  ]);
+
+  if (parts.length >= 3) {
+    const lastTwo = `${parts[parts.length - 2]}.${parts[parts.length - 1]}`;
+    if (multiPartTlds.has(lastTwo)) {
+      // e.g., "site.co.uk" → brand is "site"
+      return parts[parts.length - 3];
+    }
+  }
+
+  if (parts.length >= 2) {
+    // e.g., "ahrefs.com" → brand is "ahrefs"
+    return parts[parts.length - 2];
+  }
+
+  return parts[0] || '';
 }
 
 /**
@@ -88,20 +120,21 @@ export function classifyAnchorText(anchorText: string, targetHref: string, sourc
     return 'Generic';
   }
 
-  // Branded Matcher
-  let sourceHost = '';
-  let targetHost = '';
+  // Branded Matcher — extract brand names from resolved absolute URLs
+  let sourceBrand = '';
+  let targetBrand = '';
   try {
-    sourceHost = new URL(sourceUrl).hostname.replace(/^www\./, '').split('.')[0];
+    sourceBrand = extractBrandName(new URL(sourceUrl).hostname);
   } catch {}
   try {
-    targetHost = new URL(targetHref).hostname.replace(/^www\./, '').split('.')[0];
+    targetBrand = extractBrandName(new URL(targetHref).hostname);
   } catch {}
 
-  if (
-    (sourceHost && cleanText.includes(sourceHost)) ||
-    (targetHost && cleanText.includes(targetHost))
-  ) {
+  // Only match brands that are at least 3 chars to avoid trivial false positives
+  if (sourceBrand.length >= 3 && cleanText.includes(sourceBrand)) {
+    return 'Branded';
+  }
+  if (targetBrand.length >= 3 && cleanText.includes(targetBrand)) {
     return 'Branded';
   }
 

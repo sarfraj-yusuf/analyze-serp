@@ -88,10 +88,11 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onAnalyze, isLoading }
                 </div>
                 <input
                   type="text"
+                  aria-label={`Competitor URL #${idx + 1}`}
                   value={url}
                   onChange={(e) => handleChangeUrl(idx, e.target.value)}
                   placeholder={`URL #${idx + 1} (e.g. https://example.com/blog-post)`}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl glass-input text-sm focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-gray-500 shadow-sm"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl glass-input text-sm focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-gray-500 shadow-sm font-mono"
                   disabled={isLoading}
                 />
               </div>
@@ -99,6 +100,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onAnalyze, isLoading }
               {urls.length > 1 && (
                 <button
                   type="button"
+                  aria-label={`Remove Competitor URL #${idx + 1}`}
                   onClick={() => handleRemoveUrl(idx)}
                   className="p-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 transition-all cursor-pointer"
                   title="Remove URL"

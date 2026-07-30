@@ -50,9 +50,12 @@ export function analyzeKeywordGaps(results: SinglePageAudit[]): KeywordGapAnalys
   };
 
   validAudits.forEach((audit) => {
-    processGramList(audit.keywords.oneGram, audit.url, '1-gram');
-    processGramList(audit.keywords.twoGram, audit.url, '2-gram');
-    processGramList(audit.keywords.threeGram, audit.url, '3-gram');
+    // Prefer full un-truncated keyword arrays for accurate gap analysis.
+    // Fall back to display-truncated arrays for backward compatibility.
+    const { keywords } = audit;
+    processGramList(keywords.fullOneGram ?? keywords.oneGram, audit.url, '1-gram');
+    processGramList(keywords.fullTwoGram ?? keywords.twoGram, audit.url, '2-gram');
+    processGramList(keywords.fullThreeGram ?? keywords.threeGram, audit.url, '3-gram');
   });
 
   const allItems: KeywordGapItem[] = [];
@@ -96,8 +99,11 @@ export function analyzeKeywordGaps(results: SinglePageAudit[]): KeywordGapAnalys
       commonCoreKeywords.push(gapItem);
     }
 
-    // A term is a "Keyword Gap" if at least 1 competitor uses it with high density (>= 0.8%) but at least 1 competitor missed it
-    if (missingInUrls.length > 0 && maxDensity >= 0.8) {
+    // A term is a "Keyword Gap" if at least 1 competitor uses it with notable density but at least 1 competitor missed it.
+    // Dynamic density thresholds per N-gram type: 1-gram >= 0.6%, 2-gram >= 0.25%, 3-gram >= 0.12%
+    const gapThreshold = entry.nGramType === '1-gram' ? 0.6 : entry.nGramType === '2-gram' ? 0.25 : 0.12;
+
+    if (missingInUrls.length > 0 && maxDensity >= gapThreshold) {
       keywordGaps.push(gapItem);
     }
   });

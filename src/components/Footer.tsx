@@ -32,15 +32,10 @@ export const Footer: React.FC = () => {
           {/* Tools Navigation */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">SEO Audit Tools</h4>
-            <ul className="space-y-2">
+            <ul className="space-y-1.5 text-[11px]">
               <li>
                 <Link href="/" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                   Competitor Audit Suite
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing" className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold text-emerald-600 dark:text-emerald-400 transition-colors">
-                  Pricing & Pro Plans
                 </Link>
               </li>
               <li>
@@ -58,13 +53,43 @@ export const Footer: React.FC = () => {
                   Affiliate Link Inspector
                 </Link>
               </li>
+              <li>
+                <Link href="/readability" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                  Flesch Readability Analyzer
+                </Link>
+              </li>
+              <li>
+                <Link href="/pdf-reports" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                  White-Label PDF Reports
+                </Link>
+              </li>
+              <li>
+                <Link href="/pricing" className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold text-emerald-600 dark:text-emerald-400 transition-colors">
+                  Pricing & Pro Plans ($9/mo)
+                </Link>
+              </li>
             </ul>
           </div>
 
           {/* Essential Pages & Company */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Company & Info</h4>
-            <ul className="space-y-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Specialized Utilities</h4>
+            <ul className="space-y-1.5 text-[11px]">
+              <li>
+                <Link href="/site-speed-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                  Site Speed Checker
+                </Link>
+              </li>
+              <li>
+                <Link href="/serp-snippet-preview" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                  SERP Snippet Generator
+                </Link>
+              </li>
+              <li>
+                <Link href="/affiliate-link-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                  Affiliate Link Checker
+                </Link>
+              </li>
               <li>
                 <Link href="/about" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                   About AnalyzeSERP
@@ -74,11 +99,6 @@ export const Footer: React.FC = () => {
                 <Link href="/contact" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                   Contact Us
                 </Link>
-              </li>
-              <li>
-                <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono font-bold">
-                  v1.2 Non-AI Engine
-                </span>
               </li>
             </ul>
           </div>

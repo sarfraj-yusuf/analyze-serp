@@ -14,6 +14,8 @@ import { Search, Plus, Trash2, Zap, AlertCircle, Sparkles, Layers, ShieldCheck, 
 
 const MAX_FREE_DAILY_AUDITS = 5;
 
+import { AuditSkeleton } from '@/components/AuditSkeleton';
+
 export default function Home() {
   const [urls, setUrls] = useState<string[]>(['']);
   const [isAuditing, setIsAuditing] = useState(false);
@@ -240,7 +242,9 @@ export default function Home() {
         </div>
 
         {/* Audit Results Dashboard */}
-        {auditResponse && (
+        {isAuditing ? (
+          <AuditSkeleton />
+        ) : auditResponse ? (
           <div className="space-y-8 animate-in fade-in duration-300">
             {/* Side-by-Side Comparison Matrix */}
             <ComparisonMatrix results={auditResponse.results} />
@@ -265,6 +269,101 @@ export default function Home() {
               {auditResponse.results.map((audit, idx) => (
                 <SingleAuditCard key={idx} audit={audit} />
               ))}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-16 pt-6">
+            {/* 3-Step How It Works Section */}
+            <div className="space-y-8 max-w-5xl mx-auto text-center">
+              <div className="space-y-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                  Simple 3-Step Workflow
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                  How Analyze<span className="gradient-text">SERP</span> Works
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-gray-400 max-w-lg mx-auto">
+                  Audit and outrank competitors in 3 simple steps without complex setups or waiting.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                {/* Step 1 */}
+                <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/10 space-y-3 relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-mono font-bold text-lg">
+                    1
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Paste Competitor URLs</h3>
+                  <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed">
+                    Input 1 to 5 competitor web page URLs from Google search results into the auditor tool bar above.
+                  </p>
+                </div>
+
+                {/* Step 2 */}
+                <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/10 space-y-3 relative overflow-hidden group hover:border-cyan-500/30 transition-all">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 flex items-center justify-center font-mono font-bold text-lg">
+                    2
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Extract & Analyze DOM Data</h3>
+                  <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed">
+                    Our high-speed engine parses raw HTML, title tags, heading trees, word counts, N-grams, and TTFB latency instantly.
+                  </p>
+                </div>
+
+                {/* Step 3 */}
+                <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/10 space-y-3 relative overflow-hidden group hover:border-indigo-500/30 transition-all">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-mono font-bold text-lg">
+                    3
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Get Gaps & Client Reports</h3>
+                  <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed">
+                    Review side-by-side keyword gaps, generate content outlines, and export white-label PDF reports for your clients.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Feature Highlights Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+              <div className="glass-panel p-5 rounded-2xl border border-slate-200 dark:border-white/10 space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                  <Zap className="w-4 h-4" />
+                </div>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Non-AI Speed Engine</h4>
+                <p className="text-xs text-slate-600 dark:text-gray-400">
+                  Zero AI latency or hallucination. Pure deterministic HTML parsing & DOM metric computation.
+                </p>
+              </div>
+
+              <div className="glass-panel p-5 rounded-2xl border border-slate-200 dark:border-white/10 space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-500 flex items-center justify-center">
+                  <Layers className="w-4 h-4" />
+                </div>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Keyword Gap Matrix</h4>
+                <p className="text-xs text-slate-600 dark:text-gray-400">
+                  Find high-density 1-gram, 2-gram, and 3-gram terms competitors use that your content lacks.
+                </p>
+              </div>
+
+              <div className="glass-panel p-5 rounded-2xl border border-slate-200 dark:border-white/10 space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Technical Health Check</h4>
+                <p className="text-xs text-slate-600 dark:text-gray-400">
+                  Diagnose TTFB latency, payload weight, DOM depth levels, SSL security, and viewport rules.
+                </p>
+              </div>
+
+              <div className="glass-panel p-5 rounded-2xl border border-slate-200 dark:border-white/10 space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">White-Label PDFs</h4>
+                <p className="text-xs text-slate-600 dark:text-gray-400">
+                  Export branded executive client reports with custom agency colors, scorecards, and action plans.
+                </p>
+              </div>
             </div>
           </div>
         )}

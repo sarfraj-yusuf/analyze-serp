@@ -92,10 +92,13 @@ export const SerpSocialSimulator: React.FC<SerpSocialSimulatorProps> = ({ meta, 
           {/* Title Input */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs font-semibold text-slate-800 dark:text-gray-200">
-              <span>Title Tag (<strong className={isTitleTruncated ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}>{title.length}</strong> / 60 chars)</span>
+              <label htmlFor="sim-title">
+                Title Tag (<strong className={isTitleTruncated ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}>{title.length}</strong> / 60 chars)
+              </label>
               <span className="font-mono text-[11px] text-slate-500 dark:text-gray-400">~{titlePixelWidth}px / 580px</span>
             </div>
             <input
+              id="sim-title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -112,9 +115,12 @@ export const SerpSocialSimulator: React.FC<SerpSocialSimulatorProps> = ({ meta, 
           {/* Meta Description Input */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs font-semibold text-slate-800 dark:text-gray-200">
-              <span>Meta Description (<strong className={isDescTruncated ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}>{description.length}</strong> / 160 chars)</span>
+              <label htmlFor="sim-description">
+                Meta Description (<strong className={isDescTruncated ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}>{description.length}</strong> / 160 chars)
+              </label>
             </div>
             <textarea
+              id="sim-description"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -130,8 +136,9 @@ export const SerpSocialSimulator: React.FC<SerpSocialSimulatorProps> = ({ meta, 
 
           {/* URL Input */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-800 dark:text-gray-200 block">Target Page URL</label>
+            <label htmlFor="sim-url" className="text-xs font-semibold text-slate-800 dark:text-gray-200 block">Target Page URL</label>
             <input
+              id="sim-url"
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
@@ -143,8 +150,10 @@ export const SerpSocialSimulator: React.FC<SerpSocialSimulatorProps> = ({ meta, 
         {/* Right Side: Live Visual Previews */}
         <div className="space-y-4">
           {/* Platform Tab Selectors */}
-          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-white/5 p-2 rounded-xl border border-slate-200 dark:border-white/10 overflow-x-auto shadow-sm">
+          <div role="tablist" aria-label="SERP and Social Preview Platforms" className="flex items-center gap-1.5 bg-slate-100 dark:bg-white/5 p-2 rounded-xl border border-slate-200 dark:border-white/10 overflow-x-auto shadow-sm">
             <button
+              role="tab"
+              aria-selected={activePlatform === 'desktop'}
               onClick={() => setActivePlatform('desktop')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 activePlatform === 'desktop'
@@ -157,6 +166,8 @@ export const SerpSocialSimulator: React.FC<SerpSocialSimulatorProps> = ({ meta, 
             </button>
 
             <button
+              role="tab"
+              aria-selected={activePlatform === 'mobile'}
               onClick={() => setActivePlatform('mobile')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 activePlatform === 'mobile'

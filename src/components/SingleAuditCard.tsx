@@ -156,8 +156,11 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-3 overflow-x-auto">
+      <div role="tablist" aria-label="Page Audit Sections" className="flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-3 overflow-x-auto">
         <button
+          role="tab"
+          aria-selected={activeTab === 'scorecard'}
+          aria-controls="panel-scorecard"
           onClick={() => setActiveTab('scorecard')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'scorecard'
@@ -170,6 +173,9 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
         </button>
 
         <button
+          role="tab"
+          aria-selected={activeTab === 'technical'}
+          aria-controls="panel-technical"
           onClick={() => setActiveTab('technical')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'technical'
@@ -182,6 +188,9 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
         </button>
 
         <button
+          role="tab"
+          aria-selected={activeTab === 'serp'}
+          aria-controls="panel-serp"
           onClick={() => setActiveTab('serp')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'serp'
@@ -194,6 +203,9 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
         </button>
 
         <button
+          role="tab"
+          aria-selected={activeTab === 'readability'}
+          aria-controls="panel-readability"
           onClick={() => setActiveTab('readability')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'readability'
@@ -206,6 +218,9 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
         </button>
 
         <button
+          role="tab"
+          aria-selected={activeTab === 'headings'}
+          aria-controls="panel-headings"
           onClick={() => setActiveTab('headings')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'headings'
@@ -218,6 +233,9 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
         </button>
 
         <button
+          role="tab"
+          aria-selected={activeTab === 'keywords'}
+          aria-controls="panel-keywords"
           onClick={() => setActiveTab('keywords')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'keywords'
@@ -230,6 +248,9 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
         </button>
 
         <button
+          role="tab"
+          aria-selected={activeTab === 'images'}
+          aria-controls="panel-images"
           onClick={() => setActiveTab('images')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'images'
@@ -242,6 +263,9 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
         </button>
 
         <button
+          role="tab"
+          aria-selected={activeTab === 'links'}
+          aria-controls="panel-links"
           onClick={() => setActiveTab('links')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'links'
@@ -255,7 +279,7 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
       </div>
 
       {/* Tab Panels */}
-      <div>
+      <div role="tabpanel" id={`panel-${activeTab}`}>
         {activeTab === 'scorecard' && <AuditScorecard audit={audit} />}
         {activeTab === 'technical' && technicalAudit && <TechnicalHealthCard technicalAudit={technicalAudit} />}
         {activeTab === 'serp' && <SerpSocialSimulator meta={meta} initialUrl={audit.url} />}

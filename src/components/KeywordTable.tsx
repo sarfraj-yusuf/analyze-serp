@@ -28,8 +28,10 @@ export const KeywordTable: React.FC<KeywordTableProps> = ({ keywords }) => {
       {/* Tab Selectors & Search Filter */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
         {/* Gram Tabs */}
-        <div className="flex items-center gap-1.5 w-full sm:w-auto">
+        <div role="tablist" aria-label="N-Gram Keyword Filter" className="flex items-center gap-1.5 w-full sm:w-auto">
           <button
+            role="tab"
+            aria-selected={activeGram === 'one'}
             onClick={() => setActiveGram('one')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeGram === 'one'
@@ -40,6 +42,8 @@ export const KeywordTable: React.FC<KeywordTableProps> = ({ keywords }) => {
             1-Word (Core)
           </button>
           <button
+            role="tab"
+            aria-selected={activeGram === 'two'}
             onClick={() => setActiveGram('two')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeGram === 'two'
@@ -50,6 +54,8 @@ export const KeywordTable: React.FC<KeywordTableProps> = ({ keywords }) => {
             2-Words (Phrases)
           </button>
           <button
+            role="tab"
+            aria-selected={activeGram === 'three'}
             onClick={() => setActiveGram('three')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeGram === 'three'
@@ -61,15 +67,16 @@ export const KeywordTable: React.FC<KeywordTableProps> = ({ keywords }) => {
           </button>
         </div>
 
-        {/* Search Filter */}
+        {/* Search Input */}
         <div className="relative w-full sm:w-64">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-400" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
           <input
             type="text"
-            placeholder="Search keywords..."
+            aria-label="Filter keywords by phrase"
+            placeholder="Filter keyword phrases..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 rounded-lg text-xs glass-input focus:outline-none shadow-sm"
+            className="w-full pl-9 pr-3 py-1.5 rounded-lg glass-input text-xs focus:outline-none shadow-sm font-mono"
           />
         </div>
       </div>

@@ -30,28 +30,55 @@ export function generateWhiteLabelPdfReport(
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const brandRgb = hexToRgb(options.primaryColorHex || '#059669');
 
+  // Page dimensions: A4 = 210mm wide, usable content from x=14 to x=196 (182mm)
+  const PAGE_LEFT = 14;
+  const PAGE_RIGHT = 196;
+  const CONTENT_LEFT = 20;
+  const CONTENT_WIDTH = PAGE_RIGHT - CONTENT_LEFT; // 176mm max text width
+  const METADATA_WIDTH = PAGE_RIGHT - CONTENT_LEFT; // For metadata inspector section
+
+  /**
+   * Renders wrapped text that respects page margins.
+   * Returns the new Y position after the last line.
+   */
+  function renderWrappedText(text: string, x: number, y: number, maxWidth: number, lineHeight: number = 5): number {
+    const lines: string[] = doc.splitTextToSize(text, maxWidth);
+    lines.forEach((line: string, i: number) => {
+      doc.text(line, x, y + i * lineHeight);
+    });
+    return y + lines.length * lineHeight;
+  }
+
   const { meta, wordCount, readingTimeMinutes, headings, imageAudit, linkAudit, keywords, readability, technicalAudit } = audit;
 
-  // Calculate Health Score
-  let score = 0;
-  if (meta.titleLength > 0 && !meta.titleTruncated) score += 15;
-  else if (meta.titleLength > 0) score += 8;
+  // ── Unified Health Score: blends Content Quality (60%) + Technical Performance (40%) ──
 
-  if (meta.descriptionLength > 0 && !meta.descriptionTruncated) score += 15;
-  else if (meta.descriptionLength > 0) score += 8;
+  // Content Quality sub-score (0–100 scale)
+  let contentScore = 0;
+  if (meta.titleLength > 0 && !meta.titleTruncated) contentScore += 15;
+  else if (meta.titleLength > 0) contentScore += 8;
+
+  if (meta.descriptionLength > 0 && !meta.descriptionTruncated) contentScore += 15;
+  else if (meta.descriptionLength > 0) contentScore += 8;
 
   const h1Count = headings.filter((h) => h.level === 'h1').length;
-  if (h1Count === 1) score += 20;
-  else if (h1Count > 0) score += 10;
+  if (h1Count === 1) contentScore += 20;
+  else if (h1Count > 0) contentScore += 10;
 
-  if (wordCount >= 1000) score += 20;
-  else if (wordCount >= 500) score += 12;
+  if (wordCount >= 1000) contentScore += 20;
+  else if (wordCount >= 500) contentScore += 12;
 
-  if (imageAudit.totalImages === 0 || imageAudit.missingAltCount === 0) score += 15;
-  else score += Math.max(0, 15 - imageAudit.missingAltCount * 3);
+  if (imageAudit.totalImages === 0 || imageAudit.missingAltCount === 0) contentScore += 15;
+  else contentScore += Math.max(0, 15 - imageAudit.missingAltCount * 3);
 
-  if (keywords.oneGram.filter((k) => k.isStuffing).length === 0) score += 15;
-  else score += 5;
+  if (keywords.oneGram.filter((k) => k.isStuffing).length === 0) contentScore += 15;
+  else contentScore += 5;
+
+  // Technical Performance sub-score (from technical-audit.ts, already 0–100)
+  const techScore = technicalAudit?.technicalScore ?? 70;
+
+  // Weighted blend: 60% content + 40% technical
+  const score = Math.round(contentScore * 0.6 + techScore * 0.4);
 
   const gradeLabel = score >= 85 ? 'EXCELLENT' : score >= 65 ? 'GOOD (TWEAKS NEEDED)' : 'NEEDS OPTIMIZATION';
 
@@ -84,7 +111,8 @@ export function generateWhiteLabelPdfReport(
   doc.text(`Target Client: ${options.clientName || 'Valued Client'}`, 18, 52);
   doc.setFont('Helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text(`Audited URL: ${audit.url}`, 18, 58);
+  const urlLines: string[] = doc.splitTextToSize(`Audited URL: ${audit.url}`, 174);
+  doc.text(urlLines[0], 18, 58);
 
   // Scorecard Container Box
   doc.setFillColor(255, 255, 255);
@@ -188,8 +216,8 @@ export function generateWhiteLabelPdfReport(
   doc.setTextColor(51, 65, 85);
 
   findings.forEach((f) => {
-    doc.text(f, 20, yOffset);
-    yOffset += 14;
+    yOffset = renderWrappedText(f, CONTENT_LEFT, yOffset, CONTENT_WIDTH, 4.5);
+    yOffset += 5; // Spacing between findings
   });
 
   // Page 1 Footer
@@ -224,9 +252,12 @@ export function generateWhiteLabelPdfReport(
   doc.setFontSize(8.5);
   doc.setFont('Helvetica', 'normal');
   doc.setTextColor(51, 65, 85);
-  doc.text(`Title Tag (${meta.titleLength} chars): ${meta.title || '(None)'}`, 20, 42);
-  doc.text(`Meta Description (${meta.descriptionLength} chars): ${meta.description || '(None)'}`, 20, 52);
-  doc.text(`JSON-LD Schema: ${meta.hasJsonLdSchema ? 'Detected' : 'Not Found'} • Canonical URL: ${meta.canonicalUrl || 'Default'}`, 20, 62);
+  let metaY = 42;
+  metaY = renderWrappedText(`Title Tag (${meta.titleLength} chars): ${meta.title || '(None)'}`, CONTENT_LEFT, metaY, METADATA_WIDTH, 4.5);
+  metaY += 2;
+  metaY = renderWrappedText(`Meta Description (${meta.descriptionLength} chars): ${meta.description || '(None)'}`, CONTENT_LEFT, metaY, METADATA_WIDTH, 4.5);
+  metaY += 2;
+  renderWrappedText(`JSON-LD Schema: ${meta.hasJsonLdSchema ? 'Detected' : 'Not Found'} • Canonical URL: ${meta.canonicalUrl || 'Default'}`, CONTENT_LEFT, metaY, METADATA_WIDTH, 4.5);
 
   // Visual Bar Chart: Top 5 Keyword Densities
   doc.setFillColor(255, 255, 255);
@@ -288,7 +319,9 @@ export function generateWhiteLabelPdfReport(
 
     doc.setFont('Helvetica', 'normal');
     doc.setTextColor(51, 65, 85);
-    doc.text(h.text.substring(0, 80), 34, headingY);
+    // Wrap heading text within the available space (from x=34 to page right)
+    const headingLines: string[] = doc.splitTextToSize(h.text, PAGE_RIGHT - 34);
+    doc.text(headingLines[0], 34, headingY); // Show first line only in compact table
     headingY += 6.5;
   });
 
