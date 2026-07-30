@@ -65,7 +65,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link href="/pricing" className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold text-emerald-600 dark:text-emerald-400 transition-colors">
-                  Pricing & Pro Plans ($9/mo)
+                  Pricing & Beta Access (~~$19/mo~~ FREE)
                 </Link>
               </li>
             </ul>

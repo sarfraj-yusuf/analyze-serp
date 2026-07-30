@@ -5,6 +5,7 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { TechnicalHealthCard } from '@/components/TechnicalHealthCard';
 import { ProUpgradeModal } from '@/components/ProUpgradeModal';
+import { SEOContentSection } from '@/components/SEOContentSection';
 import { TechnicalAudit } from '@/types/seo';
 import { Zap, Sparkles, ArrowLeft, Search, Globe } from 'lucide-react';
 import Link from 'next/link';
@@ -15,6 +16,36 @@ export default function TechnicalHealthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [technicalAudit, setTechnicalAudit] = useState<TechnicalAudit | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const steps = [
+    {
+      title: 'Enter Target URL for Audit',
+      description: 'Submit any webpage URL to run server-side DOM scraping and technical header validation.',
+    },
+    {
+      title: 'Scan Security & Indexability Directives',
+      description: 'Audit HTTPS encryption, canonical tag declarations, robots meta directives, and viewport tags.',
+    },
+    {
+      title: 'Get 0–100 Technical Health Score',
+      description: 'Receive an instant score with actionable recommendations to fix crawlability and indexing issues.',
+    },
+  ];
+
+  const faqs = [
+    {
+      question: 'What is a Technical SEO Audit?',
+      answer: 'A Technical SEO Audit evaluates website infrastructure elements (HTTPS, canonical tags, meta robots directives, viewport responsiveness, and JSON-LD schema) to ensure search engine crawlers can index your pages efficiently.',
+    },
+    {
+      question: 'Why are Canonical Tags important for SEO?',
+      answer: 'Canonical tags tell search engines which URL version is the master copy of a page, preventing duplicate content issues and consolidating PageRank authority.',
+    },
+    {
+      question: 'What happens if a page has a "noindex" robots directive?',
+      answer: 'If a meta robots tag contains "noindex", search engines like Google will completely exclude the page from search results.',
+    },
+  ];
 
   const handleAuditUrl = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +82,7 @@ export default function TechnicalHealthPage() {
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-slate-900 dark:text-gray-100 selection:bg-emerald-500 selection:text-black transition-colors duration-200">
       <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
         {/* Navigation Breadcrumb */}
         <div className="flex items-center gap-2 text-xs">
           <Link
@@ -68,26 +99,27 @@ export default function TechnicalHealthPage() {
         <div className="text-center space-y-3 max-w-3xl mx-auto py-4">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Zero-Browser Latency Auditor</span>
+            <span>Technical SEO Infrastructure Scanner</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            Lightweight Performance & <span className="gradient-text">Technical Health Audit</span>
+            Technical SEO <span className="gradient-text">Audit & Health Checker</span>
           </h1>
 
           <p className="text-sm text-slate-600 dark:text-gray-400 leading-relaxed">
-            Evaluate TTFB latency, HTML payload sizes (kB), DOM element counts, max tree depth, and inline script overhead without heavy headless browsers.
+            Scan website technical infrastructure: HTTPS encryption, canonical tag declarations, robots directives, viewport configuration, and JSON-LD structured data.
           </p>
         </div>
 
-        {/* Search URL Form */}
-        <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/10 max-w-3xl mx-auto space-y-4">
+        {/* Search Input Card */}
+        <div className="glass-panel rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-xl space-y-6 max-w-2xl mx-auto">
           <form onSubmit={handleAuditUrl} className="flex flex-col sm:flex-row items-center gap-3">
-            <div className="relative flex-1 w-full">
-              <Globe className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-400" />
+            <div className="relative w-full">
+              <Globe className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
-                type="text"
-                placeholder="Enter URL to audit technical health (e.g. https://ahrefs.com/blog/on-page-seo/)"
+                type="url"
+                required
+                placeholder="https://example.com"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 rounded-xl glass-input text-xs focus:outline-none shadow-sm font-mono"
@@ -100,11 +132,11 @@ export default function TechnicalHealthPage() {
               className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-extrabold text-xs flex items-center justify-center gap-2 hover:opacity-95 transition-all shadow-md shadow-emerald-500/20 cursor-pointer shrink-0 disabled:opacity-50"
             >
               {isLoading ? (
-                <span>Auditing Speed...</span>
+                <span>Auditing Health...</span>
               ) : (
                 <>
-                  <Zap className="w-4 h-4" />
-                  <span>Audit Speed</span>
+                  <Search className="w-4 h-4" />
+                  <span>Run Health Audit</span>
                 </>
               )}
             </button>
@@ -113,13 +145,28 @@ export default function TechnicalHealthPage() {
           {error && <div className="text-xs text-red-600 dark:text-red-400 text-center">{error}</div>}
         </div>
 
-        {/* Results Card */}
+        {/* Audit Results */}
         {technicalAudit && (
           <div className="glass-panel rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-xl space-y-4">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Technical Audit Results</h3>
             <TechnicalHealthCard technicalAudit={technicalAudit} />
           </div>
         )}
+
+        <SEOContentSection
+          toolName="Technical SEO Audit Tool"
+          title="Ensure Search Engine Crawlers Can Index Your Content"
+          description="Technical SEO issues like missing canonicals or broken robots directives can completely block your pages from search indexation."
+          steps={steps}
+          importanceTitle="Why Technical SEO Audits Are Essential"
+          importanceContent={`Even world-class content will not rank if technical barriers prevent search bots from properly crawling and indexing your site.
+
+Essential Technical Health Checkpoints:
+1. HTTPS Security: Secure SSL/TLS protocol protection is mandatory for web safety and search ranking.
+2. Canonical Alignment: Avoid self-canonical mismatches that lead to duplicate content indexing.
+3. Mobile Viewport: Ensure responsive mobile meta viewport tags exist for Mobile-First indexing.`}
+          faqs={faqs}
+        />
       </main>
 
       <Footer />

@@ -5,6 +5,7 @@ import { SinglePageAudit, BatchAuditResponse } from '@/types/seo';
 import { auditRateLimiter } from '@/lib/rate-limiter';
 import { auditCache } from '@/lib/lru-cache';
 import { freemiumLimiter } from '@/lib/freemium-limiter';
+import { logToolUsage } from '@/lib/activity-logger';
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,23 +40,31 @@ export async function POST(req: NextRequest) {
     // Limit to maximum 5 URLs per request
     const targetUrls = urls.slice(0, 5).map((u) => u.trim()).filter(Boolean);
 
-    // 2. Server-side Freemium Daily Quota Check
+    // Log tool usage to DB activity log
+    logToolUsage(req, 'Competitor Audit', targetUrls[0] || undefined);
+
+    // 2. Server-side Quota & Cooldown Check (5 audits per batch, 120s cooldown)
     const quotaCheck = freemiumLimiter.check(clientIp, targetUrls.length);
     if (!quotaCheck.allowed) {
       return NextResponse.json(
         {
-          error: `Daily free quota limit reached (${quotaCheck.used}/${quotaCheck.limit} used today). Upgrade to Pro for unlimited audits.`,
+          error: `Quota limit reached (5/5 audits used). Please wait 120 seconds before your next 5 free audits unlock!`,
           isQuotaExceeded: true,
+          cooldownSeconds: quotaCheck.cooldownSeconds || 120,
         },
         {
           status: 403,
           headers: {
-            'X-Daily-Quota-Limit': String(quotaCheck.limit),
-            'X-Daily-Quota-Remaining': '0',
+            'X-Quota-Limit': String(quotaCheck.limit),
+            'X-Quota-Remaining': '0',
+            'Retry-After': String(quotaCheck.cooldownSeconds || 120),
           },
         }
       );
     }
+
+    // Consume quota
+    freemiumLimiter.consume(clientIp, targetUrls.length);
 
     const auditPromises = targetUrls.map(async (url): Promise<SinglePageAudit> => {
       const normalizedUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`;

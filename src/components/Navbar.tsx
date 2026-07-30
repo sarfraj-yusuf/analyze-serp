@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Zap, Sun, Moon, Share2, Search, Link2, CreditCard } from 'lucide-react';
+import { Zap, Sun, Moon, Share2, Search, Link2, Sparkles } from 'lucide-react';
 
 interface NavbarProps {
   onOpenProModal?: () => void;
@@ -58,7 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           </div>
         </Link>
 
-        {/* Multi-Page Navigation Links */}
+        {/* Multi-Page Navigation Links (Tool pages only, Pricing moved to Footer) */}
         <nav className="hidden md:flex items-center gap-1.5 bg-slate-100 dark:bg-white/5 p-1.5 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-semibold">
           <Link
             href="/"
@@ -70,18 +70,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           >
             <Search className="w-3.5 h-3.5" />
             <span>Audit Suite</span>
-          </Link>
-
-          <Link
-            href="/pricing"
-            className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
-              pathname === '/pricing'
-                ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-                : 'text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10'
-            }`}
-          >
-            <CreditCard className="w-3.5 h-3.5" />
-            <span>Pricing</span>
           </Link>
 
           <Link
@@ -121,7 +109,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           </Link>
         </nav>
 
-        {/* Badges, Theme Toggle & Pro Action */}
+        {/* Badges, Theme Toggle & Strikethrough Beta Button */}
         <div className="flex items-center gap-3 shrink-0">
           {/* Light / Dark Mode Toggle Button */}
           <button
@@ -142,12 +130,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             )}
           </button>
 
-          <Link
-            href="/pricing"
-            className="px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-emerald-500 to-cyan-500 text-black hover:opacity-90 transition-all shadow-md shadow-emerald-500/20 cursor-pointer shrink-0 inline-block"
+          {/* Strikethrough Price Anchor Button */}
+          <button
+            onClick={onOpenProModal}
+            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-500 to-cyan-500 text-black hover:opacity-95 transition-all shadow-md shadow-emerald-500/20 cursor-pointer shrink-0 flex items-center gap-1.5"
           >
-            Pro Plan ($9/mo)
-          </Link>
+            <Sparkles className="w-3.5 h-3.5 text-black fill-black/20" />
+            <span>
+              <span className="line-through opacity-75 mr-1">$19/mo</span>
+              <span className="font-extrabold underline">FREE Beta</span>
+            </span>
+          </button>
         </div>
       </div>
     </header>

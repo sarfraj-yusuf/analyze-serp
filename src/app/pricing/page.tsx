@@ -141,33 +141,34 @@ export default function PricingPage() {
           {/* Pro Tier (Featured Most Popular) */}
           <div className="glass-panel p-6 sm:p-8 rounded-3xl border-2 border-emerald-500/80 bg-emerald-500/5 flex flex-col justify-between space-y-6 shadow-2xl relative">
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-gradient-to-r from-emerald-500 to-cyan-500 text-black shadow-md">
-              Most Popular Choice
+              100% FREE IN PUBLIC BETA
             </div>
 
             <div className="space-y-4 pt-2">
               <div className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Pro Auditor</div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-slate-900 dark:text-white">
-                  ${billingCycle === 'yearly' ? '7' : '9'}
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-black text-slate-900 dark:text-white">$0</span>
+                <span className="line-through text-sm text-slate-400">$19 / month</span>
+                <span className="text-[11px] font-extrabold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  FREE Beta Access
                 </span>
-                <span className="text-xs text-slate-500 dark:text-gray-400">/ month</span>
               </div>
-              <p className="text-xs text-slate-600 dark:text-gray-400">
-                Ideal for content freelancers, affiliate marketers, and SEO specialists.
+              <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
+                <strong>AnalyzeSERP Pro (Valued at $19/month) is 100% FREE during Public Beta!</strong> Enjoy 5 audits per batch with a fast 120s cooldown reset.
               </p>
 
               <ul className="space-y-2.5 text-xs text-slate-700 dark:text-gray-300 pt-4 border-t border-slate-200 dark:border-white/10">
                 <li className="flex items-center gap-2 font-semibold">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span>100 Daily Audits</span>
+                  <span>5 Audits per Batch (120s Cooldown Reset)</span>
                 </li>
                 <li className="flex items-center gap-2 font-semibold">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span>Batch Audit Up to 10 URLs</span>
+                  <span>Batch Competitor Multi-URL Audits</span>
                 </li>
                 <li className="flex items-center gap-2 font-semibold text-emerald-600 dark:text-emerald-400">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span>Unlimited White-Label PDF Reports</span>
+                  <span>White-Label PDF Client Reports Included</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0" />

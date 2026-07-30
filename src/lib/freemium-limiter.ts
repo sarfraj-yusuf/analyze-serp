@@ -1,77 +1,98 @@
-interface DailyQuotaRecord {
-  date: string; // YYYY-MM-DD
+interface CooldownQuotaRecord {
   usedCount: number;
+  cooldownUntil: number; // Timestamp ms when cooldown expires
 }
 
 /**
- * Server-side IP-based Freemium Daily Quota Tracker
+ * Server-side IP-based Cooldown Quota Tracker
+ * 5 Audits per batch, followed by a 120-second cooldown
  */
 class FreemiumLimiter {
-  private ipQuotas = new Map<string, DailyQuotaRecord>();
-  private maxFreeDailyAudits: number;
+  private ipQuotas = new Map<string, CooldownQuotaRecord>();
+  private maxBatchAudits: number;
+  private cooldownDurationMs: number;
 
-  constructor(maxFreeDailyAudits: number = 5) {
-    this.maxFreeDailyAudits = maxFreeDailyAudits;
-  }
-
-  private getTodayString(): string {
-    return new Date().toISOString().split('T')[0];
+  constructor(maxBatchAudits: number = 5, cooldownSeconds: number = 120) {
+    this.maxBatchAudits = maxBatchAudits;
+    this.cooldownDurationMs = cooldownSeconds * 1000;
   }
 
   /**
-   * Checks if an IP has remaining free daily audits
+   * Checks if an IP is allowed to run audit or in 120s cooldown
    */
   public check(ip: string, requestedCount: number = 1): {
     allowed: boolean;
     used: number;
     limit: number;
     remaining: number;
+    cooldownSeconds: number;
   } {
-    const today = this.getTodayString();
+    const now = Date.now();
     let record = this.ipQuotas.get(ip);
 
-    if (!record || record.date !== today) {
-      record = { date: today, usedCount: 0 };
+    if (!record) {
+      record = { usedCount: 0, cooldownUntil: 0 };
       this.ipQuotas.set(ip, record);
     }
 
-    const remaining = Math.max(0, this.maxFreeDailyAudits - record.usedCount);
-    const allowed = record.usedCount + requestedCount <= this.maxFreeDailyAudits;
+    // Reset batch count if cooldown has passed
+    if (record.cooldownUntil > 0 && now >= record.cooldownUntil) {
+      record.usedCount = 0;
+      record.cooldownUntil = 0;
+    }
+
+    // If currently in active cooldown
+    if (record.cooldownUntil > 0 && now < record.cooldownUntil) {
+      const cooldownSeconds = Math.ceil((record.cooldownUntil - now) / 1000);
+      return {
+        allowed: false,
+        used: record.usedCount,
+        limit: this.maxBatchAudits,
+        remaining: 0,
+        cooldownSeconds,
+      };
+    }
+
+    const remaining = Math.max(0, this.maxBatchAudits - record.usedCount);
+    const allowed = record.usedCount + requestedCount <= this.maxBatchAudits;
+
+    let cooldownSeconds = 0;
+    if (!allowed && record.cooldownUntil > 0) {
+      cooldownSeconds = Math.ceil((record.cooldownUntil - now) / 1000);
+    }
 
     return {
       allowed,
       used: record.usedCount,
-      limit: this.maxFreeDailyAudits,
+      limit: this.maxBatchAudits,
       remaining,
+      cooldownSeconds,
     };
   }
 
   /**
-   * Consumes daily quota for an IP address
+   * Consumes audit count for an IP address and triggers 120s cooldown if 5 audits reached
    */
   public consume(ip: string, count: number): void {
-    const today = this.getTodayString();
+    const now = Date.now();
     let record = this.ipQuotas.get(ip);
 
-    if (!record || record.date !== today) {
-      record = { date: today, usedCount: 0 };
+    if (!record) {
+      record = { usedCount: 0, cooldownUntil: 0 };
       this.ipQuotas.set(ip, record);
     }
 
-    record.usedCount += count;
-  }
+    if (record.cooldownUntil > 0 && now >= record.cooldownUntil) {
+      record.usedCount = 0;
+      record.cooldownUntil = 0;
+    }
 
-  /**
-   * Cleanup stale records from past days
-   */
-  public cleanupStale(): void {
-    const today = this.getTodayString();
-    for (const [ip, record] of this.ipQuotas.entries()) {
-      if (record.date !== today) {
-        this.ipQuotas.delete(ip);
-      }
+    record.usedCount += count;
+
+    if (record.usedCount >= this.maxBatchAudits) {
+      record.cooldownUntil = now + this.cooldownDurationMs;
     }
   }
 }
 
-export const freemiumLimiter = new FreemiumLimiter(5);
+export const freemiumLimiter = new FreemiumLimiter(5, 120);

@@ -2,8 +2,10 @@
 
 import React, { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
 import { ReadabilityCard } from '@/components/ReadabilityCard';
 import { ProUpgradeModal } from '@/components/ProUpgradeModal';
+import { SEOContentSection } from '@/components/SEOContentSection';
 import { calculateReadability } from '@/lib/readability';
 import { ReadabilityMetrics } from '@/types/seo';
 import { BookOpen, Sparkles, ArrowLeft, AlignLeft } from 'lucide-react';
@@ -17,6 +19,36 @@ export default function ReadabilityPage() {
 
   const [metrics, setMetrics] = useState<ReadabilityMetrics>(calculateReadability(inputText));
 
+  const steps = [
+    {
+      title: 'Paste Text or Article Draft',
+      description: 'Paste your content draft, blog post, or article text directly into the live text editor.',
+    },
+    {
+      title: 'Real-Time Syllable & Sentence Analysis',
+      description: 'Watch the algorithm calculate average words per sentence, syllable distribution, and Flesch Reading Ease in real time.',
+    },
+    {
+      title: 'Optimize Content Grade Level',
+      description: 'Adjust sentence lengths and replace complex multi-syllable jargon to reach the ideal 7th-8th Grade level for web readers.',
+    },
+  ];
+
+  const faqs = [
+    {
+      question: 'What is the Flesch Reading Ease score?',
+      answer: 'The Flesch Reading Ease test measures textual difficulty on a 0 to 100 scale. Higher scores indicate material that is easier to read. Standard web content should target a score between 60.0 and 70.0 (8th to 9th grade level).',
+    },
+    {
+      question: 'Does content readability affect SEO rankings?',
+      answer: 'Yes. Readable content improves user engagement, reduces bounce rates, and increases dwell time. Search engines favor content that answers user queries clearly without unnecessary syntactic complexity.',
+    },
+    {
+      question: 'How is the Flesch-Kincaid Grade Level calculated?',
+      answer: 'Flesch-Kincaid Grade Level evaluates average sentence length (words per sentence) and average syllables per word to match US grade school education levels.',
+    },
+  ];
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
     setInputText(val);
@@ -27,7 +59,7 @@ export default function ReadabilityPage() {
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-slate-900 dark:text-gray-100 selection:bg-emerald-500 selection:text-black transition-colors duration-200">
       <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
         {/* Navigation Breadcrumb */}
         <div className="flex items-center gap-2 text-xs">
           <Link
@@ -48,11 +80,11 @@ export default function ReadabilityPage() {
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            Readability & <span className="gradient-text">Tone Analyzer</span>
+            Free Flesch Readability <span className="gradient-text">Score Checker</span>
           </h1>
 
           <p className="text-sm text-slate-600 dark:text-gray-400 leading-relaxed">
-            Calculate the Flesch Reading Ease score ($0-100$) and target Grade Level in real-time to match ideal competitor readability standards.
+            Calculate Flesch Reading Ease score (0-100), Flesch-Kincaid Grade Level, and sentence complexity metrics in real-time.
           </p>
         </div>
 
@@ -78,19 +110,24 @@ export default function ReadabilityPage() {
 
         {/* Readability Results Card */}
         <ReadabilityCard readability={metrics} />
+
+        <SEOContentSection
+          toolName="Flesch Readability Score Checker"
+          title="Optimize Content Readability & User Dwell Time"
+          description="Web users scan content. Writing at an accessible grade level keeps users engaged and lowers bounce rates."
+          steps={steps}
+          importanceTitle="Why Flesch Readability Matters for Content Marketing & SEO"
+          importanceContent={`Search engine algorithms measure user engagement signals (dwell time, scroll depth, bounce rate). Complex syntax and overly dense paragraphs frustrate readers, causing them to bounce back to search results.
+
+Key Readability Targets:
+1. Target Flesch Score: 60 to 70 (Plain English, easily understood by 13-to-15-year-old students).
+2. Sentence Length: Keep average sentence length under 20 words.
+3. Syllable Ratio: Minimize complex words (words with 3+ syllables) to under 10% of total word count.`}
+          faqs={faqs}
+        />
       </main>
 
-      <footer className="glass-panel border-t border-slate-200 dark:border-white/10 mt-16 py-6 text-center text-xs text-slate-600 dark:text-gray-400">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>© {new Date().getFullYear()} SEO Matrix. Built with Next.js & Cheerio.</div>
-          <div className="flex items-center gap-4 text-slate-600 dark:text-gray-400">
-            <Link href="/" className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Home</Link>
-            <Link href="/readability" className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Readability</Link>
-            <Link href="/serp-simulator" className="hover:text-slate-900 dark:hover:text-white cursor-pointer">SERP Simulator</Link>
-          </div>
-        </div>
-      </footer>
-
+      <Footer />
       <ProUpgradeModal isOpen={isProModalOpen} onClose={() => setIsProModalOpen(false)} />
     </div>
   );

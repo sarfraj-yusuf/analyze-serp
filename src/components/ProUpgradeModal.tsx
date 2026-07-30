@@ -28,71 +28,58 @@ export const ProUpgradeModal: React.FC<ProUpgradeModalProps> = ({ isOpen, onClos
         <div className="text-center space-y-2 pt-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Unlock Unlimited Competitor Intelligence</span>
+            <span>Public Beta Free Access</span>
           </div>
 
-          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Upgrade to <span className="gradient-text">SEO Matrix Pro</span>
+          <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            AnalyzeSERP Pro <span className="gradient-text">(Valued at $19/month)</span> is 100% FREE during Public Beta!
           </h3>
 
-          <p className="text-xs text-slate-600 dark:text-gray-300 max-w-md mx-auto">
-            Supercharge your content workflow with batch multi-URL audits, unlimited PDF exports, and deep SERP benchmarks.
+          <p className="text-xs text-slate-600 dark:text-gray-300 max-w-md mx-auto leading-relaxed">
+            All features, multi-URL competitor audits, readability grade metrics, and white-label PDF report exports are currently unlocked for early adopters.
           </p>
         </div>
 
         {/* Pricing Card */}
-        <div className="p-5 rounded-2xl bg-slate-100 dark:bg-[#080c14] border border-emerald-500/40 flex items-center justify-between shadow-sm">
+        <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/40 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
           <div>
-            <div className="text-xs text-slate-600 dark:text-gray-400 font-semibold uppercase tracking-wider">Pro Monthly Membership</div>
-            <div className="flex items-baseline gap-1 mt-1">
-              <span className="text-3xl font-black text-slate-900 dark:text-white">$9</span>
-              <span className="text-xs text-slate-500 dark:text-gray-400">/ month</span>
+            <div className="text-xs text-slate-600 dark:text-gray-400 font-semibold uppercase tracking-wider">Public Beta Status</div>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">$0</span>
+              <span className="line-through text-xs text-slate-400">$19 / month</span>
             </div>
           </div>
 
           <button
-            onClick={() => alert('Pro Subscription Checkout Demo Triggered!')}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold text-xs shadow-lg shadow-emerald-500/20 hover:opacity-95 transition-all cursor-pointer shrink-0"
+            onClick={onClose}
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-extrabold text-xs shadow-lg shadow-emerald-500/20 hover:opacity-95 transition-all cursor-pointer shrink-0 w-full sm:w-auto"
           >
-            Start 7-Day Free Trial
+            Start Using Free Now
           </button>
         </div>
 
-        {/* Feature Comparison List */}
-        <div className="space-y-2.5 text-xs text-slate-700 dark:text-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="p-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 shrink-0">
-              <Check className="w-3.5 h-3.5 stroke-[3]" />
+        {/* Feature List */}
+        <div className="space-y-2 text-xs">
+          <div className="flex items-center gap-2.5 text-slate-700 dark:text-gray-300">
+            <div className="p-1 rounded-full bg-emerald-500/20 text-emerald-500 shrink-0">
+              <Check className="w-3.5 h-3.5" />
             </div>
-            <span><strong className="text-slate-900 dark:text-white">Batch Processing:</strong> Audit up to 10 URLs simultaneously (Free tier: 5).</span>
+            <span>Unlimited Competitor On-Page & Technical Audits</span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="p-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 shrink-0">
-              <Check className="w-3.5 h-3.5 stroke-[3]" />
+          <div className="flex items-center gap-2.5 text-slate-700 dark:text-gray-300">
+            <div className="p-1 rounded-full bg-emerald-500/20 text-emerald-500 shrink-0">
+              <Check className="w-3.5 h-3.5" />
             </div>
-            <span><strong className="text-slate-900 dark:text-white">Unlimited Audits:</strong> No daily limit counters or IP rate throttling.</span>
+            <span>1-Gram, 2-Gram & 3-Gram Keyword Gap Extraction</span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="p-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 shrink-0">
-              <Check className="w-3.5 h-3.5 stroke-[3]" />
+          <div className="flex items-center gap-2.5 text-slate-700 dark:text-gray-300">
+            <div className="p-1 rounded-full bg-emerald-500/20 text-emerald-500 shrink-0">
+              <Check className="w-3.5 h-3.5" />
             </div>
-            <span><strong className="text-slate-900 dark:text-white">Branded Client PDF Reports:</strong> White-label exports with your agency logo.</span>
+            <span>White-Label Branded Client PDF Report Exports</span>
           </div>
-
-          <div className="flex items-center gap-3">
-            <div className="p-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 shrink-0">
-              <Check className="w-3.5 h-3.5 stroke-[3]" />
-            </div>
-            <span><strong className="text-slate-900 dark:text-white">Priority Scraping Pipeline:</strong> Instant 1-second DOM parsing without queues.</span>
-          </div>
-        </div>
-
-        {/* Guarantee Footer */}
-        <div className="text-center text-[11px] text-slate-500 dark:text-gray-400 flex items-center justify-center gap-2 pt-2 border-t border-slate-200 dark:border-white/10">
-          <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-          <span>30-Day Money Back Guarantee • Cancel Anytime with 1 Click</span>
         </div>
       </div>
     </div>

@@ -2,8 +2,10 @@
 
 import React, { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
 import { WhiteLabelPdfModal } from '@/components/WhiteLabelPdfModal';
 import { ProUpgradeModal } from '@/components/ProUpgradeModal';
+import { SEOContentSection } from '@/components/SEOContentSection';
 import { SinglePageAudit } from '@/types/seo';
 import { FileText, Sparkles, ArrowLeft, Search, Globe, Download } from 'lucide-react';
 import Link from 'next/link';
@@ -15,6 +17,36 @@ export default function PdfReportsPage() {
   const [auditResult, setAuditResult] = useState<SinglePageAudit | null>(null);
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const steps = [
+    {
+      title: 'Submit Target Webpage URL',
+      description: 'Enter your agency client website or target URL to generate instant audit metrics.',
+    },
+    {
+      title: 'Customize Agency Branding & Logo',
+      description: 'Upload your agency logo, enter company name, and add custom executive recommendations.',
+    },
+    {
+      title: 'Export Multi-Page Branded PDF Report',
+      description: 'Download a client-ready vector PDF report complete with overall health score, technical audit, and keyword tables.',
+    },
+  ];
+
+  const faqs = [
+    {
+      question: 'What is a White-Label SEO Report?',
+      answer: 'A White-Label SEO Report allows agencies, freelancers, and consultants to generate comprehensive SEO audits featuring their own branding, agency logo, and custom notes without third-party vendor logos.',
+    },
+    {
+      question: 'What metrics are included in the PDF export?',
+      answer: 'PDF reports include overall health score, title & meta tag analysis, heading structure tree, word count, Flesch readability grade, 1-gram to 3-gram keyword density tables, and technical performance checks.',
+    },
+    {
+      question: 'Are PDF reports free to export?',
+      answer: 'Yes. AnalyzeSERP provides free PDF report exports for standard audits.',
+    },
+  ];
 
   const handleFetchAudit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +84,7 @@ export default function PdfReportsPage() {
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-slate-900 dark:text-gray-100 selection:bg-emerald-500 selection:text-black transition-colors duration-200">
       <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
         {/* Navigation Breadcrumb */}
         <div className="flex items-center gap-2 text-xs">
           <Link
@@ -69,26 +101,26 @@ export default function PdfReportsPage() {
         <div className="text-center space-y-3 max-w-3xl mx-auto py-4">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>B2B Agency Executive Reports</span>
+            <span>Agency Executive Reporting</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            White-Label Executive <span className="gradient-text">PDF Report Generator</span>
+            White Label SEO <span className="gradient-text">Report Generator</span>
           </h1>
 
           <p className="text-sm text-slate-600 dark:text-gray-400 leading-relaxed">
-            Generate 3-page, colorful client-ready PDF reports with agency branding, custom logos, health scorecards (0–100), keyword density bar charts, and actionable optimization checklists.
+            Generate clean, multi-page vector PDF SEO audit reports. Add custom agency branding, company logo, and executive recommendations for client proposals.
           </p>
         </div>
 
-        {/* Search URL Form */}
-        <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/10 max-w-3xl mx-auto space-y-4">
+        {/* Search Input Card */}
+        <div className="glass-panel rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-xl space-y-6 max-w-2xl mx-auto">
           <form onSubmit={handleFetchAudit} className="flex flex-col sm:flex-row items-center gap-3">
-            <div className="relative flex-1 w-full">
-              <Globe className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-400" />
+            <div className="relative w-full">
+              <Globe className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Enter client URL to generate branded PDF report (e.g. https://ahrefs.com/blog/on-page-seo/)"
+                placeholder="Enter client URL (e.g. https://example.com/on-page-seo/)"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 rounded-xl glass-input text-xs focus:outline-none shadow-sm font-mono"
@@ -126,18 +158,24 @@ export default function PdfReportsPage() {
             </button>
           </div>
         )}
+
+        <SEOContentSection
+          toolName="White Label SEO Report Generator"
+          title="Deliver Professional Branded Client Audit Reports"
+          description="Impress clients and close agency deals with vector-grade PDF SEO audits exported in seconds."
+          steps={steps}
+          importanceTitle="Why Professional PDF SEO Reports Drive Agency Revenue"
+          importanceContent={`For agencies, freelancers, and SEO consultants, client communication is everything. Clear visual audit reports build immediate credibility during sales calls and monthly client check-ins.
+
+PDF Report Highlights:
+1. Custom Agency Branding: Upload your logo and custom headers.
+2. Executive Summary & Scores: Unified 0–100 health score combining content quality and technical performance.
+3. Actionable Technical Checklists: Clear pass/fail breakdowns for title tags, canonicals, HTTPS, and N-gram densities.`}
+          faqs={faqs}
+        />
       </main>
 
-      <footer className="glass-panel border-t border-slate-200 dark:border-white/10 mt-16 py-6 text-center text-xs text-slate-600 dark:text-gray-400">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>© {new Date().getFullYear()} SEO Matrix. Built with Next.js & Cheerio.</div>
-          <div className="flex items-center gap-4 text-slate-600 dark:text-gray-400">
-            <Link href="/" className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Home</Link>
-            <Link href="/pdf-reports" className="hover:text-slate-900 dark:hover:text-white cursor-pointer">PDF Reports</Link>
-            <Link href="/technical-health" className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Technical Health</Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       {auditResult && (
         <WhiteLabelPdfModal isOpen={isPdfModalOpen} onClose={() => setIsPdfModalOpen(false)} audit={auditResult} />

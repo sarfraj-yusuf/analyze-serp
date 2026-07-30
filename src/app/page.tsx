@@ -10,11 +10,12 @@ import { ContentBriefGenerator } from '@/components/ContentBriefGenerator';
 import { ProUpgradeModal } from '@/components/ProUpgradeModal';
 import { BatchAuditResponse, SinglePageAudit, KeywordGapAnalysis } from '@/types/seo';
 import { analyzeKeywordGaps } from '@/lib/keyword-gap';
-import { Search, Plus, Trash2, Zap, AlertCircle, Sparkles, Layers, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Search, Plus, Trash2, Zap, AlertCircle, Sparkles, Layers, ShieldCheck, ArrowRight, Clock } from 'lucide-react';
 
 const MAX_FREE_DAILY_AUDITS = 5;
 
 import { AuditSkeleton } from '@/components/AuditSkeleton';
+import { SEOContentSection } from '@/components/SEOContentSection';
 
 export default function Home() {
   const [urls, setUrls] = useState<string[]>(['']);
@@ -24,6 +25,24 @@ export default function Home() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [dailyAuditCount, setDailyAuditCount] = useState<number>(0);
   const [isProModalOpen, setIsProModalOpen] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState<number>(0);
+  const [isCooldownActive, setIsCooldownActive] = useState<boolean>(false);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isCooldownActive && cooldownSeconds > 0) {
+      timer = setInterval(() => {
+        setCooldownSeconds((prev) => {
+          if (prev <= 1) {
+            setIsCooldownActive(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isCooldownActive, cooldownSeconds]);
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -33,20 +52,14 @@ export default function Home() {
         const parsed = JSON.parse(savedQuota);
         if (parsed.date === today) {
           setDailyAuditCount(parsed.count || 0);
-        } else {
-          localStorage.setItem('daily_audit_quota', JSON.stringify({ date: today, count: 0 }));
         }
-      } catch {
-        localStorage.setItem('daily_audit_quota', JSON.stringify({ date: today, count: 0 }));
-      }
-    } else {
-      localStorage.setItem('daily_audit_quota', JSON.stringify({ date: today, count: 0 }));
+      } catch (e) {}
     }
   }, []);
 
-  const incrementDailyQuota = (countAdded: number) => {
+  const incrementDailyQuota = (count: number) => {
     const today = new Date().toISOString().split('T')[0];
-    const newCount = dailyAuditCount + countAdded;
+    const newCount = dailyAuditCount + count;
     setDailyAuditCount(newCount);
     localStorage.setItem('daily_audit_quota', JSON.stringify({ date: today, count: newCount }));
   };
@@ -75,6 +88,11 @@ export default function Home() {
     e.preventDefault();
     setErrorMsg(null);
 
+    if (isCooldownActive && cooldownSeconds > 0) {
+      setErrorMsg(`Quota limit reached. Please wait ${cooldownSeconds}s before your next 5 free audits unlock.`);
+      return;
+    }
+
     const validUrls = urls.map((u) => u.trim()).filter(Boolean);
     if (validUrls.length === 0) {
       setErrorMsg('Please enter at least 1 valid URL to run the audit.');
@@ -99,6 +117,11 @@ export default function Home() {
 
       if (!res.ok) {
         const errData = await res.json();
+        if (errData.isQuotaExceeded || res.status === 403) {
+          const seconds = errData.cooldownSeconds || 120;
+          setCooldownSeconds(seconds);
+          setIsCooldownActive(true);
+        }
         throw new Error(errData.error || 'Server error running competitor audit.');
       }
 
@@ -157,6 +180,25 @@ export default function Home() {
             Enter up to 5 competitor URLs to instantly analyze title tags, meta descriptions, Flesch readability grades, TTFB latency, keyword gaps, and export white-label client PDF reports.
           </p>
         </div>
+
+        {/* Cooldown Timer Card if 5/5 audits used */}
+        {isCooldownActive && cooldownSeconds > 0 && (
+          <div className="glass-panel p-6 rounded-3xl border-2 border-amber-500/60 bg-amber-500/10 space-y-3 text-center animate-in fade-in max-w-3xl mx-auto shadow-xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+              <Clock className="w-4 h-4 text-amber-400 animate-spin" />
+              <span>Quota Cooldown Active: 5/5 Audits Used</span>
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white">
+              Next 5 Free Audits Unlock In:{' '}
+              <span className="font-mono text-3xl text-amber-500 underline ml-2">
+                {cooldownSeconds}s
+              </span>
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-gray-300 max-w-md mx-auto leading-relaxed">
+              <strong>AnalyzeSERP Pro (Valued at $19/month) is 100% FREE during Public Beta!</strong> While your 120-second timer counts down, please leave a quick review or suggestion below.
+            </p>
+          </div>
+        )}
 
         {/* Audit Input Form Box */}
         <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl space-y-6">
@@ -365,6 +407,51 @@ export default function Home() {
                 </p>
               </div>
             </div>
+
+            <SEOContentSection
+              toolName="Competitor SEO Audit Suite"
+              title="Dominate Search Engine Result Pages (SERP) with Data-Driven SEO Intelligence"
+              description="Analyze competitor content strategy, uncover hidden keyword gaps, and optimize your on-page SEO signals without expensive monthly subscriptions."
+              steps={[
+                {
+                  title: 'Paste Up to 5 Competitor URLs',
+                  description: 'Input your page URL along with top-ranking competitor URLs in your niche.',
+                },
+                {
+                  title: 'Extract On-Page & Technical Metrics',
+                  description: 'Our non-AI parsing engine extracts titles, meta tags, heading trees, word counts, N-grams, and TTFB latency.',
+                },
+                {
+                  title: 'Identify Keyword Gaps & Outperform Competitors',
+                  description: 'Discover missing 1-gram, 2-gram, and 3-gram search terms and export white-label PDF reports.',
+                },
+              ]}
+              importanceTitle="Why On-Page SEO & Competitor Analysis Matter"
+              importanceContent={`On-page SEO remains the foundation of organic search visibility. While off-page backlinks build domain authority, on-page optimization tells Google exactly what your content is about and which search intent it fulfills.
+
+Key Advantages of Competitor Gap Analysis:
+1. Eliminates Content Guesswork: Identify exact keyword densities used by Page 1 Google results.
+2. Structure Optimization: Model your heading hierarchy (H1, H2, H3) based on top-performing search competitors.
+3. Rapid Execution: Make data-backed content updates in minutes instead of waiting months for trial-and-error tests.`}
+              faqs={[
+                {
+                  question: 'What is a Competitor SEO Audit Tool?',
+                  answer: 'A Competitor SEO Audit Tool analyzes the on-page HTML, title tags, heading structures, keyword densities, and technical performance of top-ranking search engine results to identify optimization opportunities for your own content.',
+                },
+                {
+                  question: 'How does AnalyzeSERP differ from AI SEO tools?',
+                  answer: 'AnalyzeSERP uses pure, deterministic DOM parsing and non-AI statistical algorithms. This guarantees 100% accurate, hallucination-free data extraction at ultra-fast speeds.',
+                },
+                {
+                  question: 'What is a Keyword Gap Analysis?',
+                  answer: 'A Keyword Gap Analysis compares your content against top-ranking competitors to discover essential single-word and multi-word phrases that appear in competitor articles but are missing from your page.',
+                },
+                {
+                  question: 'Is AnalyzeSERP free to use?',
+                  answer: 'Yes! AnalyzeSERP allows up to 5 free comprehensive competitor audits per day with no registration required.',
+                },
+              ]}
+            />
           </div>
         )}
       </main>

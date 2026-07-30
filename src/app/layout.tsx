@@ -92,6 +92,8 @@ const jsonLdSchema = {
   },
 };
 
+import { ClientFeedbackWrapper } from "@/components/ClientFeedbackWrapper";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -108,7 +110,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${outfit.variable} antialiased min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors duration-200`}
       >
-        {children}
+        <ClientFeedbackWrapper>{children}</ClientFeedbackWrapper>
       </body>
     </html>
   );
