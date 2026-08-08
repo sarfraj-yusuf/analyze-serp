@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { SinglePageAudit } from '@/types/seo';
 import { HeadingTree } from './HeadingTree';
@@ -8,6 +10,8 @@ import { ReadabilityCard } from './ReadabilityCard';
 import { SerpSocialSimulator } from './SerpSocialSimulator';
 import { LinkInspectorCard } from './LinkInspectorCard';
 import { TechnicalHealthCard } from './TechnicalHealthCard';
+import { CoreWebVitalsCard } from './CoreWebVitalsCard';
+import { SearchIntentEntityCard } from './SearchIntentEntityCard';
 import { WhiteLabelPdfModal } from './WhiteLabelPdfModal';
 import {
   FileText,
@@ -26,6 +30,8 @@ import {
   Share2,
   Zap,
   Download,
+  Activity,
+  Target,
 } from 'lucide-react';
 
 interface SingleAuditCardProps {
@@ -33,7 +39,7 @@ interface SingleAuditCardProps {
 }
 
 export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
-  const [activeTab, setActiveTab] = useState<'scorecard' | 'technical' | 'serp' | 'readability' | 'headings' | 'keywords' | 'images' | 'links'>('scorecard');
+  const [activeTab, setActiveTab] = useState<'scorecard' | 'technical' | 'vitals' | 'intent' | 'serp' | 'readability' | 'headings' | 'keywords' | 'images' | 'links'>('scorecard');
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
   if (audit.status === 'error') {
@@ -169,7 +175,7 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           }`}
         >
           <Award className="w-4 h-4" />
-          <span>SEO Health Report</span>
+          <span>On-Page SEO Basics</span>
         </button>
 
         <button
@@ -185,6 +191,36 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
         >
           <Zap className="w-4 h-4" />
           <span>Technical Health & Speed</span>
+        </button>
+
+        <button
+          role="tab"
+          aria-selected={activeTab === 'vitals'}
+          aria-controls="panel-vitals"
+          onClick={() => setActiveTab('vitals')}
+          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+            activeTab === 'vitals'
+              ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
+              : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300'
+          }`}
+        >
+          <Activity className="w-4 h-4 text-cyan-500" />
+          <span>Core Web Vitals</span>
+        </button>
+
+        <button
+          role="tab"
+          aria-selected={activeTab === 'intent'}
+          aria-controls="panel-intent"
+          onClick={() => setActiveTab('intent')}
+          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+            activeTab === 'intent'
+              ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
+              : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300'
+          }`}
+        >
+          <Target className="w-4 h-4 text-indigo-500" />
+          <span>Search Intent & Entities</span>
         </button>
 
         <button
@@ -281,7 +317,11 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
       {/* Tab Panels */}
       <div role="tabpanel" id={`panel-${activeTab}`}>
         {activeTab === 'scorecard' && <AuditScorecard audit={audit} />}
-        {activeTab === 'technical' && technicalAudit && <TechnicalHealthCard technicalAudit={technicalAudit} />}
+        {activeTab === 'technical' && technicalAudit && (
+          <TechnicalHealthCard technicalAudit={technicalAudit} robotsValidation={audit.robotsValidation} />
+        )}
+        {activeTab === 'vitals' && <CoreWebVitalsCard initialUrl={audit.url} />}
+        {activeTab === 'intent' && audit.searchIntent && <SearchIntentEntityCard searchIntent={audit.searchIntent} />}
         {activeTab === 'serp' && <SerpSocialSimulator meta={meta} initialUrl={audit.url} />}
         {activeTab === 'readability' && readability && <ReadabilityCard readability={readability} />}
         {activeTab === 'headings' && <HeadingTree headings={headings} />}

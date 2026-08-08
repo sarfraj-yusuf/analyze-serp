@@ -1,18 +1,34 @@
 import { MetadataRoute } from 'next';
+import { getAllBlogPosts } from '@/lib/blog';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://analyzeserp.com';
 
-  return [
+  const blogPosts = getAllBlogPosts();
+
+  const blogSitemapEntries: MetadataRoute.Sitemap = blogPosts.map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: post.date,
+    changeFrequency: 'weekly',
+    priority: 0.8,
+  }));
+
+  const staticEntries: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}`,
-      lastModified: '2026-07-29',
+      lastModified: '2026-07-30',
       changeFrequency: 'daily',
       priority: 1.0,
     },
     {
+      url: `${baseUrl}/blog`,
+      lastModified: '2026-07-30',
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/pricing`,
-      lastModified: '2026-07-29',
+      lastModified: '2026-07-30',
       changeFrequency: 'weekly',
       priority: 0.9,
     },
@@ -89,4 +105,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     },
   ];
+
+  return [...staticEntries, ...blogSitemapEntries];
 }

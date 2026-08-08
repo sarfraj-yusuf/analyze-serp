@@ -59,8 +59,11 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/pdf-reports" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  White-Label PDF Reports
+                <Link href="/pdf-reports" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5">
+                  <span>White-Label PDF Reports</span>
+                  <span className="px-1.5 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                    NEW
+                  </span>
                 </Link>
               </li>
               <li>
@@ -76,8 +79,11 @@ export const Footer: React.FC = () => {
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Specialized Utilities</h4>
             <ul className="space-y-1.5 text-[11px]">
               <li>
-                <Link href="/site-speed-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  Site Speed Checker
+                <Link href="/site-speed-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5">
+                  <span>Site Speed Checker</span>
+                  <span className="px-1.5 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm animate-pulse">
+                    NEW
+                  </span>
                 </Link>
               </li>
               <li>
@@ -88,6 +94,19 @@ export const Footer: React.FC = () => {
               <li>
                 <Link href="/affiliate-link-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                   Affiliate Link Checker
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog" className="hover:text-emerald-600 dark:hover:text-emerald-400 font-bold text-emerald-600 dark:text-emerald-400 transition-colors inline-flex items-center gap-1.5">
+                  <span>SEO Blog & Knowledge Base</span>
+                  <span className="px-1.5 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-extrabold shadow-sm animate-pulse">
+                    NEW
+                  </span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/rss.xml" target="_blank" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                  RSS Feed (/rss.xml)
                 </Link>
               </li>
               <li>

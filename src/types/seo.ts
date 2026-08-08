@@ -111,6 +111,29 @@ export interface TechnicalAudit {
   warnings: string[];
 }
 
+export interface RobotsValidationResult {
+  status: 'ALLOWED' | 'BLOCKED' | 'NO_ROBOTS_TXT';
+  robotsUrl: string;
+  matchedRule?: string; // e.g., "Disallow: /admin/"
+  sitemaps: string[];
+  userAgentsFound: string[];
+}
+
+export interface TopicalEntity {
+  name: string;
+  category: 'BRAND' | 'TECHNICAL_TERM' | 'TOPIC_CONCEPT' | 'LOCATION';
+  count: number;
+  densityPercent: number;
+}
+
+export interface SearchIntentData {
+  primaryIntent: 'INFORMATIONAL' | 'COMMERCIAL' | 'TRANSACTIONAL' | 'NAVIGATIONAL';
+  confidencePercent: number; // 0 - 100
+  intentSignalsFound: string[];
+  topicalEntities: TopicalEntity[];
+  recommendations: string[];
+}
+
 export interface SinglePageAudit {
   url: string;
   fetchTimeMs: number;
@@ -126,6 +149,8 @@ export interface SinglePageAudit {
   keywords: KeywordAnalysis;
   readability: ReadabilityMetrics;
   technicalAudit: TechnicalAudit;
+  robotsValidation?: RobotsValidationResult;
+  searchIntent?: SearchIntentData;
 }
 
 export interface KeywordGapItem {
@@ -136,10 +161,16 @@ export interface KeywordGapItem {
   missingInUrls: string[]; // Competitor URLs lacking this phrase
   maxDensity: number;
   topCompetitorUrl: string;
+  targetPageDensity?: number;
+  targetPageCount?: number;
+  isTargetPageMissing?: boolean; // Present in 1+ competitors, but 0 on Your Page
+  isTargetPageUnderOptimized?: boolean; // Present on Your Page, but competitor avg is 1.5x+ higher
 }
 
 export interface KeywordGapAnalysis {
   totalUniqueKeywords: number;
+  targetPageUrl?: string;
+  yourPageMissingGaps?: KeywordGapItem[];
   commonCoreKeywords: KeywordGapItem[];
   keywordGaps: KeywordGapItem[];
   allItems: KeywordGapItem[];

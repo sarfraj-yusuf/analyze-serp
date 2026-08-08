@@ -1,12 +1,13 @@
-import React from 'react';
-import { TechnicalAudit } from '@/types/seo';
-import { Zap, Clock, FileCode, Layers, ShieldCheck, AlertTriangle, Check, Cpu, Code2, Lock } from 'lucide-react';
+import { TechnicalAudit, RobotsValidationResult } from '@/types/seo';
+import { Zap, Clock, FileCode, Layers, ShieldCheck, AlertTriangle, Check, Cpu, Code2, Lock, FileText, ExternalLink } from 'lucide-react';
+import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
 
 interface TechnicalHealthCardProps {
   technicalAudit: TechnicalAudit;
+  robotsValidation?: RobotsValidationResult;
 }
 
-export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ technicalAudit }) => {
+export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ technicalAudit, robotsValidation }) => {
   const {
     ttfbMs,
     totalDownloadTimeMs,
@@ -163,6 +164,60 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
           </div>
         </div>
       </div>
+
+      {/* robots.txt Indexability Status */}
+      {robotsValidation && (
+        <div className="p-4 rounded-xl bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
+              <FileText className="w-4 h-4 text-cyan-500" />
+              <span>robots.txt Crawlability Status</span>
+              <SEOExplanationTooltip text="Evaluates live robots.txt directives for Googlebot & general crawlers to ensure search engine indexability." />
+            </div>
+            <a
+              href={robotsValidation.robotsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1 font-mono"
+            >
+              <span>View robots.txt</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <div className="flex items-center gap-2">
+              <span
+                className={`px-2.5 py-1 rounded text-xs font-extrabold uppercase ${
+                  robotsValidation.status === 'ALLOWED'
+                    ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                    : robotsValidation.status === 'BLOCKED'
+                    ? 'bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                    : 'bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-gray-300'
+                }`}
+              >
+                {robotsValidation.status === 'ALLOWED'
+                  ? '🟢 Allowed for Crawling'
+                  : robotsValidation.status === 'BLOCKED'
+                  ? '🔴 Blocked by Disallow Rule'
+                  : 'ℹ️ No robots.txt (Allowed by Default)'}
+              </span>
+
+              {robotsValidation.matchedRule && (
+                <span className="text-xs font-mono font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
+                  {robotsValidation.matchedRule}
+                </span>
+              )}
+            </div>
+
+            {robotsValidation.sitemaps.length > 0 && (
+              <div className="text-[11px] font-mono text-slate-500 dark:text-gray-400">
+                Sitemaps Found: <strong className="text-emerald-500">{robotsValidation.sitemaps.length}</strong>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Technical Warnings & Recommendations */}
       {warnings.length > 0 && (

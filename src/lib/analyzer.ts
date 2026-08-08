@@ -3,6 +3,7 @@ import { KeywordAnalysis, KeywordItem, SinglePageAudit } from '@/types/seo';
 import { ScrapedRawDOM } from './scraper';
 import { calculateReadability } from './readability';
 import { analyzeTechnicalHealth } from './technical-audit';
+import { analyzeSearchIntentAndEntities } from './intent-entity-analyzer';
 
 /**
  * Calculates keyword frequency & density for 1-gram, 2-gram, and 3-gram phrases
@@ -135,6 +136,9 @@ export function analyzePage(scrapedData: ScrapedRawDOM): SinglePageAudit {
   // Compute Performance & Technical Health Audit
   const technicalAudit = analyzeTechnicalHealth(html, fetchTimeMs, ttfbMs, finalUrl || url, cheerioDom);
 
+  // Compute Search Intent & Topical Entity Analysis
+  const searchIntent = analyzeSearchIntentAndEntities(meta.title, headings, keywords);
+
   return {
     url,
     fetchTimeMs,
@@ -149,5 +153,6 @@ export function analyzePage(scrapedData: ScrapedRawDOM): SinglePageAudit {
     keywords,
     readability,
     technicalAudit,
+    searchIntent,
   };
 }

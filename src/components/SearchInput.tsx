@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Search, Plus, Trash2, Globe, Sparkles, AlertCircle } from 'lucide-react';
 
@@ -53,8 +55,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onAnalyze, isLoading }
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto my-8 px-4">
-      <div className="glass-panel rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+    <div className="w-full max-w-[830px] mx-auto my-8 px-4">
+      <div className="glass-panel rounded-2xl p-7 sm:p-10 shadow-xl relative overflow-hidden">
         {/* Background gradient decorative glow */}
         <div className="absolute -top-24 -right-24 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-60 h-60 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -79,9 +81,9 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onAnalyze, isLoading }
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           {urls.map((url, idx) => (
-            <div key={idx} className="flex items-center gap-2">
+            <div key={idx} className="flex items-center gap-2.5">
               <div className="relative flex-1">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-gray-400">
                   <Globe className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -92,7 +94,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onAnalyze, isLoading }
                   value={url}
                   onChange={(e) => handleChangeUrl(idx, e.target.value)}
                   placeholder={`URL #${idx + 1} (e.g. https://example.com/blog-post)`}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl glass-input text-sm focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-gray-500 shadow-sm font-mono"
+                  className="w-full pl-10 pr-4 py-3.5 sm:py-4 rounded-xl glass-input text-xs sm:text-sm focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-gray-500 shadow-sm font-mono"
                   disabled={isLoading}
                 />
               </div>

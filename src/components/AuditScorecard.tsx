@@ -1,6 +1,7 @@
 import React from 'react';
 import { SinglePageAudit } from '@/types/seo';
-import { CheckCircle2, AlertTriangle, XCircle, Award, Sparkles, Check, Info } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, Check } from 'lucide-react';
+import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
 
 interface AuditScorecardProps {
   audit: SinglePageAudit;
@@ -11,7 +12,7 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
 
   const { meta, wordCount, headings, imageAudit, keywords } = audit;
 
-  // 1. Calculate Deterministic SEO Health Score (0 - 100)
+  // 1. Calculate On-Page SEO Basics Score (0 - 100)
   let score = 0;
   const checklist: { title: string; desc: string; status: 'pass' | 'warn' | 'fail' }[] = [];
 
@@ -94,23 +95,30 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
     });
   }
 
-  // Check 4: Word Count Volume (Max 20 pts)
-  if (wordCount >= 1000) {
+  // Check 4: Word Volume Benchmark (Max 20 pts)
+  if (wordCount >= 800) {
     score += 20;
     checklist.push({
       title: 'Comprehensive Word Volume',
-      desc: `Content body contains ${wordCount.toLocaleString()} words. In-depth content generally ranks higher for target topics.`,
+      desc: `Content body contains ${wordCount.toLocaleString()} words. Provides sufficient topical depth for search engine evaluation.`,
       status: 'pass',
     });
-  } else if (wordCount >= 500) {
-    score += 12;
+  } else if (wordCount >= 450) {
+    score += 14;
     checklist.push({
       title: 'Moderate Content Volume',
-      desc: `Content contains ${wordCount} words. Consider adding sub-sections to expand topical authority.`,
+      desc: `Content contains ${wordCount} words. Consider adding sub-sections or FAQ topics to expand coverage.`,
+      status: 'pass',
+    });
+  } else if (wordCount >= 250) {
+    score += 8;
+    checklist.push({
+      title: 'Short Content Volume',
+      desc: `Content contains ${wordCount} words. Suitable for short pages, but may lack depth for competitive topics.`,
       status: 'warn',
     });
   } else {
-    score += 5;
+    score += 4;
     checklist.push({
       title: 'Thin Content Volume',
       desc: `Content body contains only ${wordCount} words. Expand your article to compete effectively on SERPs.`,
@@ -119,17 +127,22 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
   }
 
   // Check 5: Image Alt Attributes (Max 15 pts)
-  if (imageAudit.totalImages === 0 || imageAudit.missingAltCount === 0) {
+  if (imageAudit.totalImages > 0 && imageAudit.missingAltCount === 0) {
     score += 15;
     checklist.push({
-      title: 'Image Alt Attributes Compliant',
-      desc: imageAudit.totalImages > 0
-        ? `All ${imageAudit.totalImages} images contain descriptive alt attribute text.`
-        : 'No images detected on page.',
+      title: 'Image Alt Attributes Optimal',
+      desc: `All ${imageAudit.totalImages} images contain descriptive ALT text for search engines and accessibility.`,
+      status: 'pass',
+    });
+  } else if (imageAudit.totalImages === 0) {
+    score += 10;
+    checklist.push({
+      title: 'Text-Only Page (No Images)',
+      desc: 'No images detected on page. HTML markup is clean, though adding visual diagrams can improve user engagement.',
       status: 'pass',
     });
   } else {
-    const pts = Math.max(0, 15 - imageAudit.missingAltCount * 3);
+    const pts = Math.max(0, Math.round(12 - imageAudit.missingAltCount * 2.5));
     score += pts;
     checklist.push({
       title: `${imageAudit.missingAltCount} Images Missing Alt Text`,
@@ -138,20 +151,30 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
     });
   }
 
-  // Check 6: Keyword Stuffing Check (Max 15 pts)
-  const stuffedKeywords = keywords.oneGram.filter((k) => k.isStuffing);
-  if (stuffedKeywords.length === 0) {
+  // Check 6: Keyword Overuse & Stuffing Check (Max 15 pts)
+  const stuffed1Gram = keywords.oneGram.filter((k) => k.isStuffing);
+  const stuffed2Gram = (keywords.twoGram || []).filter((k) => k.density > 2.5);
+  const stuffed3Gram = (keywords.threeGram || []).filter((k) => k.density > 2.5);
+  const hasStuffing = stuffed1Gram.length > 0 || stuffed2Gram.length > 0 || stuffed3Gram.length > 0;
+
+  if (!hasStuffing) {
     score += 15;
     checklist.push({
       title: 'Keyword Density Within Safe Limits',
-      desc: 'No keyword stuffing detected (> 3.0% threshold). Keyword distribution appears natural.',
+      desc: 'No keyword stuffing or phrase overuse detected. Keyword distribution appears natural.',
       status: 'pass',
     });
   } else {
     score += 5;
+    const overusedPhrase =
+      stuffed1Gram[0]?.phrase ||
+      stuffed2Gram[0]?.phrase ||
+      stuffed3Gram[0]?.phrase ||
+      'keyword';
+
     checklist.push({
       title: 'High Keyword Density Warning',
-      desc: `Keyword(s) like "${stuffedKeywords[0].phrase}" exceed 3.0% density (${stuffedKeywords[0].density}%). Reduce frequency to avoid search penalties.`,
+      desc: `Keyword phrase "${overusedPhrase}" shows high density. Reduce frequency to ensure natural reading flow.`,
       status: 'warn',
     });
   }
@@ -164,7 +187,12 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
       ? 'text-amber-600 dark:text-amber-400 border-amber-500/40 bg-amber-500/10'
       : 'text-red-600 dark:text-red-400 border-red-500/40 bg-red-500/10';
 
-  const gradeLabel = score >= 85 ? 'Excellent SEO Health' : score >= 65 ? 'Good (Minor Tweaks Needed)' : 'Needs Urgent Optimization';
+  const gradeLabel =
+    score >= 85
+      ? 'Excellent On-Page Basics'
+      : score >= 65
+      ? 'Good (Minor Tweaks Needed)'
+      : 'Needs On-Page Optimization';
 
   return (
     <div className="p-6 sm:p-8 rounded-2xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-6 my-6">
@@ -172,20 +200,29 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-slate-200 dark:border-white/10">
         <div className="flex items-center gap-4">
           {/* Circular / Badge Score Gauge */}
-          <div className={`w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center shrink-0 shadow-md ${gradeColor}`}>
+          <div
+            className={`w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center shrink-0 shadow-md ${gradeColor}`}
+          >
             <span className="text-2xl font-black">{score}</span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">/ 100</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">
+              / 100
+            </span>
           </div>
 
           <div>
             <div className="flex items-center gap-2">
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider border ${gradeColor}`}>
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider border ${gradeColor}`}
+              >
                 {gradeLabel}
               </span>
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1">Easy-to-Read Health Report</h3>
-            <p className="text-xs text-slate-500 dark:text-gray-400">
-              Automated audit summary evaluating key metadata, content volume, headings, and image tags.
+            <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-1.5">
+              <span>On-Page SEO Basics Score</span>
+              <SEOExplanationTooltip text="Evaluates foundational HTML markup, title/meta length, image alt tags, and keyword safety. Measures technical on-page health — not Google rank position." />
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
+              Automated audit summary evaluating key metadata, content volume, heading hierarchy, image ALT tags, and keyword frequency.
             </p>
           </div>
         </div>
@@ -205,7 +242,7 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
       {/* Actionable Recommendations Checklist */}
       <div className="space-y-3">
         <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">
-          Actionable On-Page SEO Checklist ({checklist.length} Checks)
+          On-Page SEO Basics Checklist ({checklist.length} Checks)
         </h4>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -234,7 +271,9 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
                 <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>{item.title}</span>
                 </div>
-                <p className="text-[11px] text-slate-600 dark:text-gray-400 leading-relaxed">{item.desc}</p>
+                <p className="text-[11px] text-slate-600 dark:text-gray-400 leading-relaxed">
+                  {item.desc}
+                </p>
               </div>
             </div>
           ))}

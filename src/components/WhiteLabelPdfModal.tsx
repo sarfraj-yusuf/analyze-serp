@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { SinglePageAudit } from '@/types/seo';
 import { generateWhiteLabelPdfReport, WhiteLabelOptions } from '@/lib/pdf-report-generator';

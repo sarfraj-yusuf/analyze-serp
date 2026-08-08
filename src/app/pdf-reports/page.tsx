@@ -130,7 +130,7 @@ export default function PdfReportsPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-black font-extrabold text-xs flex items-center justify-center gap-2 hover:opacity-95 transition-all shadow-md shadow-emerald-500/20 cursor-pointer shrink-0 disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/30 cursor-pointer shrink-0 disabled:opacity-50"
             >
               {isLoading ? (
                 <span>Generating Audit...</span>
@@ -151,7 +151,7 @@ export default function PdfReportsPage() {
           <div className="text-center">
             <button
               onClick={() => setIsPdfModalOpen(true)}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold text-xs inline-flex items-center gap-2 hover:opacity-95 transition-all shadow-md shadow-emerald-500/20 cursor-pointer"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-extrabold text-xs inline-flex items-center gap-2 transition-all shadow-md shadow-emerald-600/30 cursor-pointer"
             >
               <FileText className="w-4 h-4" />
               <span>Customize & Export PDF Report for {new URL(auditResult.url).hostname}</span>

@@ -50,6 +50,9 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
       }
 
       setIsSuccess(true);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('has_submitted_feedback', 'true');
+      }
     } catch (err: any) {
       setErrorMsg(err.message || 'An error occurred while submitting feedback.');
     } finally {
@@ -218,20 +221,30 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-black font-extrabold text-xs flex items-center justify-center gap-2 hover:opacity-95 transition-all shadow-md shadow-emerald-500/20 cursor-pointer disabled:opacity-50"
-            >
-              {isSubmitting ? (
-                <span>Submitting to Database...</span>
-              ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  <span>Submit Review & Suggestion</span>
-                </>
-              )}
-            </button>
+            <div className="space-y-2 pt-1">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/30 cursor-pointer disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <span>Submitting to Database...</span>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Submit Review & Suggestion</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300 font-semibold text-xs transition-all border border-slate-200 dark:border-white/10 cursor-pointer text-center"
+              >
+                I Want to Explore More Tools First
+              </button>
+            </div>
           </form>
         )}
       </div>

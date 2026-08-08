@@ -9,6 +9,7 @@ import { SEOContentSection } from '@/components/SEOContentSection';
 import { TechnicalAudit } from '@/types/seo';
 import { Zap, Sparkles, ArrowLeft, Search, Globe } from 'lucide-react';
 import Link from 'next/link';
+import { triggerToolExecutionFeedback } from '@/lib/feedback-trigger';
 
 export default function TechnicalHealthPage() {
   const [isProModalOpen, setIsProModalOpen] = useState(false);
@@ -68,6 +69,7 @@ export default function TechnicalHealthPage() {
       const data = await res.json();
       if (data.results && data.results[0] && data.results[0].status === 'success') {
         setTechnicalAudit(data.results[0].technicalAudit);
+        triggerToolExecutionFeedback();
       } else {
         throw new Error(data.results[0]?.errorMessage || 'Failed to inspect technical health');
       }
@@ -129,7 +131,7 @@ export default function TechnicalHealthPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-extrabold text-xs flex items-center justify-center gap-2 hover:opacity-95 transition-all shadow-md shadow-emerald-500/20 cursor-pointer shrink-0 disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/30 cursor-pointer shrink-0 disabled:opacity-50"
             >
               {isLoading ? (
                 <span>Auditing Health...</span>

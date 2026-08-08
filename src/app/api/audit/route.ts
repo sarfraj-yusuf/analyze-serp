@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { scrapeURL } from '@/lib/scraper';
 import { analyzePage } from '@/lib/analyzer';
+import { validateRobotsTxt } from '@/lib/robots-validator';
 import { SinglePageAudit, BatchAuditResponse } from '@/types/seo';
 import { auditRateLimiter } from '@/lib/rate-limiter';
 import { auditCache } from '@/lib/lru-cache';
@@ -76,8 +77,15 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        const scraped = await scrapeURL(normalizedUrl);
-        const auditResult = analyzePage(scraped);
+        const [scraped, robotsValidation] = await Promise.all([
+          scrapeURL(normalizedUrl),
+          validateRobotsTxt(normalizedUrl),
+        ]);
+
+        const auditResult = {
+          ...analyzePage(scraped),
+          robotsValidation,
+        };
 
         // Store in LRU cache
         auditCache.set(normalizedUrl, auditResult);

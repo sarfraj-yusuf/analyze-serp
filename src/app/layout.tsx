@@ -17,24 +17,22 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL("https://analyzeserp.com"),
   title: {
-    default: "AnalyzeSERP — Free On-Page Competitor Audit & SERP Intelligence",
+    default: "Free Competitor SEO Analysis Tool | AnalyzeSERP",
     template: "%s | AnalyzeSERP",
   },
   description:
-    "AnalyzeSERP is a high-speed non-AI competitor SEO auditor. Cross-compare competitor SERPs, detect keyword gaps, calculate Flesch readability scores, inspect affiliate link footprints, and export white-label PDF reports.",
+    "Analyze competitor pages for free. Compare title tags, meta descriptions, headings, keywords, readability, links, images, and technical SEO signals in one fast on-page SEO audit.",
   keywords: [
     "AnalyzeSERP",
-    "SERP analyzer",
-    "competitor SEO audit",
-    "keyword gap matrix",
-    "Flesch readability score",
-    "SERP simulator",
-    "affiliate link inspector",
-    "white label PDF SEO report",
+    "competitor SEO analysis tool",
+    "free SEO audit tool",
     "on-page SEO analyzer",
-    "site speed auditor",
+    "keyword gap analysis",
+    "title tag analyzer",
+    "SERP simulator",
+    "technical SEO checker",
   ],
-  authors: [{ name: "AnalyzeSERP Team", url: "https://analyzeserp.com" }],
+  authors: [{ name: "Sarfraj Yusuf", url: "https://analyzeserp.com/about" }],
   creator: "AnalyzeSERP",
   publisher: "AnalyzeSERP",
   icons: {
@@ -42,9 +40,9 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "AnalyzeSERP — Competitor SERP & Content Audit Tool",
+    title: "Free Competitor SEO Analysis Tool | AnalyzeSERP",
     description:
-      "Cross-compare competitor pages, extract missing keyword gaps, analyze readability grade level, inspect affiliate link footprints, and export white-label PDF reports.",
+      "Analyze competitor pages for free. Compare title tags, meta descriptions, headings, keywords, readability, links, images, and technical SEO signals in one fast on-page SEO audit.",
     url: "https://analyzeserp.com",
     siteName: "AnalyzeSERP",
     locale: "en_US",
@@ -54,16 +52,16 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "AnalyzeSERP — Competitor SERP & Content Audit Suite",
+        alt: "AnalyzeSERP — Free Competitor SEO Analysis Tool",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AnalyzeSERP — Competitor SERP & Content Audit Tool",
+    title: "Free Competitor SEO Analysis Tool | AnalyzeSERP",
     description:
-      "Audit competitor search results in seconds without AI latency. Free keyword gap matrix, readability analyzer & PDF export.",
-    creator: "@analyzeserp",
+      "Analyze competitor pages for free. Compare title tags, meta descriptions, headings, keywords, readability, links, images, and technical SEO signals in one fast on-page SEO audit.",
+    creator: "@sarfrajyusuf",
     images: ["/og-image.jpg"],
   },
   robots: {
@@ -100,8 +98,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function() {
+              try {
+                var savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (e) {}
+            })();`,
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSchema) }}

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { MetaData } from '@/types/seo';
 import { Monitor, Smartphone, Share2, Globe, RotateCcw, Check, AlertTriangle, Sparkles, Image as ImageIcon } from 'lucide-react';

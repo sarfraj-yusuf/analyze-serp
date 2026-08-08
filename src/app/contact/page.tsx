@@ -52,9 +52,12 @@ export default function ContactPage() {
               <p className="text-xs text-slate-600 dark:text-gray-400">
                 Our support team responds within 24 hours.
               </p>
-              <div className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+              <a
+                href="mailto:support@analyzeserp.com"
+                className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold hover:underline block"
+              >
                 support@analyzeserp.com
-              </div>
+              </a>
             </div>
 
             <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/10 space-y-3">

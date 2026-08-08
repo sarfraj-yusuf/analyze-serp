@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -8,12 +10,12 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>('light');
   const pathname = usePathname();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'dark' | 'light' | null;
-    const initialTheme = savedTheme ? savedTheme : 'dark';
+    const initialTheme = savedTheme ? savedTheme : 'light';
     setTheme(initialTheme);
     if (initialTheme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -58,7 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           </div>
         </Link>
 
-        {/* Multi-Page Navigation Links (Tool pages only, Pricing moved to Footer) */}
+        {/* Multi-Page Navigation Links */}
         <nav className="hidden md:flex items-center gap-1.5 bg-slate-100 dark:bg-white/5 p-1.5 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-semibold">
           <Link
             href="/"
@@ -97,15 +99,19 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           </Link>
 
           <Link
-            href="/link-inspector"
-            className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
-              pathname === '/link-inspector'
+            href="/blog"
+            className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all relative ${
+              pathname?.startsWith('/blog')
                 ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
                 : 'text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10'
             }`}
           >
-            <Link2 className="w-3.5 h-3.5" />
-            <span>Link Inspector</span>
+            <span className="relative">
+              Blog
+              <span className="absolute -top-2.5 -right-6 px-1 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-cyan-500 to-indigo-500 text-white shadow-sm animate-pulse">
+                NEW
+              </span>
+            </span>
           </Link>
         </nav>
 

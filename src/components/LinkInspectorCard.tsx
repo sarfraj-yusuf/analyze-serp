@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { LinkAudit, LinkItem } from '@/types/seo';
 import { Link2, ExternalLink, ShieldAlert, ShoppingBag, Filter, CheckCircle2, Tag, AlertCircle } from 'lucide-react';

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { KeywordAnalysis, KeywordItem } from '@/types/seo';
 import { Search, AlertTriangle, Hash, Percent } from 'lucide-react';

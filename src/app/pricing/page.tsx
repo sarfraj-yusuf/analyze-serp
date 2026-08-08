@@ -45,9 +45,28 @@ export default function PricingPage() {
     },
   ];
 
+  const pricingFaqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.a,
+      },
+    })),
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-slate-900 dark:text-gray-100 selection:bg-emerald-500 selection:text-black transition-colors duration-200">
       <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
+
+      {/* FAQPage JSON-LD Schema Script */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingFaqSchema) }}
+      />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
         {/* Header Hero */}
@@ -183,7 +202,7 @@ export default function PricingPage() {
 
             <button
               onClick={() => setIsProModalOpen(true)}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-black font-extrabold text-xs shadow-lg shadow-emerald-500/25 hover:opacity-95 transition-all cursor-pointer"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/30 transition-all cursor-pointer"
             >
               Upgrade to Pro ($9/mo)
             </button>

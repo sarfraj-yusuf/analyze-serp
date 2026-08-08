@@ -55,10 +55,12 @@ export const SEOContentSection: React.FC<SEOContentSectionProps> = ({
   return (
     <section className="mt-16 pt-12 border-t border-slate-200 dark:border-white/10 space-y-12">
       {/* Schema Script Injection */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
+      {faqs && faqs.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+      )}
 
       {/* Main Section Header */}
       <div className="text-center max-w-3xl mx-auto space-y-3">
@@ -132,8 +134,9 @@ export const SEOContentSection: React.FC<SEOContentSectionProps> = ({
                 >
                   <button
                     onClick={() => toggleFaq(index)}
-                    className="w-full px-5 py-4 text-left flex items-center justify-between gap-4 font-semibold text-xs sm:text-sm text-slate-900 dark:text-white hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors"
+                    aria-controls={`faq-answer-${index}`}
                     aria-expanded={isOpen}
+                    className="w-full px-5 py-4 text-left flex items-center justify-between gap-4 font-semibold text-xs sm:text-sm text-slate-900 dark:text-white hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors"
                   >
                     <span>{faq.question}</span>
                     <ChevronDown
@@ -143,11 +146,16 @@ export const SEOContentSection: React.FC<SEOContentSectionProps> = ({
                     />
                   </button>
 
-                  {isOpen && (
-                    <div className="px-5 pb-4 pt-1 text-xs text-slate-600 dark:text-gray-300 border-t border-slate-100 dark:border-white/5 leading-relaxed">
-                      {faq.answer}
-                    </div>
-                  )}
+                  <div
+                    id={`faq-answer-${index}`}
+                    role="region"
+                    aria-hidden={!isOpen}
+                    className={`px-5 text-xs text-slate-600 dark:text-gray-300 border-t border-slate-100 dark:border-white/5 leading-relaxed transition-all duration-200 ${
+                      isOpen ? 'block pb-4 pt-2' : 'hidden'
+                    }`}
+                  >
+                    {faq.answer}
+                  </div>
                 </div>
               );
             })}

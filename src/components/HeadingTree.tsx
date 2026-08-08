@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { HeadingItem } from '@/types/seo';
 import { ChevronDown, ChevronRight, ListOrdered, FileText } from 'lucide-react';

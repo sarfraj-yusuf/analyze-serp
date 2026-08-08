@@ -1,13 +1,19 @@
 import { SinglePageAudit, KeywordGapAnalysis, KeywordGapItem, KeywordItem } from '@/types/seo';
 
 /**
- * Calculates Keyword Gap and Topic Overlap analysis across 2 to 5 competitor URLs
+ * Calculates Keyword Gap and Topic Overlap analysis across 2 to 5 competitor URLs.
+ * Identifies specific gaps missing on "Your Page" (targetUrl, defaults to URL #1).
  */
-export function analyzeKeywordGaps(results: SinglePageAudit[]): KeywordGapAnalysis {
+export function analyzeKeywordGaps(
+  results: SinglePageAudit[],
+  targetUrl?: string
+): KeywordGapAnalysis {
   const validAudits = results.filter((r) => r.status === 'success');
   if (validAudits.length < 2) {
     return {
       totalUniqueKeywords: 0,
+      targetPageUrl: targetUrl || '',
+      yourPageMissingGaps: [],
       commonCoreKeywords: [],
       keywordGaps: [],
       allItems: [],
@@ -15,6 +21,7 @@ export function analyzeKeywordGaps(results: SinglePageAudit[]): KeywordGapAnalys
   }
 
   const urls = validAudits.map((a) => a.url);
+  const primaryTargetUrl = targetUrl || urls[0];
 
   // Map to hold aggregated keyword metrics across all URLs
   const gapMap = new Map<
@@ -50,8 +57,6 @@ export function analyzeKeywordGaps(results: SinglePageAudit[]): KeywordGapAnalys
   };
 
   validAudits.forEach((audit) => {
-    // Prefer full un-truncated keyword arrays for accurate gap analysis.
-    // Fall back to display-truncated arrays for backward compatibility.
     const { keywords } = audit;
     processGramList(keywords.fullOneGram ?? keywords.oneGram, audit.url, '1-gram');
     processGramList(keywords.fullTwoGram ?? keywords.twoGram, audit.url, '2-gram');
@@ -61,11 +66,14 @@ export function analyzeKeywordGaps(results: SinglePageAudit[]): KeywordGapAnalys
   const allItems: KeywordGapItem[] = [];
   const commonCoreKeywords: KeywordGapItem[] = [];
   const keywordGaps: KeywordGapItem[] = [];
+  const yourPageMissingGaps: KeywordGapItem[] = [];
 
   gapMap.forEach((entry) => {
     const missingInUrls: string[] = [];
     let presentCount = 0;
     let maxDensity = 0;
+    let competitorTotalDensity = 0;
+    let competitorCount = 0;
     let topCompetitorUrl = urls[0];
 
     urls.forEach((u) => {
@@ -76,12 +84,36 @@ export function analyzeKeywordGaps(results: SinglePageAudit[]): KeywordGapAnalys
           maxDensity = data.density;
           topCompetitorUrl = u;
         }
+        if (u !== primaryTargetUrl) {
+          competitorTotalDensity += data.density;
+          competitorCount++;
+        }
       } else {
         missingInUrls.push(u);
       }
     });
 
-    const isCommonCore = presentCount === urls.length || (urls.length >= 3 && presentCount / urls.length >= 0.7);
+    const isCommonCore =
+      presentCount === urls.length ||
+      (urls.length >= 3 && presentCount / urls.length >= 0.7);
+
+    const targetData = entry.presenceMap[primaryTargetUrl] || { count: 0, density: 0 };
+    const targetPageDensity = targetData.density;
+    const targetPageCount = targetData.count;
+
+    const gapThreshold =
+      entry.nGramType === '1-gram'
+        ? 0.6
+        : entry.nGramType === '2-gram'
+        ? 0.25
+        : 0.12;
+
+    const isTargetPageMissing = targetPageDensity === 0 && maxDensity >= gapThreshold;
+    const avgCompetitorDensity = competitorCount > 0 ? competitorTotalDensity / competitorCount : 0;
+    const isTargetPageUnderOptimized =
+      targetPageDensity > 0 &&
+      avgCompetitorDensity >= targetPageDensity * 1.5 &&
+      avgCompetitorDensity >= gapThreshold;
 
     const gapItem: KeywordGapItem = {
       phrase: entry.phrase,
@@ -91,6 +123,10 @@ export function analyzeKeywordGaps(results: SinglePageAudit[]): KeywordGapAnalys
       missingInUrls,
       maxDensity,
       topCompetitorUrl,
+      targetPageDensity,
+      targetPageCount,
+      isTargetPageMissing,
+      isTargetPageUnderOptimized,
     };
 
     allItems.push(gapItem);
@@ -99,26 +135,31 @@ export function analyzeKeywordGaps(results: SinglePageAudit[]): KeywordGapAnalys
       commonCoreKeywords.push(gapItem);
     }
 
-    // A term is a "Keyword Gap" if at least 1 competitor uses it with notable density but at least 1 competitor missed it.
-    // Dynamic density thresholds per N-gram type: 1-gram >= 0.6%, 2-gram >= 0.25%, 3-gram >= 0.12%
-    const gapThreshold = entry.nGramType === '1-gram' ? 0.6 : entry.nGramType === '2-gram' ? 0.25 : 0.12;
-
     if (missingInUrls.length > 0 && maxDensity >= gapThreshold) {
       keywordGaps.push(gapItem);
     }
+
+    if (isTargetPageMissing || isTargetPageUnderOptimized) {
+      yourPageMissingGaps.push(gapItem);
+    }
   });
 
-  // Sort common core keywords by average density descending
+  // Sort common core keywords by max density descending
   commonCoreKeywords.sort((a, b) => b.maxDensity - a.maxDensity);
 
   // Sort keyword gaps by max density descending
   keywordGaps.sort((a, b) => b.maxDensity - a.maxDensity);
+
+  // Sort your page missing gaps by max density descending
+  yourPageMissingGaps.sort((a, b) => b.maxDensity - a.maxDensity);
 
   // Sort all items by max density
   allItems.sort((a, b) => b.maxDensity - a.maxDensity);
 
   return {
     totalUniqueKeywords: allItems.length,
+    targetPageUrl: primaryTargetUrl,
+    yourPageMissingGaps,
     commonCoreKeywords,
     keywordGaps,
     allItems,
