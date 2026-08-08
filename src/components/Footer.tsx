@@ -87,6 +87,14 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/contrast-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold text-emerald-600 dark:text-emerald-400 transition-colors inline-flex items-center gap-1.5">
+                  <span>Color Contrast Checker</span>
+                  <span className="px-1.5 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm animate-pulse">
+                    NEW
+                  </span>
+                </Link>
+              </li>
+              <li>
                 <Link href="/serp-snippet-preview" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                   SERP Snippet Generator
                 </Link>
