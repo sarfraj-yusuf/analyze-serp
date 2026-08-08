@@ -74,7 +74,7 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Essential Pages & Company */}
+          {/* Specialized Utilities */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Specialized Utilities</h4>
             <ul className="space-y-1.5 text-[11px]">
@@ -95,6 +95,14 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/redirect-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold text-emerald-600 dark:text-emerald-400 transition-colors inline-flex items-center gap-1.5">
+                  <span>301 Redirect Chain Inspector</span>
+                  <span className="px-1.5 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm animate-pulse">
+                    NEW
+                  </span>
+                </Link>
+              </li>
+              <li>
                 <Link href="/serp-snippet-preview" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                   SERP Snippet Generator
                 </Link>
@@ -104,17 +112,19 @@ export const Footer: React.FC = () => {
                   Affiliate Link Checker
                 </Link>
               </li>
+            </ul>
+          </div>
+
+          {/* Company & Resources */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Company & Resources</h4>
+            <ul className="space-y-1.5 text-[11px]">
               <li>
                 <Link href="/blog" className="hover:text-emerald-600 dark:hover:text-emerald-400 font-bold text-emerald-600 dark:text-emerald-400 transition-colors inline-flex items-center gap-1.5">
                   <span>SEO Blog & Knowledge Base</span>
                   <span className="px-1.5 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-extrabold shadow-sm animate-pulse">
                     NEW
                   </span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/rss.xml" target="_blank" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  RSS Feed (/rss.xml)
                 </Link>
               </li>
               <li>
@@ -127,24 +137,22 @@ export const Footer: React.FC = () => {
                   Contact Us
                 </Link>
               </li>
-            </ul>
-          </div>
-
-          {/* Legal Compliance */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Legal & Privacy</h4>
-            <ul className="space-y-2">
               <li>
-                <Link href="/privacy" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                <Link href="/rss.xml" target="_blank" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                  RSS Feed (/rss.xml)
+                </Link>
+              </li>
+              <li className="pt-2 border-t border-slate-200 dark:border-white/10">
+                <Link href="/privacy" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-slate-500 dark:text-gray-400">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                <Link href="/terms" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-slate-500 dark:text-gray-400">
                   Terms of Service
                 </Link>
               </li>
-              <li>
+              <li className="pt-2">
                 <a
                   href="https://analyzeserp.com"
                   target="_blank"
