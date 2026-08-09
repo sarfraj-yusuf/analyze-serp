@@ -3,6 +3,7 @@
 import React from 'react';
 import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
 import { SinglePageAudit } from '@/types/seo';
+import { DetailedMatrixTabViewer } from '@/components/DetailedMatrixTabViewer';
 import {
   Trophy,
   FileText,
@@ -547,6 +548,11 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results }) =
             </tr>
           </tbody>
         </table>
+      </div>
+
+      {/* Detailed Category-wise Competitor Inspector & Multi-Format Exporter */}
+      <div className="pt-6 border-t border-slate-200 dark:border-white/10">
+        <DetailedMatrixTabViewer audits={validResults} />
       </div>
     </div>
   );

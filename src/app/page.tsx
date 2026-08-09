@@ -91,8 +91,17 @@ export default function Home() {
     setUrls(updated);
   };
 
+  const [showSampleArrow, setShowSampleArrow] = useState(false);
+
+  const handleTrySample = () => {
+    setUrls(['https://analyzeserp.com', 'https://vercel.com']);
+    setShowSampleArrow(true);
+    setErrorMsg(null);
+  };
+
   const handleAuditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setShowSampleArrow(false);
     setErrorMsg(null);
 
     if (isCooldownActive && cooldownSeconds > 0) {
@@ -269,12 +278,24 @@ export default function Home() {
           <div className="glass-panel p-7 sm:p-10 rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl space-y-6">
           <form onSubmit={handleAuditSubmit} className="space-y-4">
             <div className="space-y-3.5">
-              <label className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-700 dark:text-gray-300 flex items-center justify-between">
-                <span>Enter Up to 5 Competitor Page URLs</span>
-                <span className="text-[11px] font-mono text-slate-500 dark:text-gray-400 font-normal">
-                  {urls.length} / 5 URLs Added
-                </span>
-              </label>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <label className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-700 dark:text-gray-300 flex items-center gap-2">
+                  <span>Enter Up to 5 Competitor Page URLs</span>
+                  <span className="text-[11px] font-mono text-slate-500 dark:text-gray-400 font-normal">
+                    ({urls.length} / 5 URLs)
+                  </span>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={handleTrySample}
+                  className="px-3.5 py-1 rounded-full text-[11px] font-extrabold bg-gradient-to-r from-emerald-500/20 via-cyan-500/20 to-indigo-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 hover:border-emerald-500/60 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm w-fit"
+                  title="Auto-fill sample competitor URLs to see how it works"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>✨ Try Live Sample Comparison</span>
+                </button>
+              </div>
 
               {urls.map((url, idx) => (
                 <div key={idx} className="flex items-center gap-2.5">
@@ -322,7 +343,7 @@ export default function Home() {
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 relative">
               <button
                 type="button"
                 onClick={addUrlInput}
@@ -333,23 +354,32 @@ export default function Home() {
                 <span>Add Another Competitor Page</span>
               </button>
 
-              <button
-                type="submit"
-                disabled={isAuditing}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/30 cursor-pointer disabled:opacity-50"
-              >
-                {isAuditing ? (
-                  <>
-                    <Zap className="w-4 h-4 animate-spin" />
-                    <span>Running On-Page SEO Audit...</span>
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-4 h-4" />
-                    <span>Analyze Competitor SEO</span>
-                  </>
+              <div className="w-full sm:w-auto flex flex-col items-center sm:items-end relative">
+                {/* Animated Bouncing Pointer Arrow Prompt */}
+                {showSampleArrow && (
+                  <div className="absolute -top-11 right-0 sm:right-2 z-20 flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-black text-[11px] font-black shadow-xl shadow-emerald-500/30 animate-bounce whitespace-nowrap border border-emerald-400">
+                    <span>👇 Click here to launch live sample analysis!</span>
+                  </div>
                 )}
-              </button>
+
+                <button
+                  type="submit"
+                  disabled={isAuditing}
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/30 cursor-pointer disabled:opacity-50"
+                >
+                  {isAuditing ? (
+                    <>
+                      <Zap className="w-4 h-4 animate-spin" />
+                      <span>Running On-Page SEO Audit...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4" />
+                      <span>Analyze Competitor SEO</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </form>
         </div>
