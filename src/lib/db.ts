@@ -7,16 +7,19 @@ import mysql from 'mysql2/promise';
 let pool: mysql.Pool | null = null;
 
 function getPool(): mysql.Pool | null {
-  const host = process.env.MYSQL_HOST;
+  const rawHost = process.env.MYSQL_HOST;
   const user = process.env.MYSQL_USER;
   const password = process.env.MYSQL_PASSWORD;
   const database = process.env.MYSQL_DATABASE;
   const port = Number(process.env.MYSQL_PORT) || 3306;
 
-  if (!host || !user || !database) {
+  if (!rawHost || !user || !database) {
     // MySQL credentials not provided in environment, fallback gracefully
     return null;
   }
+
+  // Force IPv4 127.0.0.1 if 'localhost' is passed to prevent 'user'@'::1' IPv6 Access Denied on Hostinger
+  const host = rawHost === 'localhost' ? '127.0.0.1' : rawHost;
 
   if (!pool) {
     pool = mysql.createPool({
@@ -78,7 +81,7 @@ export async function initDatabaseTables(): Promise<void> {
         CREATE TABLE IF NOT EXISTS user_feedback (
           id INT AUTO_INCREMENT PRIMARY KEY,
           user_type VARCHAR(50) DEFAULT 'Guest',
-          rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+          rating INT NOT NULL,
           category VARCHAR(50) NOT NULL,
           message TEXT NOT NULL,
           email VARCHAR(255) NULL,
