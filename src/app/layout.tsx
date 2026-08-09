@@ -68,6 +68,9 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  alternates: {
+    canonical: "https://analyzeserp.com",
+  },
 };
 
 const jsonLdSchema = {

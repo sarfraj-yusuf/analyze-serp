@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   title: 'SEO Knowledge Base & Actionable Guides | AnalyzeSERP Blog',
   description:
     'Learn how to perform competitor keyword gap analysis, optimize title tag pixel lengths, audit affiliate links, and boost organic search rankings with guides by Sarfraj Yusuf.',
+  alternates: {
+    canonical: 'https://analyzeserp.com/blog',
+  },
   openGraph: {
     title: 'SEO Knowledge Base & Actionable Guides | AnalyzeSERP Blog',
     description:
