@@ -50,23 +50,39 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">3. Cookies & Local Storage</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">3. User Consent & Usage Data Processing</h2>
             <p>
-              AnalyzeSERP uses browser LocalStorage solely to remember your light/dark theme preference and track your free daily audit quota. We do not use third-party tracking cookies or advertising pixels.
+              When you visit AnalyzeSERP, a Privacy & Usage Consent Banner is presented. Clicking <strong>"Accept & Continue"</strong> saves your consent preference token (<code>analyzeserp_consent_accepted</code>) in your browser's LocalStorage. This acknowledges your agreement for AnalyzeSERP to collect anonymous usage telemetry, audit frequency logs, target domain performance metrics, and technical signals used strictly to continuously improve tool accuracy, speed, and overall user experience.
+            </p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">
+              Closing the banner via the X button temporarily dismisses the notice for your current view, re-prompting on future visits until explicit consent is given. You may clear your browser LocalStorage at any time to reset your consent preferences.
             </p>
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">4. Zero Data Selling Guarantee</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">4. Cookies & Local Storage</h2>
+            <p>
+              AnalyzeSERP uses browser LocalStorage solely to remember your light/dark theme preference, privacy consent status, and free daily audit quota. We do not use intrusive third-party tracking cookies or advertising tracking pixels.
+            </p>
+          </section>
+
+          <section className="space-y-2">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">5. Zero Data Selling Guarantee</h2>
             <p>
               We never sell, rent, or trade your audit data, client details, or agency white-label reports to third-party advertisers or data brokers.
             </p>
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">5. Contact Privacy Officer</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">6. Contact Privacy & Support</h2>
             <p className="text-xs text-slate-600 dark:text-gray-400">
-              For privacy inquiries or data deletion requests, email us at <strong className="text-emerald-600 dark:text-emerald-400">privacy@analyzeserp.com</strong>.
+              For privacy inquiries, data deletion requests, or general support, contact Founder Sarfraj Yusuf and our team at{' '}
+              <a
+                href="mailto:support@analyzeserp.com"
+                className="text-emerald-600 dark:text-emerald-400 font-bold underline hover:text-emerald-500 transition-colors"
+              >
+                support@analyzeserp.com
+              </a>.
             </p>
           </section>
         </div>
