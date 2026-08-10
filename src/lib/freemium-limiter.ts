@@ -95,4 +95,4 @@ class FreemiumLimiter {
   }
 }
 
-export const freemiumLimiter = new FreemiumLimiter(5, 120);
+export const freemiumLimiter = new FreemiumLimiter(20, 120);

@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     if (!quotaCheck.allowed) {
       return NextResponse.json(
         {
-          error: `Quota limit reached (5/5 audits used). Please wait 120 seconds before your next 5 free audits unlock!`,
+          error: `Daily free quota limit reached (20/20 audits used). Please wait 120 seconds before your next free audits unlock!`,
           isQuotaExceeded: true,
           cooldownSeconds: quotaCheck.cooldownSeconds || 120,
         },

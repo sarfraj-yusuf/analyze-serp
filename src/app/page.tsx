@@ -14,10 +14,11 @@ import { Search, Plus, Trash2, Zap, AlertCircle, Sparkles, Layers, ShieldCheck, 
 
 import { triggerToolExecutionFeedback } from '@/lib/feedback-trigger';
 
-const MAX_FREE_DAILY_AUDITS = 5;
+const MAX_FREE_DAILY_AUDITS = 20;
 
 import { AuditSkeleton } from '@/components/AuditSkeleton';
 import { SEOContentSection } from '@/components/SEOContentSection';
+import { CookieConsentBanner } from '@/components/CookieConsentBanner';
 
 export default function Home() {
   const [urls, setUrls] = useState<string[]>(['']);
@@ -210,14 +211,14 @@ export default function Home() {
           <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 flex-wrap pr-8 sm:pr-0">
             <span className="flex items-center gap-1.5">
               <Zap className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Free Daily Audits: <strong className="text-slate-900 dark:text-white font-mono">{dailyAuditCount} / {MAX_FREE_DAILY_AUDITS}</strong> used today</span>
+              <span>⚡ <strong>Public Beta Active:</strong> Enjoy 100% free competitor SEO audits & multi-URL benchmarking!</span>
             </span>
             <span className="text-slate-400 dark:text-gray-500 hidden sm:inline">•</span>
             <button
               onClick={() => setIsProModalOpen(true)}
               className="text-emerald-700 dark:text-emerald-300 underline font-bold hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors cursor-pointer"
             >
-              Need batch audits up to 10 URLs & unlimited PDF exports? Upgrade to Pro (~~$19/mo~~ FREE Beta)
+              White-label PDF exports & competitor keyword gap extraction unlocked (~~$19/mo~~ FREE)
             </button>
           </div>
 
@@ -539,6 +540,7 @@ AnalyzeSERP gives you a fast way to review multiple competitor URLs at once. You
 
       <Footer />
       <ProUpgradeModal isOpen={isProModalOpen} onClose={() => setIsProModalOpen(false)} />
+      <CookieConsentBanner />
     </div>
   );
 }
