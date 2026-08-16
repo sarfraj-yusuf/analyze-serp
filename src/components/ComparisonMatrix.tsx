@@ -98,8 +98,8 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results }) =
             <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-gray-400 font-semibold uppercase tracking-wider">
               <th className="py-4 px-4 w-48 shrink-0">SEO Metric</th>
               {validResults.map((r, idx) => (
-                <th key={idx} className="py-4 px-4 min-w-[220px]">
-                  <div className="flex items-center gap-1.5 text-slate-900 dark:text-white font-bold text-xs truncate mb-1">
+                <th key={idx} className="py-4 px-4 w-60 min-w-[200px] max-w-[240px]">
+                  <div className="flex items-center gap-1.5 text-slate-900 dark:text-white font-bold text-xs truncate max-w-[200px] mb-1">
                     <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[11px] font-bold flex items-center justify-center shrink-0">
                       #{idx + 1}
                     </span>
@@ -107,14 +107,14 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results }) =
                       href={r.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="truncate hover:underline text-slate-900 dark:text-white flex items-center gap-1 font-bold"
+                      className="truncate hover:underline text-slate-900 dark:text-white flex items-center gap-1 font-bold min-w-0"
                       title={r.url}
                     >
                       <span className="truncate">{new URL(r.url).hostname}</span>
                       <ExternalLink className="w-3 h-3 text-cyan-600 dark:text-cyan-400 opacity-70 shrink-0" />
                     </a>
                   </div>
-                  <div className="text-[10px] text-slate-500 dark:text-gray-400 truncate font-mono font-normal">
+                  <div className="text-[10px] text-slate-500 dark:text-gray-400 truncate max-w-[200px] font-mono font-normal" title={r.url}>
                     {r.url}
                   </div>
                 </th>
@@ -169,7 +169,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results }) =
                     : 0;
 
                 return (
-                  <td key={idx} className="py-3.5 px-4 font-mono">
+                  <td key={idx} className="py-3.5 px-4 font-mono max-w-[220px]">
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between font-bold">
                         <span

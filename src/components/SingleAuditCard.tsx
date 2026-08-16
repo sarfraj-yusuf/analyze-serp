@@ -80,9 +80,10 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
               href={audit.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1 font-mono truncate max-w-md"
+              className="text-xs text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1 font-mono min-w-0 max-w-[260px] sm:max-w-md"
+              title={audit.url}
             >
-              {audit.url}
+              <span className="truncate">{audit.url}</span>
               <ExternalLink className="w-3 h-3 shrink-0" />
             </a>
           </div>

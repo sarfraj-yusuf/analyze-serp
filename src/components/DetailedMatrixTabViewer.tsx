@@ -217,9 +217,10 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
                         href={audit.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-slate-500 hover:text-emerald-500 transition-colors font-mono truncate max-w-[200px]"
+                        className="text-xs text-slate-500 hover:text-emerald-500 transition-colors font-mono min-w-0 max-w-[180px] sm:max-w-[200px]"
+                        title={audit.url}
                       >
-                        {audit.url}
+                        <span className="truncate block">{audit.url}</span>
                       </a>
                     </div>
 
