@@ -59,18 +59,30 @@ export function exportTitlesAndDescriptionsCsv(audits: SinglePageAudit[]) {
 }
 
 /**
+ * Helper to extract clean domain name from URL
+ */
+function getDomain(urlStr: string): string {
+  try {
+    return new URL(urlStr).hostname.replace(/^www\./, '');
+  } catch {
+    return urlStr;
+  }
+}
+
+/**
  * Generates Markdown table string for Titles & Meta Descriptions
  */
 export function generateTitlesAndDescriptionsMarkdown(audits: SinglePageAudit[]): string {
   let md = `### 📌 Competitor Titles & Meta Descriptions Comparison\n\n`;
-  md += `| Target URL | Page Title | Title Length | Meta Description | Description Length |\n`;
+  md += `| Target Domain | Page Title | Title Length | Meta Description | Description Length |\n`;
   md += `| :--- | :--- | :--- | :--- | :--- |\n`;
 
   audits.forEach((audit) => {
+    const domain = getDomain(audit.url);
     const title = (audit.meta?.title || 'N/A').replace(/\|/g, '\\|').replace(/\n/g, ' ');
     const desc = (audit.meta?.description || 'N/A').replace(/\|/g, '\\|').replace(/\n/g, ' ');
     const px = audit.meta?.titlePixelEstimate || 0;
-    md += `| ${audit.url} | ${title} | ${px}px (${audit.meta?.titleLength || 0} chars) | ${desc} | ${audit.meta?.descriptionLength || 0} chars |\n`;
+    md += `| [${domain}](${audit.url}) | ${title} | ${px}px (${audit.meta?.titleLength || 0} chars) | ${desc} | ${audit.meta?.descriptionLength || 0} chars |\n`;
   });
 
   return md;
@@ -108,7 +120,8 @@ export function generateHeadingsMarkdown(audits: SinglePageAudit[]): string {
   let md = `### 📑 Competitor Headings Hierarchy Comparison\n\n`;
 
   audits.forEach((audit) => {
-    md += `#### 🌐 [${audit.url}](${audit.url})\n`;
+    const domain = getDomain(audit.url);
+    md += `#### 🌐 [${domain}](${audit.url})\n`;
     if (audit.headings && audit.headings.length > 0) {
       audit.headings.forEach((h) => {
         const levelNum = parseInt(h.level.replace('h', ''), 10) || 1;
@@ -178,7 +191,8 @@ export function generateKeywordsMarkdown(audits: SinglePageAudit[]): string {
   let md = `### 🔑 Competitor Keywords & N-Gram Density Comparison\n\n`;
 
   audits.forEach((audit) => {
-    md += `#### 🌐 URL: ${audit.url}\n`;
+    const domain = getDomain(audit.url);
+    md += `#### 🌐 Domain: [${domain}](${audit.url})\n`;
     md += `| Keyword / Phrase | Type | Frequency | Density |\n`;
     md += `| :--- | :--- | :--- | :--- |\n`;
 
@@ -222,17 +236,18 @@ export function exportTechnicalSpeedCsv(audits: SinglePageAudit[]) {
  */
 export function generateTechnicalSpeedMarkdown(audits: SinglePageAudit[]): string {
   let md = `### ⚡ Competitor Technical & Speed Comparison\n\n`;
-  md += `| Target URL | Tech Score | Load Time | HTML Size | Canonical Tag | SSL Status |\n`;
+  md += `| Target Domain | Tech Score | Load Time | HTML Size | Canonical Tag | SSL Status |\n`;
   md += `| :--- | :--- | :--- | :--- | :--- | :--- |\n`;
 
   audits.forEach((audit) => {
+    const domain = getDomain(audit.url);
     const score = audit.technicalAudit?.technicalScore || 0;
     const time = audit.technicalAudit?.ttfbMs || 0;
     const size = (audit.technicalAudit?.htmlSizeKb || 0).toFixed(1) + ' KB';
-    const canonical = audit.meta?.canonicalUrl || 'N/A';
+    const canonical = audit.meta?.canonicalUrl ? `[${getDomain(audit.meta.canonicalUrl)}](${audit.meta.canonicalUrl})` : 'N/A';
     const ssl = audit.technicalAudit?.hasHttps ? 'HTTPS 🟢' : 'HTTP 🔴';
 
-    md += `| ${audit.url} | ${score}% | ${time}ms | ${size} | ${canonical} | ${ssl} |\n`;
+    md += `| [${domain}](${audit.url}) | ${score}% | ${time}ms | ${size} | ${canonical} | ${ssl} |\n`;
   });
 
   return md;
@@ -269,15 +284,16 @@ export function exportImagesAndLinksCsv(audits: SinglePageAudit[]) {
  */
 export function generateImagesAndLinksMarkdown(audits: SinglePageAudit[]): string {
   let md = `### 🖼️ Competitor Images & Link Breakdown Comparison\n\n`;
-  md += `| Target URL | Total Images | Missing Alt Tags | Total Links | Internal | External | Affiliate |\n`;
+  md += `| Target Domain | Total Images | Missing Alt Tags | Total Links | Internal | External | Affiliate |\n`;
   md += `| :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n`;
 
   audits.forEach((audit) => {
+    const domain = getDomain(audit.url);
     const totalImgs = audit.imageAudit?.totalImages || 0;
     const missingAlt = audit.imageAudit?.missingAltCount || 0;
     const links = audit.linkAudit || { totalLinks: 0, internalCount: 0, externalCount: 0, affiliateCount: 0 };
 
-    md += `| ${audit.url} | ${totalImgs} | ${missingAlt} | ${links.totalLinks} | ${links.internalCount} | ${links.externalCount} | ${links.affiliateCount} |\n`;
+    md += `| [${domain}](${audit.url}) | ${totalImgs} | ${missingAlt} | ${links.totalLinks} | ${links.internalCount} | ${links.externalCount} | ${links.affiliateCount} |\n`;
   });
 
   return md;
