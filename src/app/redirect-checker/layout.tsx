@@ -1,17 +1,18 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Free 301/302 Redirect Chain & Infinite Loop Inspector',
+  title: 'Redirect Checker & HTTP Header Chain Auditor | AnalyzeSERP',
   description:
-    'Trace multi-hop HTTP redirect chains, measure per-hop latency (ms), and eliminate infinite loops with step-by-step flowchart visualizer.',
+    'Audit 301 vs 302 HTTP status codes, trace redirect loops and redirect chains, and prevent PageRank link equity loss. Free online HTTP redirect inspector.',
   alternates: {
     canonical: 'https://analyzeserp.com/redirect-checker',
   },
   openGraph: {
-    title: 'Free 301/302 Redirect Chain & Infinite Loop Inspector | AnalyzeSERP',
+    title: 'Redirect Checker & HTTP Header Chain Auditor | AnalyzeSERP',
     description:
-      'Trace multi-hop HTTP redirect chains, measure per-hop latency (ms), and eliminate infinite loops with step-by-step flowchart visualizer.',
+      'Audit 301 vs 302 HTTP status codes, trace redirect loops and redirect chains, and prevent PageRank link equity loss. Free online HTTP redirect inspector.',
     url: 'https://analyzeserp.com/redirect-checker',
+    type: 'website',
   },
 };
 

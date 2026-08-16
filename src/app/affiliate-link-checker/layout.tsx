@@ -1,17 +1,18 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Free Affiliate Link Inspector & Compliance Checker',
+  title: 'Affiliate Link Checker & Rel Sponsored Auditor | AnalyzeSERP',
   description:
-    'Audit affiliate referral parameters, rel="sponsored" and rel="nofollow" attributes, and detect broken affiliate links in real-time.',
+    'Audit outbound links, detect Amazon, CJ & ShareASale parameters, and check Google rel="sponsored" link spam compliance. Free SEO link inspector.',
   alternates: {
     canonical: 'https://analyzeserp.com/affiliate-link-checker',
   },
   openGraph: {
-    title: 'Free Affiliate Link Inspector & Compliance Checker | AnalyzeSERP',
+    title: 'Affiliate Link Checker & Rel Sponsored Auditor | AnalyzeSERP',
     description:
-      'Audit affiliate referral parameters, rel="sponsored" and rel="nofollow" attributes, and detect broken affiliate links in real-time.',
+      'Audit outbound links, detect Amazon, CJ & ShareASale parameters, and check Google rel="sponsored" link spam compliance. Free SEO link inspector.',
     url: 'https://analyzeserp.com/affiliate-link-checker',
+    type: 'website',
   },
 };
 

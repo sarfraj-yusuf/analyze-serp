@@ -68,7 +68,7 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
   const { meta, wordCount, characterCount, readingTimeMinutes, headings, imageAudit, linkAudit, keywords, readability, technicalAudit } = audit;
 
   return (
-    <div className="glass-panel rounded-2xl p-6 sm:p-8 border shadow-xl space-y-6 my-6">
+    <div className="glass-panel rounded-2xl p-6 sm:p-8 border shadow-sm space-y-6 my-6">
       {/* Title & Top Metadata Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-white/10">
         <div>

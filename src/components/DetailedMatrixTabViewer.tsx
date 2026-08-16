@@ -74,7 +74,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
   };
 
   return (
-    <div className="glass-panel rounded-3xl border border-slate-200 dark:border-white/10 p-6 sm:p-8 space-y-6 shadow-xl">
+    <div className="glass-panel rounded-3xl border border-slate-200 dark:border-white/10 p-6 sm:p-8 space-y-6 shadow-sm">
       {/* Header & Category Tabs Switcher */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-white/10">
         <div>

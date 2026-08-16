@@ -116,6 +116,61 @@ export const SEOContentSection: React.FC<SEOContentSectionProps> = ({
         </p>
       </div>
 
+      {/* Deep-Dive Editorial Content Depth Section */}
+      <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-white/10 space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider border border-emerald-500/20">
+            Deep-Dive Guide
+          </span>
+        </div>
+        <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+          Competitor Analysis vs. Manual SEO Audits: Key Metrics That Drive Rankings
+        </h3>
+        <div className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 leading-relaxed space-y-3">
+          <p>
+            Executing an in-depth <strong className="text-slate-900 dark:text-white font-semibold">competitor analysis</strong> is the fastest way to understand why rival websites outrank your pages in Google search results. While traditional manual audits focus heavily on single-page technical checklists, a modern <strong className="text-slate-900 dark:text-white font-semibold">SEO competitor audit</strong> compares real-time SERP benchmarks across top-ranking competitors—revealing exact content gaps and search intent discrepancies.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1.5">
+              <h4 className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm text-emerald-600 dark:text-emerald-400">
+                1. Search Intent & Keyword Gap Extraction
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-gray-400 leading-normal">
+                Performing structured <strong className="text-slate-800 dark:text-gray-200 font-semibold">competitor research</strong> exposes 1-gram, 2-gram, and 3-gram phrase density patterns that top-ranking pages use to satisfy search intent. Spotting missing keyword variations allows you to expand topic coverage without keyword stuffing.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1.5">
+              <h4 className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm text-cyan-600 dark:text-cyan-400">
+                2. SERP Title & Meta Tag Pixel Precision
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-gray-400 leading-normal">
+                Google truncates title tags exceeding 600 pixels. Comparing title tag pixel estimates and meta description lengths against top competitors ensures your SERP snippet avoids awkward ellipses and maximizes click-through rates (CTR).
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1.5">
+              <h4 className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm text-indigo-600 dark:text-indigo-400">
+                3. Heading Tree & Content Outline Depth
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-gray-400 leading-normal">
+                Auditing H1, H2, and H3 heading hierarchies reveals how competitors structure complex topics. Identifying missing subheadings enables you to fill structural gaps and build comprehensive, authoritative content briefs.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1.5">
+              <h4 className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm text-amber-600 dark:text-amber-400">
+                4. Speed & Technical SEO Overhead
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-gray-400 leading-normal">
+                Side-by-side technical health benchmarking highlights response latency (TTFB), HTML document payload sizes, canonical tags, and robots.txt indexability—ensuring slow load times don't hinder your ranking potential.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Frequently Asked Questions (Accordion + FAQ Schema) */}
       {faqs.length > 0 && (
         <div className="space-y-6">

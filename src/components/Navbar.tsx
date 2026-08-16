@@ -50,9 +50,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
               <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
                 Analyze<span className="gradient-text font-black">SERP</span>
               </span>
-              <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 hidden sm:inline-block">
-                analyzeserp.com
-              </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-gray-400 hidden lg:block">
               Competitor Audit & Content Intelligence Suite
@@ -87,15 +84,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           </Link>
 
           <Link
-            href="/serp-simulator"
+            href="/serp-snippet-preview"
             className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
-              pathname === '/serp-simulator'
+              pathname === '/serp-snippet-preview'
                 ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
                 : 'text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10'
             }`}
           >
             <Share2 className="w-3.5 h-3.5" />
-            <span>SERP Simulator</span>
+            <span>SERP Snippet</span>
           </Link>
 
           <Link

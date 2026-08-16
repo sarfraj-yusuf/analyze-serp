@@ -181,3 +181,57 @@ export interface BatchAuditResponse {
   totalUrls: number;
   results: SinglePageAudit[];
 }
+
+export type OpportunityLevel = 'High' | 'Medium' | 'Low';
+
+export interface SerpConsensusPattern {
+  frequencyRatio: string; // e.g. "5/5", "4/5", "3/5"
+  frequencyPercent: number; // e.g. 100, 80, 60
+  patternType: 'TOPIC' | 'QUESTION' | 'STRUCTURE' | 'SCHEMA' | 'INTENT';
+  title: string;
+  description: string;
+  isPresentOnTarget: boolean;
+}
+
+export interface EvidenceRecommendation {
+  id: string;
+  title: string;
+  action: string;
+  evidence: string; // e.g. "4/5 ranking pages cover this subtopic"
+  isMissing: boolean;
+  impact: 'HIGH' | 'MEDIUM' | 'LOW';
+  effort: 'LOW' | 'MEDIUM' | 'HIGH';
+  quadrant: 'DO_FIRST' | 'PLAN_THIS' | 'DO_NEXT' | 'OPTIONAL';
+  category: 'TOPIC' | 'QUESTION' | 'STRUCTURE' | 'INTENT' | 'SCHEMA' | 'ONPAGE' | 'TECH';
+}
+
+export interface SerpAlignmentReport {
+  alignmentScore: number; // 0 - 100 (Higher = Closer to SERP consensus)
+  opportunityCount: number; // e.g. 7 meaningful opportunities found
+  verdictHeadline: string;
+  verdictSubtext: string;
+  highImpactCount: number;
+  improvementsCount: number;
+  strengthsCount: number;
+  targetUrl: string;
+  targetKeyword?: string;
+  top3Opportunities: {
+    title: string;
+    category: string;
+    evidenceText: string;
+  }[];
+  serpConsensusPatterns: SerpConsensusPattern[];
+  technicalHygiene: {
+    isCrawlable: boolean;
+    isIndexable: boolean;
+    hasHttps: boolean;
+    hasCanonicalMatch: boolean;
+    issues: string[];
+  };
+  evidenceActions: EvidenceRecommendation[];
+  dontTouchStrengths: {
+    title: string;
+    reason: string;
+  }[];
+}
+

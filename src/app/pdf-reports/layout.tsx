@@ -1,17 +1,18 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Free White-Label PDF SEO Report Generator',
+  title: 'White-Label PDF SEO Audit Report Generator | AnalyzeSERP',
   description:
-    'Generate white-label PDF competitor audit reports with agency branding and client executive summaries.',
+    'Generate branded white-label PDF SEO audit reports with agency logos, executive summaries, and action roadmaps. Free online client report builder.',
   alternates: {
     canonical: 'https://analyzeserp.com/pdf-reports',
   },
   openGraph: {
-    title: 'Free White-Label PDF SEO Report Generator | AnalyzeSERP',
+    title: 'White-Label PDF SEO Audit Report Generator | AnalyzeSERP',
     description:
-      'Generate white-label PDF competitor audit reports with agency branding and client executive summaries.',
+      'Generate branded white-label PDF SEO audit reports with agency logos, executive summaries, and action roadmaps. Free online client report builder.',
     url: 'https://analyzeserp.com/pdf-reports',
+    type: 'website',
   },
 };
 

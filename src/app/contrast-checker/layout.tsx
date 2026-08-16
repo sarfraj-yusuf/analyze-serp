@@ -1,17 +1,18 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Free Website Color Contrast & WCAG Compliance Checker',
+  title: 'Color Contrast Checker & WCAG Accessibility Auditor | AnalyzeSERP',
   description:
-    'Extract webpage background, text, and button colors. Audit official W3C WCAG 2.1 AA/AAA contrast ratios with live sandbox preview.',
+    'Test foreground and background text color contrast ratios against WCAG 2.1 AA and AAA standards. Free online color contrast checker for web accessibility.',
   alternates: {
     canonical: 'https://analyzeserp.com/contrast-checker',
   },
   openGraph: {
-    title: 'Free Website Color Contrast & WCAG Compliance Checker | AnalyzeSERP',
+    title: 'Color Contrast Checker & WCAG Accessibility Auditor | AnalyzeSERP',
     description:
-      'Extract webpage background, text, and button colors. Audit official W3C WCAG 2.1 AA/AAA contrast ratios with live sandbox preview.',
+      'Test foreground and background text color contrast ratios against WCAG 2.1 AA and AAA standards. Free online color contrast checker for web accessibility.',
     url: 'https://analyzeserp.com/contrast-checker',
+    type: 'website',
   },
 };
 

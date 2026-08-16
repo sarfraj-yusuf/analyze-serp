@@ -7,10 +7,11 @@ import { SingleAuditCard } from '@/components/SingleAuditCard';
 import { ComparisonMatrix } from '@/components/ComparisonMatrix';
 import { KeywordGapMatrix } from '@/components/KeywordGapMatrix';
 import { ContentBriefGenerator } from '@/components/ContentBriefGenerator';
+import { SerpDecisionCenter } from '@/components/SerpDecisionCenter';
 import { ProUpgradeModal } from '@/components/ProUpgradeModal';
 import { BatchAuditResponse, SinglePageAudit, KeywordGapAnalysis } from '@/types/seo';
 import { analyzeKeywordGaps } from '@/lib/keyword-gap';
-import { Search, Plus, Trash2, Zap, AlertCircle, Sparkles, Layers, ShieldCheck, ArrowRight, Clock, X } from 'lucide-react';
+import { Search, Plus, Trash2, Zap, AlertCircle, Sparkles, Layers, ShieldCheck, ArrowRight, Clock, X, ChevronDown, ChevronUp, Key } from 'lucide-react';
 
 import { triggerToolExecutionFeedback } from '@/lib/feedback-trigger';
 
@@ -22,6 +23,9 @@ import { CookieConsentBanner } from '@/components/CookieConsentBanner';
 
 export default function Home() {
   const [urls, setUrls] = useState<string[]>(['']);
+  const [targetKeyword, setTargetKeyword] = useState<string>('');
+  const [isKeywordExpanded, setIsKeywordExpanded] = useState<boolean>(false);
+  const [showDeepDiveData, setShowDeepDiveData] = useState<boolean>(false);
   const [isAuditing, setIsAuditing] = useState(false);
   const [auditResponse, setAuditResponse] = useState<BatchAuditResponse | null>(null);
   const [keywordGapAnalysis, setKeywordGapAnalysis] = useState<KeywordGapAnalysis | null>(null);
@@ -95,6 +99,7 @@ export default function Home() {
   const [showSampleArrow, setShowSampleArrow] = useState(false);
 
   const handleTrySample = () => {
+    setTargetKeyword('seo competitor analysis tool');
     setUrls(['https://analyzeserp.com', 'https://vercel.com']);
     setShowSampleArrow(true);
     setErrorMsg(null);
@@ -169,7 +174,7 @@ export default function Home() {
     operatingSystem: 'All',
     browserRequirements: 'Requires HTML5 and JavaScript',
     description:
-      'Fast non-AI competitor SERP & on-page SEO audit suite. Analyze title tags, meta descriptions, Flesch readability grades, TTFB latency, keyword gaps, and export white-label client PDF reports.',
+      'Run a free competitor SEO audit instantly. Compare titles, meta tags, headings, keywords, links & technical SEO — no signup, no credit card required.',
     author: {
       '@type': 'Person',
       name: 'Sarfraj Yusuf',
@@ -246,18 +251,18 @@ export default function Home() {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
-            Free Competitor <br />
-            <span className="gradient-text">SEO Analysis Tool</span>
+            Free Competitor Analysis Tool <br />
+            <span className="gradient-text">for SEO & SERP Benchmarking</span>
           </h1>
 
           <p className="text-sm sm:text-base text-slate-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            Compare up to 5 competitor pages and see what their content is doing better. Analyze title tags, meta descriptions, headings, keyword usage, readability, page speed signals, internal links, images, and technical SEO issues — then turn the results into a content brief or PDF report.
+            Perform instant <strong className="text-slate-900 dark:text-white font-semibold">competitor analysis</strong> and see why rival websites rank higher on Google. AnalyzeSERP lets you run a free <strong className="text-slate-900 dark:text-white font-semibold">SEO competitor audit</strong> across up to 5 pages side-by-side — comparing title tags, meta descriptions, heading structures, keyword gaps, readability scores, page speed signals, internal links, and technical health issues in seconds.
           </p>
         </div>
 
         {/* Cooldown Timer Card if 5/5 audits used */}
         {isCooldownActive && cooldownSeconds > 0 && (
-          <div className="glass-panel p-6 rounded-3xl border-2 border-amber-500/60 bg-amber-500/10 space-y-3 text-center animate-in fade-in max-w-3xl mx-auto shadow-xl">
+          <div className="glass-panel p-6 rounded-3xl border-2 border-amber-500/60 bg-amber-500/10 space-y-3 text-center animate-in fade-in max-w-3xl mx-auto shadow-sm">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
               <Clock className="w-4 h-4 text-amber-400 animate-spin" />
               <span>Quota Cooldown Active: 5/5 Audits Used</span>
@@ -276,9 +281,63 @@ export default function Home() {
 
         {/* Audit Input Form Box */}
         <div className="max-w-[830px] mx-auto w-full">
-          <div className="glass-panel p-7 sm:p-10 rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl space-y-6">
+          <div className="glass-panel p-7 sm:p-10 rounded-3xl border border-slate-200 dark:border-white/10 shadow-sm space-y-6">
           <form onSubmit={handleAuditSubmit} className="space-y-4">
             <div className="space-y-3.5">
+              {/* Optional Target Search Keyword Input (Ultra-Compact) */}
+              <div className="space-y-2">
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsKeywordExpanded(!isKeywordExpanded)}
+                    className="text-[11px] font-medium text-slate-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 transition-colors cursor-pointer flex items-center gap-1 py-0.5"
+                  >
+                    <Key className="w-3 h-3 text-emerald-500" />
+                    {targetKeyword.trim() ? (
+                      <span>
+                        Keyword:{' '}
+                        <strong className="text-emerald-600 dark:text-emerald-400 font-bold">
+                          "{targetKeyword}"
+                        </strong>
+                      </span>
+                    ) : (
+                      <span>+ Add Keyword</span>
+                    )}
+                    <ChevronDown
+                      className={`w-3 h-3 transition-transform duration-200 ${
+                        isKeywordExpanded ? 'rotate-180 text-emerald-500' : ''
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {isKeywordExpanded && (
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-2.5 animate-in fade-in duration-200">
+                    <label className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-gray-300 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Key className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Target Search Keyword / Focus Query</span>
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-400 dark:text-gray-500 font-normal">
+                        (Optional for intent alignment)
+                      </span>
+                    </label>
+
+                    <input
+                      type="text"
+                      placeholder="e.g. best crm software for small business"
+                      value={targetKeyword}
+                      onChange={(e) => setTargetKeyword(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl glass-input text-xs focus:outline-none font-mono transition-all"
+                    />
+
+                    <p className="text-[10px] text-slate-500 dark:text-gray-400">
+                      💡 Enter your focus keyword to evaluate exact SERP title tag alignment and term frequency across competitor pages.
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <label className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-700 dark:text-gray-300 flex items-center gap-2">
                   <span>Enter Up to 5 Competitor Page URLs</span>
@@ -319,7 +378,7 @@ export default function Home() {
                       }
                       value={url}
                       onChange={(e) => handleUrlChange(idx, e.target.value)}
-                      className="w-full pl-28 pr-4 py-3.5 sm:py-4 rounded-xl glass-input text-xs sm:text-sm focus:outline-none font-mono transition-all shadow-sm"
+                      className="w-full pl-28 pr-4 py-3.5 sm:py-4 rounded-xl glass-input text-xs sm:text-sm focus:outline-none font-mono transition-all"
                     />
                   </div>
 
@@ -390,30 +449,61 @@ export default function Home() {
         {isAuditing ? (
           <AuditSkeleton />
         ) : auditResponse ? (
-          <div className="space-y-8 animate-in fade-in duration-300">
-            {/* Side-by-Side Comparison Matrix */}
-            <ComparisonMatrix results={auditResponse.results} />
+          <div className="space-y-10 animate-in fade-in duration-300">
+            {/* 1. Executive SERP Decision Center (Hero & Action Roadmap) */}
+            <SerpDecisionCenter
+              results={auditResponse.results}
+              targetUrl={urls[0]}
+              targetKeyword={targetKeyword}
+            />
 
-            {/* Keyword Gap Matrix */}
+            {/* 2. Keyword & Topic Gap Engine */}
             {auditResponse.results.filter((r) => r.status === 'success').length >= 2 && (
               <KeywordGapMatrix results={auditResponse.results.filter((r) => r.status === 'success')} />
             )}
 
-            {/* Content Brief Generator Export */}
+            {/* 3. Architected Strategic Content Brief Generator Export */}
             {auditResponse.results.filter((r) => r.status === 'success').length > 0 && (
               <ContentBriefGenerator results={auditResponse.results.filter((r) => r.status === 'success')} />
             )}
 
-            {/* Detailed Single Page Audit Cards */}
-            <div className="space-y-6 pt-4">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Layers className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                Detailed Page Audit Inspector ({auditResponse.results.length})
-              </h3>
+            {/* 4. Deep-Dive Raw Matrix & Single Page Inspector (Collapsible) */}
+            <div className="pt-6 border-t border-slate-200 dark:border-white/10 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Layers className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    Deep-Dive Technical Data & Benchmark Inspector
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
+                    Raw tabular comparison data, N-gram keyword frequency tables, and individual DOM audit cards.
+                  </p>
+                </div>
 
-              {auditResponse.results.map((audit, idx) => (
-                <SingleAuditCard key={idx} audit={audit} />
-              ))}
+                <button
+                  type="button"
+                  onClick={() => setShowDeepDiveData(!showDeepDiveData)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white text-xs font-bold flex items-center gap-1.5 transition-all border border-slate-200 dark:border-white/10 cursor-pointer"
+                >
+                  <span>{showDeepDiveData ? 'Hide Raw Technical Metrics' : 'Show Deep-Dive Technical Inspector'}</span>
+                  {showDeepDiveData ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {showDeepDiveData && (
+                <div className="space-y-8 animate-in fade-in duration-300">
+                  <ComparisonMatrix results={auditResponse.results} />
+
+                  <div className="space-y-6 pt-2">
+                    <h4 className="text-base font-bold text-slate-900 dark:text-white">
+                      Single Page DOM Inspector ({auditResponse.results.length} URLs)
+                    </h4>
+                    {auditResponse.results.map((audit, idx) => (
+                      <SingleAuditCard key={idx} audit={audit} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (

@@ -65,6 +65,7 @@ export async function traceRedirectChain(rawUrl: string): Promise<RedirectChainR
       response = await fetch(currentUrl, {
         method: 'GET',
         redirect: 'manual', // Strictly do not auto-follow redirects!
+        signal: AbortSignal.timeout(5000), // Enforce 5-second per-hop timeout safeguard
         headers: {
           'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 AnalyzeSERP-RedirectInspector/1.0',

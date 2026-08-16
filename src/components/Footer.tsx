@@ -44,13 +44,13 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/serp-simulator" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  SERP & Social Card Simulator
+                <Link href="/serp-snippet-preview" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                  SERP Snippet & Social Card Preview
                 </Link>
               </li>
               <li>
-                <Link href="/link-inspector" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  Affiliate Link Inspector
+                <Link href="/affiliate-link-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                  Affiliate & Outbound Link Auditor
                 </Link>
               </li>
               <li>

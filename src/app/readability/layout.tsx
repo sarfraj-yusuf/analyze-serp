@@ -1,17 +1,18 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Free Flesch Readability Score & Sentence Analyzer',
+  title: 'Readability Score Checker & Flesch Kincaid Auditor | AnalyzeSERP',
   description:
-    'Analyze Flesch Reading Ease score, syllable distribution, and sentence length of your content in real-time with AnalyzeSERP.',
+    'Audit content readability scores, analyze Flesch-Kincaid grade levels, detect passive voice ratio, and optimize article complexity for Google Helpful Content.',
   alternates: {
     canonical: 'https://analyzeserp.com/readability',
   },
   openGraph: {
-    title: 'Free Flesch Readability Score & Sentence Analyzer | AnalyzeSERP',
+    title: 'Readability Score Checker & Flesch Kincaid Auditor | AnalyzeSERP',
     description:
-      'Analyze Flesch Reading Ease score, syllable distribution, and sentence length of your content in real-time.',
+      'Audit content readability scores, analyze Flesch-Kincaid grade levels, detect passive voice ratio, and optimize article complexity for Google Helpful Content.',
     url: 'https://analyzeserp.com/readability',
+    type: 'website',
   },
 };
 

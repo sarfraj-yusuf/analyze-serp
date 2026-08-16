@@ -17,14 +17,15 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL("https://analyzeserp.com"),
   title: {
-    default: "Free Competitor SEO Analysis Tool | AnalyzeSERP",
+    default: "Competitor SEO Audit Tool – 100% Free | AnalyzeSERP",
     template: "%s | AnalyzeSERP",
   },
   description:
-    "Analyze competitor pages for free. Compare title tags, meta descriptions, headings, keywords, readability, links, images, and technical SEO signals in one fast on-page SEO audit.",
+    "Run a free competitor SEO audit instantly. Compare titles, meta tags, headings, keywords, links & technical SEO — no signup, no credit card required.",
   keywords: [
     "AnalyzeSERP",
     "competitor SEO analysis tool",
+    "competitor SEO audit tool",
     "free SEO audit tool",
     "on-page SEO analyzer",
     "keyword gap analysis",
@@ -40,9 +41,9 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Free Competitor SEO Analysis Tool | AnalyzeSERP",
+    title: "Competitor SEO Audit Tool – 100% Free | AnalyzeSERP",
     description:
-      "Analyze competitor pages for free. Compare title tags, meta descriptions, headings, keywords, readability, links, images, and technical SEO signals in one fast on-page SEO audit.",
+      "Run a free competitor SEO audit instantly. Compare titles, meta tags, headings, keywords, links & technical SEO — no signup, no credit card required.",
     url: "https://analyzeserp.com",
     siteName: "AnalyzeSERP",
     locale: "en_US",
@@ -52,15 +53,15 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "AnalyzeSERP — Free Competitor SEO Analysis Tool",
+        alt: "AnalyzeSERP — Free Competitor SEO Audit Tool",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Free Competitor SEO Analysis Tool | AnalyzeSERP",
+    title: "Competitor SEO Audit Tool – 100% Free | AnalyzeSERP",
     description:
-      "Analyze competitor pages for free. Compare title tags, meta descriptions, headings, keywords, readability, links, images, and technical SEO signals in one fast on-page SEO audit.",
+      "Run a free competitor SEO audit instantly. Compare titles, meta tags, headings, keywords, links & technical SEO — no signup, no credit card required.",
     creator: "@sarfrajyusuf",
     images: ["/og-image.jpg"],
   },

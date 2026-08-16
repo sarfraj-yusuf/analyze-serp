@@ -60,11 +60,11 @@ export const SearchIntentEntityCard: React.FC<SearchIntentEntityCardProps> = ({ 
   const IntentIcon = intentConfig.icon;
 
   return (
-    <div className="glass-panel rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-xl my-8 space-y-6">
+    <div className="glass-panel rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-sm my-8 space-y-6">
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-slate-200 dark:border-white/10">
         <div className="flex items-center gap-4">
-          <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 shrink-0 shadow-md">
+          <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 shrink-0">
             <IntentIcon className="w-8 h-8" />
           </div>
 

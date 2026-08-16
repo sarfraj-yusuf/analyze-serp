@@ -1,17 +1,18 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Free Technical SEO & Speed Health Auditor',
+  title: 'Technical SEO Audit Tool & Speed Health Inspector | AnalyzeSERP',
   description:
-    'Audit page load time, HTML size, robots.txt crawlability, canonical status, and mobile friendliness in 1 click.',
+    'Audit server response time (TTFB), HTML payload size, DOM node depth, and SSL security. Free technical SEO health checker for developers & agencies.',
   alternates: {
     canonical: 'https://analyzeserp.com/technical-health',
   },
   openGraph: {
-    title: 'Free Technical SEO & Speed Health Auditor | AnalyzeSERP',
+    title: 'Technical SEO Audit Tool & Speed Health Inspector | AnalyzeSERP',
     description:
-      'Audit page load time, HTML size, robots.txt crawlability, canonical status, and mobile friendliness in 1 click.',
+      'Audit server response time (TTFB), HTML payload size, DOM node depth, and SSL security. Free technical SEO health checker for developers & agencies.',
     url: 'https://analyzeserp.com/technical-health',
+    type: 'website',
   },
 };
 

@@ -21,11 +21,11 @@ export default function TermsPage() {
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            Terms of Service — <span className="gradient-text">AnalyzeSERP.com</span>
+            Terms of Service — <span className="gradient-text">AnalyzeSERP</span>
           </h1>
 
           <p className="text-xs text-slate-500 dark:text-gray-400">
-            Effective Date: January 2026 • Official Domain: <strong>https://analyzeserp.com</strong>
+            Effective Date: August 2026
           </p>
         </div>
 

@@ -21,11 +21,11 @@ export default function PrivacyPage() {
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            Privacy Policy — <span className="gradient-text">AnalyzeSERP.com</span>
+            Privacy Policy — <span className="gradient-text">AnalyzeSERP</span>
           </h1>
 
           <p className="text-xs text-slate-500 dark:text-gray-400">
-            Last Updated: January 2026 • Official Domain: <strong>https://analyzeserp.com</strong>
+            Last Updated: August 2026
           </p>
         </div>
 

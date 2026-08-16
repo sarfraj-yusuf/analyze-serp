@@ -57,19 +57,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/serp-simulator`,
-      lastModified: '2026-07-29',
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
       url: `${baseUrl}/serp-snippet-preview`,
-      lastModified: '2026-07-29',
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/link-inspector`,
       lastModified: '2026-07-29',
       changeFrequency: 'weekly',
       priority: 0.8,
