@@ -58,13 +58,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
         </Link>
 
         {/* Multi-Page Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1.5 bg-slate-100 dark:bg-white/5 p-1.5 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-semibold">
+        <nav className="hidden md:flex items-center gap-1 text-xs font-medium">
           <Link
             href="/"
             className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
               pathname === '/'
-                ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-                : 'text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10'
+                ? 'bg-emerald-600 text-white font-medium shadow-sm shadow-emerald-600/20'
+                : 'text-slate-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/5'
             }`}
           >
             <Search className="w-3.5 h-3.5" />
@@ -75,8 +75,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             href="/technical-health"
             className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
               pathname === '/technical-health'
-                ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-                : 'text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10'
+                ? 'bg-emerald-600 text-white font-medium shadow-sm shadow-emerald-600/20'
+                : 'text-slate-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/5'
             }`}
           >
             <Zap className="w-3.5 h-3.5" />
@@ -87,8 +87,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             href="/serp-snippet-preview"
             className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
               pathname === '/serp-snippet-preview'
-                ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-                : 'text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10'
+                ? 'bg-emerald-600 text-white font-medium shadow-sm shadow-emerald-600/20'
+                : 'text-slate-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/5'
             }`}
           >
             <Share2 className="w-3.5 h-3.5" />
@@ -99,8 +99,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             href="/blog"
             className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all relative ${
               pathname?.startsWith('/blog')
-                ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-                : 'text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10'
+                ? 'bg-emerald-600 text-white font-medium shadow-sm shadow-emerald-600/20'
+                : 'text-slate-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/5'
             }`}
           >
             <span className="relative">

@@ -23,10 +23,6 @@ export const Footer: React.FC = () => {
             <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed">
               <strong>AnalyzeSERP.com</strong> is a high-speed non-AI competitor SEO auditor and SERP intelligence suite. Built for content writers, SEO specialists, and agencies.
             </p>
-
-            <div className="text-[11px] text-slate-500 dark:text-gray-500 font-mono">
-              Domain: <span className="text-emerald-600 dark:text-emerald-400 font-semibold">analyzeserp.com</span>
-            </div>
           </div>
 
           {/* Tools Navigation */}
@@ -40,17 +36,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link href="/technical-health" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  Technical Speed Audit
-                </Link>
-              </li>
-              <li>
-                <Link href="/serp-snippet-preview" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  SERP Snippet & Social Card Preview
-                </Link>
-              </li>
-              <li>
-                <Link href="/affiliate-link-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  Affiliate & Outbound Link Auditor
+                  Technical SEO Health Audit
                 </Link>
               </li>
               <li>
@@ -79,37 +65,37 @@ export const Footer: React.FC = () => {
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Specialized Utilities</h4>
             <ul className="space-y-1.5 text-[11px]">
               <li>
-                <Link href="/site-speed-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5">
-                  <span>Site Speed Checker</span>
-                  <span className="px-1.5 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm animate-pulse">
-                    NEW
-                  </span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/contrast-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold text-emerald-600 dark:text-emerald-400 transition-colors inline-flex items-center gap-1.5">
-                  <span>Color Contrast Checker</span>
-                  <span className="px-1.5 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm animate-pulse">
-                    NEW
-                  </span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/redirect-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold text-emerald-600 dark:text-emerald-400 transition-colors inline-flex items-center gap-1.5">
-                  <span>301 Redirect Chain Inspector</span>
-                  <span className="px-1.5 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm animate-pulse">
-                    NEW
-                  </span>
-                </Link>
-              </li>
-              <li>
                 <Link href="/serp-snippet-preview" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  SERP Snippet Generator
+                  SERP Snippet & Social Preview
                 </Link>
               </li>
               <li>
                 <Link href="/affiliate-link-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  Affiliate Link Checker
+                  Affiliate & Link Auditor
+                </Link>
+              </li>
+              <li>
+                <Link href="/site-speed-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5">
+                  <span>Site Speed & Core Web Vitals</span>
+                  <span className="px-1.5 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm animate-pulse">
+                    NEW
+                  </span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/contrast-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5">
+                  <span>Color Contrast & WCAG Auditor</span>
+                  <span className="px-1.5 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm animate-pulse">
+                    NEW
+                  </span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/redirect-checker" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5">
+                  <span>301 Redirect Chain Inspector</span>
+                  <span className="px-1.5 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm animate-pulse">
+                    NEW
+                  </span>
                 </Link>
               </li>
             </ul>
@@ -151,17 +137,6 @@ export const Footer: React.FC = () => {
                 <Link href="/terms" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-slate-500 dark:text-gray-400">
                   Terms of Service
                 </Link>
-              </li>
-              <li className="pt-2">
-                <a
-                  href="https://analyzeserp.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-slate-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-1 transition-colors"
-                >
-                  <span>https://analyzeserp.com</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
               </li>
             </ul>
           </div>
