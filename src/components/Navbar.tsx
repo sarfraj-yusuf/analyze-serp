@@ -58,13 +58,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
         </Link>
 
         {/* Multi-Page Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1 text-xs font-medium">
+        <nav className="hidden md:flex items-center gap-1 text-xs font-semibold">
           <Link
             href="/"
             className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
               pathname === '/'
-                ? 'bg-emerald-600 text-white font-medium shadow-sm shadow-emerald-600/20'
-                : 'text-slate-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/5'
+                ? 'bg-emerald-700 text-white font-bold shadow-sm shadow-emerald-700/20'
+                : 'text-slate-700 dark:text-gray-200 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-slate-100 dark:hover:bg-white/5'
             }`}
           >
             <Search className="w-3.5 h-3.5" />
@@ -75,8 +75,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             href="/technical-health"
             className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
               pathname === '/technical-health'
-                ? 'bg-emerald-600 text-white font-medium shadow-sm shadow-emerald-600/20'
-                : 'text-slate-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/5'
+                ? 'bg-emerald-700 text-white font-bold shadow-sm shadow-emerald-700/20'
+                : 'text-slate-700 dark:text-gray-200 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-slate-100 dark:hover:bg-white/5'
             }`}
           >
             <Zap className="w-3.5 h-3.5" />
@@ -87,8 +87,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             href="/serp-snippet-preview"
             className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
               pathname === '/serp-snippet-preview'
-                ? 'bg-emerald-600 text-white font-medium shadow-sm shadow-emerald-600/20'
-                : 'text-slate-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/5'
+                ? 'bg-emerald-700 text-white font-bold shadow-sm shadow-emerald-700/20'
+                : 'text-slate-700 dark:text-gray-200 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-slate-100 dark:hover:bg-white/5'
             }`}
           >
             <Share2 className="w-3.5 h-3.5" />
@@ -99,13 +99,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             href="/blog"
             className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all relative ${
               pathname?.startsWith('/blog')
-                ? 'bg-emerald-600 text-white font-medium shadow-sm shadow-emerald-600/20'
-                : 'text-slate-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/5'
+                ? 'bg-emerald-700 text-white font-bold shadow-sm shadow-emerald-700/20'
+                : 'text-slate-700 dark:text-gray-200 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-slate-100 dark:hover:bg-white/5'
             }`}
           >
             <span className="relative">
               Blog
-              <span className="absolute -top-2.5 -right-6 px-1 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-cyan-500 to-indigo-500 text-white shadow-sm animate-pulse">
+              <span className="absolute -top-2.5 -right-6 px-1 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-sm animate-pulse">
                 NEW
               </span>
             </span>

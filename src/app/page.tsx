@@ -363,8 +363,8 @@ export default function Home() {
                     <span
                       className={`absolute left-3.5 top-1/2 -translate-y-1/2 font-mono text-[10px] sm:text-[11px] font-extrabold px-2 py-0.5 rounded-md ${
                         idx === 0
-                          ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
-                          : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-gray-400'
+                          ? 'bg-emerald-500/20 text-emerald-900 dark:text-emerald-200 border border-emerald-500/40'
+                          : 'bg-slate-200 dark:bg-white/10 text-slate-800 dark:text-gray-100'
                       }`}
                     >
                       {idx === 0 ? 'YOUR PAGE' : `COMP #${idx}`}
@@ -448,16 +448,12 @@ export default function Home() {
         {/* Audit Results Dashboard */}
         {isAuditing ? (
           <AuditSkeleton />
-        ) : auditResponse ? (
-          <div className="space-y-10 animate-in fade-in duration-300">
-            {/* 1. Executive SERP Decision Center (Hero & Action Roadmap) */}
-            <SerpDecisionCenter
-              results={auditResponse.results}
-              targetUrl={urls[0]}
-              targetKeyword={targetKeyword}
-            />
+        ) : auditResponse && auditResponse.results.length > 0 ? (
+          <div className="space-y-12 animate-in fade-in duration-300">
+            {/* 1. SERP Consensus & Master Priority Action Center */}
+            <SerpDecisionCenter results={auditResponse.results} />
 
-            {/* 2. Keyword & Topic Gap Engine */}
+            {/* 2. Side-by-Side Keyword Gap Matrix */}
             {auditResponse.results.filter((r) => r.status === 'success').length >= 2 && (
               <KeywordGapMatrix results={auditResponse.results.filter((r) => r.status === 'success')} />
             )}
@@ -475,7 +471,7 @@ export default function Home() {
                     <Layers className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     Deep-Dive Technical Data & Benchmark Inspector
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
+                  <p className="text-xs text-slate-700 dark:text-gray-200 mt-0.5">
                     Raw tabular comparison data, N-gram keyword frequency tables, and individual DOM audit cards.
                   </p>
                 </div>
@@ -518,48 +514,48 @@ export default function Home() {
                 <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
                   Everything You Need to Outrank Your Competitors
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-gray-400 max-w-lg mx-auto leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-700 dark:text-gray-200 max-w-lg mx-auto leading-relaxed">
                   Analyze competitor pages, discover keyword opportunities, and turn data into actionable SEO briefs.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="glass-panel p-5 rounded-2xl border border-slate-200 dark:border-white/10 space-y-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                     <Zap className="w-4 h-4" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">Fast SEO Page Analysis</h4>
-                  <p className="text-xs text-slate-600 dark:text-gray-400">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Fast SEO Page Analysis</h3>
+                  <p className="text-xs text-slate-700 dark:text-gray-200">
                     Get quick, reliable SEO data from real page HTML — no waiting for AI-generated guesses.
                   </p>
                 </div>
 
                 <div className="glass-panel p-5 rounded-2xl border border-slate-200 dark:border-white/10 space-y-2">
-                  <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-500 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center">
                     <Layers className="w-4 h-4" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">Keyword Gap Analysis</h4>
-                  <p className="text-xs text-slate-600 dark:text-gray-400">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Keyword Gap Analysis</h3>
+                  <p className="text-xs text-slate-700 dark:text-gray-200">
                     Find important words and phrases competitors use, then spot missing keyword opportunities in your own content.
                   </p>
                 </div>
 
                 <div className="glass-panel p-5 rounded-2xl border border-slate-200 dark:border-white/10 space-y-2">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
                     <ShieldCheck className="w-4 h-4" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">Technical SEO Checker</h4>
-                  <p className="text-xs text-slate-600 dark:text-gray-400">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Technical SEO Checker</h3>
+                  <p className="text-xs text-slate-700 dark:text-gray-200">
                     Review page speed signals, HTML size, HTTPS, mobile viewport tags, DOM depth, scripts, and other technical SEO issues.
                   </p>
                 </div>
 
                 <div className="glass-panel p-5 rounded-2xl border border-slate-200 dark:border-white/10 space-y-2">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
                     <Sparkles className="w-4 h-4" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">SEO Reports and Content Briefs</h4>
-                  <p className="text-xs text-slate-600 dark:text-gray-400">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">SEO Reports and Content Briefs</h3>
+                  <p className="text-xs text-slate-700 dark:text-gray-200">
                     Export easy-to-read SEO reports and content briefs for your team, clients, or agency workflow.
                   </p>
                 </div>
