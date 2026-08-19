@@ -1,25 +1,66 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { SingleAuditCard } from '@/components/SingleAuditCard';
-import { ComparisonMatrix } from '@/components/ComparisonMatrix';
-import { KeywordGapMatrix } from '@/components/KeywordGapMatrix';
-import { ContentBriefGenerator } from '@/components/ContentBriefGenerator';
-import { SerpDecisionCenter } from '@/components/SerpDecisionCenter';
-import { ProUpgradeModal } from '@/components/ProUpgradeModal';
 import { BatchAuditResponse, SinglePageAudit, KeywordGapAnalysis } from '@/types/seo';
 import { analyzeKeywordGaps } from '@/lib/keyword-gap';
 import { Search, Plus, Trash2, Zap, AlertCircle, Sparkles, Layers, ShieldCheck, ArrowRight, Clock, X, ChevronDown, ChevronUp, Key } from 'lucide-react';
-
 import { triggerToolExecutionFeedback } from '@/lib/feedback-trigger';
-
-const MAX_FREE_DAILY_AUDITS = 20;
-
 import { AuditSkeleton } from '@/components/AuditSkeleton';
 import { SEOContentSection } from '@/components/SEOContentSection';
 import { CookieConsentBanner } from '@/components/CookieConsentBanner';
+
+// Lazy-loaded heavy result & modal components (reduces initial JS payload by ~209 KiB)
+const SerpDecisionCenter = dynamic(
+  () => import('@/components/SerpDecisionCenter').then((mod) => mod.SerpDecisionCenter),
+  {
+    loading: () => <AuditSkeleton />,
+    ssr: false,
+  }
+);
+
+const KeywordGapMatrix = dynamic(
+  () => import('@/components/KeywordGapMatrix').then((mod) => mod.KeywordGapMatrix),
+  {
+    loading: () => <div className="h-40 rounded-2xl glass-panel animate-pulse" />,
+    ssr: false,
+  }
+);
+
+const ContentBriefGenerator = dynamic(
+  () => import('@/components/ContentBriefGenerator').then((mod) => mod.ContentBriefGenerator),
+  {
+    loading: () => <div className="h-40 rounded-2xl glass-panel animate-pulse" />,
+    ssr: false,
+  }
+);
+
+const ComparisonMatrix = dynamic(
+  () => import('@/components/ComparisonMatrix').then((mod) => mod.ComparisonMatrix),
+  {
+    loading: () => <div className="h-40 rounded-2xl glass-panel animate-pulse" />,
+    ssr: false,
+  }
+);
+
+const SingleAuditCard = dynamic(
+  () => import('@/components/SingleAuditCard').then((mod) => mod.SingleAuditCard),
+  {
+    loading: () => <div className="h-40 rounded-2xl glass-panel animate-pulse" />,
+    ssr: false,
+  }
+);
+
+const ProUpgradeModal = dynamic(
+  () => import('@/components/ProUpgradeModal').then((mod) => mod.ProUpgradeModal),
+  {
+    ssr: false,
+  }
+);
+
+const MAX_FREE_DAILY_AUDITS = 20;
 
 export default function Home() {
   const [urls, setUrls] = useState<string[]>(['']);
