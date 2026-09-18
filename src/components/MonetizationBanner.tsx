@@ -32,7 +32,7 @@ export const MonetizationBanner: React.FC<MonetizationBannerProps> = ({ type }) 
                 Recommended Hosting
               </span>
             </div>
-            <h4 className="text-sm font-bold text-slate-900 dark:text-white mt-1">
+            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-1">
               Slow Competitor Load Times Detected?
             </h4>
             <p className="text-xs text-slate-600 dark:text-gray-300">
@@ -66,7 +66,7 @@ export const MonetizationBanner: React.FC<MonetizationBannerProps> = ({ type }) 
               Copywriting AI Assistant
             </span>
           </div>
-          <h4 className="text-sm font-bold text-slate-900 dark:text-white mt-1">
+          <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-1">
             Need to Write 2,000+ Words Fast?
           </h4>
           <p className="text-xs text-slate-600 dark:text-gray-300">

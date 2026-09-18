@@ -83,11 +83,11 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
               Detailed Comparative Inspector
             </span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">
+          <h3 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">
             Facet-by-Facet Competitor Analysis
           </h3>
           <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
-            Compare titles, meta descriptions, heading trees, keywords, and speed signals side-by-side for all <strong className="text-slate-900 dark:text-white">{audits.length} URLs</strong> at once.
+            Compare titles, meta descriptions, heading trees, keywords, and speed signals side-by-side for all <strong className="text-slate-800 dark:text-slate-100">{audits.length} URLs</strong> at once.
           </p>
         </div>
 
@@ -104,7 +104,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
 
           <button
             onClick={handleCopyMarkdown}
-            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-extrabold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-100 font-extrabold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
             title="Copy Markdown table to clipboard for Notion/Google Docs"
           >
             {copiedStatus ? (
@@ -135,7 +135,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         <button
           onClick={() => setActiveTab('titles_descriptions')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-black whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'titles_descriptions'
               ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
               : 'bg-slate-100 text-slate-700 dark:bg-white/5 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10'
@@ -147,7 +147,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
 
         <button
           onClick={() => setActiveTab('headings_tree')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-black whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'headings_tree'
               ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
               : 'bg-slate-100 text-slate-700 dark:bg-white/5 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10'
@@ -159,7 +159,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
 
         <button
           onClick={() => setActiveTab('keywords_density')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-black whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'keywords_density'
               ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
               : 'bg-slate-100 text-slate-700 dark:bg-white/5 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10'
@@ -171,7 +171,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
 
         <button
           onClick={() => setActiveTab('technical_speed')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-black whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'technical_speed'
               ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
               : 'bg-slate-100 text-slate-700 dark:bg-white/5 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10'
@@ -183,7 +183,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
 
         <button
           onClick={() => setActiveTab('images_links')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-black whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'images_links'
               ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
               : 'bg-slate-100 text-slate-700 dark:bg-white/5 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10'
@@ -210,7 +210,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
                   <div className="space-y-4">
                     {/* URL Header */}
                     <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-200 dark:bg-white/10 text-slate-900 dark:text-white">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-white/10 text-slate-800 dark:text-slate-100">
                         URL #{index + 1}
                       </span>
                       <a
@@ -232,7 +232,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
                           {meta.titlePixelEstimate || 0}px ({(meta.title || '').length} chars)
                         </span>
                       </div>
-                      <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-snug">
+                      <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 leading-snug">
                         {meta.title || <span className="text-red-500 italic">Missing Title Tag</span>}
                       </div>
                     </div>
@@ -281,7 +281,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-200 dark:bg-white/10 text-slate-900 dark:text-white">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-white/10 text-slate-800 dark:text-slate-100">
                       URL #{index + 1}
                     </span>
                     <span className="text-xs font-mono text-slate-500 dark:text-gray-400">
@@ -330,7 +330,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
                 className="p-6 rounded-2xl glass-panel border border-slate-200 dark:border-white/10 space-y-4 shadow-sm hover:border-emerald-500/40 transition-all"
               >
                 <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-200 dark:bg-white/10 text-slate-900 dark:text-white">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-white/10 text-slate-800 dark:text-slate-100">
                     URL #{index + 1}
                   </span>
                   <span className="text-xs font-mono text-slate-500 dark:text-gray-400 truncate max-w-[180px]">
@@ -349,7 +349,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
                         key={idx}
                         className="flex items-center justify-between text-xs p-2 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10"
                       >
-                        <span className="font-bold text-slate-900 dark:text-white">{kw.phrase}</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-100">{kw.phrase}</span>
                         <span className="font-mono text-[11px] text-emerald-500 font-bold">
                           {kw.count}x ({kw.density.toFixed(2)}%)
                         </span>
@@ -366,7 +366,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
                         key={idx}
                         className="flex items-center justify-between text-xs p-2 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10"
                       >
-                        <span className="font-bold text-slate-900 dark:text-white">{kw.phrase}</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-100">{kw.phrase}</span>
                         <span className="font-mono text-[11px] text-cyan-500 font-bold">
                           {kw.count}x ({kw.density.toFixed(2)}%)
                         </span>
@@ -388,10 +388,10 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
                 className="p-6 rounded-2xl glass-panel border border-slate-200 dark:border-white/10 space-y-4 shadow-sm hover:border-emerald-500/40 transition-all"
               >
                 <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-200 dark:bg-white/10 text-slate-900 dark:text-white">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-white/10 text-slate-800 dark:text-slate-100">
                     URL #{index + 1}
                   </span>
-                  <span className="font-mono text-xs font-black text-emerald-500">
+                  <span className="font-mono text-xs font-bold text-emerald-500">
                     Health Score: {audit.technicalAudit?.technicalScore || 0}%
                   </span>
                 </div>
@@ -399,14 +399,14 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
                 <div className="space-y-3 text-xs">
                   <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-between">
                     <span className="text-slate-500 dark:text-gray-400">Response Load Time</span>
-                    <span className="font-mono font-bold text-slate-900 dark:text-white">
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-100">
                       {audit.technicalAudit?.ttfbMs || 0}ms
                     </span>
                   </div>
 
                   <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-between">
                     <span className="text-slate-500 dark:text-gray-400">HTML Document Size</span>
-                    <span className="font-mono font-bold text-slate-900 dark:text-white">
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-100">
                       {(audit.technicalAudit?.htmlSizeKb || 0).toFixed(1)} KB
                     </span>
                   </div>
@@ -415,7 +415,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
                     <div className="text-slate-500 dark:text-gray-400 text-[10px] uppercase font-extrabold">
                       Canonical Tag
                     </div>
-                    <div className="font-mono font-bold text-slate-900 dark:text-white truncate">
+                    <div className="font-mono font-bold text-slate-800 dark:text-slate-100 truncate">
                       {audit.meta?.canonicalUrl || 'N/A'}
                     </div>
                   </div>
@@ -445,7 +445,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
                   className="p-6 rounded-2xl glass-panel border border-slate-200 dark:border-white/10 space-y-4 shadow-sm hover:border-emerald-500/40 transition-all"
                 >
                   <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-200 dark:bg-white/10 text-slate-900 dark:text-white">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-white/10 text-slate-800 dark:text-slate-100">
                       URL #{index + 1}
                     </span>
                     <span className="text-xs font-mono text-slate-500 dark:text-gray-400 truncate max-w-[180px]">
@@ -456,7 +456,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
                   <div className="space-y-3 text-xs">
                     <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-between">
                       <span className="text-slate-500 dark:text-gray-400">Total Page Images</span>
-                      <span className="font-mono font-bold text-slate-900 dark:text-white">
+                      <span className="font-mono font-bold text-slate-800 dark:text-slate-100">
                         {imgs.totalImages}
                       </span>
                     </div>
@@ -470,7 +470,7 @@ export const DetailedMatrixTabViewer: React.FC<DetailedMatrixTabViewerProps> = (
 
                     <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-between">
                       <span className="text-slate-500 dark:text-gray-400">Total Links Found</span>
-                      <span className="font-mono font-bold text-slate-900 dark:text-white">
+                      <span className="font-mono font-bold text-slate-800 dark:text-slate-100">
                         {links.totalLinks}
                       </span>
                     </div>

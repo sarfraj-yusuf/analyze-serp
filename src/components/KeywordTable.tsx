@@ -114,7 +114,7 @@ export const KeywordTable: React.FC<KeywordTableProps> = ({ keywords }) => {
             ) : (
               filteredList.map((item, idx) => (
                 <tr key={idx} className="hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all">
-                  <td className="py-2.5 px-4 font-sans font-medium text-slate-900 dark:text-white flex items-center gap-2">
+                  <td className="py-2.5 px-4 font-sans font-medium text-slate-800 dark:text-slate-100 flex items-center gap-2">
                     <span>{item.phrase}</span>
                     {item.isStuffing && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-500/40 font-mono font-bold">

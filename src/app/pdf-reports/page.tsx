@@ -104,6 +104,12 @@ export default function PdfReportsPage() {
     e.preventDefault();
     if (!urlInput.trim()) return;
 
+    let targetUrl = urlInput.trim();
+    if (!/^https?:\/\//i.test(targetUrl)) {
+      targetUrl = `https://${targetUrl}`;
+      setUrlInput(targetUrl);
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -111,7 +117,7 @@ export default function PdfReportsPage() {
       const res = await fetch('/api/audit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ urls: [urlInput.trim()] }),
+        body: JSON.stringify({ urls: [targetUrl] }),
       });
 
       if (!res.ok) {
@@ -143,452 +149,556 @@ export default function PdfReportsPage() {
 
       <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
         {/* Navigation Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
           <Link
             href="/"
-            className="text-slate-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-1 font-semibold transition-all"
+            className="hover:text-emerald-500 transition-colors flex items-center gap-1 font-medium"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Audit Suite</span>
           </Link>
-          <span className="text-slate-400 dark:text-gray-600">/</span>
-          <span className="text-slate-900 dark:text-white font-bold">
+          <span>/</span>
+          <span className="text-slate-800 dark:text-slate-100 font-medium">
             White-Label PDF Reports Hub
           </span>
         </nav>
 
-        {/* Hero Header Section */}
-        <header className="text-center space-y-4 max-w-3xl mx-auto py-4">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shadow-sm">
-            <FileText className="w-3.5 h-3.5" />
+        {/* Compact App-First Header */}
+        <header className="space-y-2 max-w-3xl mx-auto text-center">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+            <FileText className="w-3 h-3" />
             <span>Agency Executive Reporting</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
-            Free White-Label PDF <br />
-            <span className="gradient-text">SEO Report Generator</span>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100 [letter-spacing:-0.025em]">
+            White-Label PDF SEO Report Generator
           </h1>
 
-          <p className="text-sm text-slate-600 dark:text-gray-400 leading-relaxed max-w-2xl mx-auto">
-            Using a dedicated <strong>white label pdf seo report generator</strong> enables marketing teams to deploy an <strong>agency client audit builder</strong> in seconds. Upload custom logos with our <strong>custom branded pdf audit exporter</strong>, create persuasive pitch audits with a <strong>seo proposal generator</strong>, and impress stakeholders with a clean <strong>client executive summary report</strong>.
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl mx-auto">
+            Build client-ready, custom-branded SEO audit PDF reports in seconds. Upload agency logos, select custom theme accents, and export professional deliverables.
           </p>
         </header>
 
-        {/* Layer 1: Input Audit Box */}
-        <section aria-label="PDF Report Generator Input Form" className="max-w-[830px] mx-auto w-full">
-          <div className="glass-panel p-7 sm:p-10 rounded-3xl border border-slate-200 dark:border-white/10 shadow-sm space-y-6">
-            <form onSubmit={handleFetchAudit} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-700 dark:text-gray-300">
-                  Enter Webpage URL to Build Branded PDF Audit
-                </label>
-                <div className="relative">
-                  <Globe className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="url"
-                    required
-                    value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder="https://example.com/landing-page"
-                    className="w-full pl-11 pr-4 py-3.5 sm:py-4 rounded-xl glass-input text-xs sm:text-sm focus:outline-none font-mono transition-all shadow-sm"
-                  />
-                </div>
+        {/* Top-Fold Tool Input Dock */}
+        <section aria-label="PDF Report Generator Input Form" className="max-w-3xl mx-auto space-y-4">
+          <div className="glass-panel hero-input-dock rounded-2xl p-5 sm:p-6 border border-slate-200/80 dark:border-white/[0.08] space-y-4">
+            <form onSubmit={handleFetchAudit} className="flex flex-col sm:flex-row items-center gap-3">
+              <div className="relative flex-1 w-full">
+                <Globe className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  required
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  placeholder="example.com or https://example.com/landing-page"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl glass-input text-xs sm:text-sm focus:outline-none font-mono transition-all"
+                />
               </div>
-
-              {error && (
-                <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
-                  <span>{error}</span>
-                </div>
-              )}
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/20 cursor-pointer disabled:opacity-50"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer shrink-0 disabled:opacity-50 active:scale-[0.98]"
               >
                 {isLoading ? (
-                  <span>Generating Audit Data...</span>
+                  <span>Generating Audit...</span>
                 ) : (
                   <>
                     <Download className="w-4 h-4" />
-                    <span>Generate Branded PDF Report</span>
+                    <span>Generate PDF</span>
                   </>
                 )}
               </button>
             </form>
 
-            {/* Scope Clarification Note */}
-            <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs text-slate-600 dark:text-gray-400 flex items-start gap-2">
-              <Info className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-              <span>
-                <strong>Included Report Scope:</strong> PDF reports compile overall health score, metadata & SERP snippet analysis, H1-H6 heading structure tree, Flesch readability grade, 1-to-3 gram keyword density tables, and technical indexability checks.
-              </span>
-            </div>
-
-            {/* Privacy Guarantee Badge */}
-            <div className="flex items-center justify-center gap-2 pt-2 border-t border-slate-200 dark:border-white/10 text-[11px] text-slate-500 dark:text-gray-400">
-              <Lock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-              <span>
-                <strong>Privacy & Security Guarantee:</strong> All PDF report branding tokens and generated audit data are rendered client-side directly in your browser using jsPDF. We do not store, log, or collect your agency logos or client reports.
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {/* Re-open Modal Button if Audit Ready */}
-        {auditResult && (
-          <div className="text-center animate-in fade-in duration-300">
-            <button
-              onClick={() => setIsPdfModalOpen(true)}
-              className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-extrabold text-xs inline-flex items-center gap-2 transition-all shadow-md shadow-emerald-600/20 cursor-pointer"
-            >
-              <FileText className="w-4 h-4" />
-              <span>Customize & Export PDF Report for {new URL(auditResult.url).hostname}</span>
-            </button>
-          </div>
-        )}
-
-        {/* Layer 2: 3-Step How-To-Use Visual Grid */}
-        <section className="space-y-6 pt-6 border-t border-slate-200 dark:border-white/10">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-              <BookOpen className="w-3.5 h-3.5" />
-              Usage Guide
-            </span>
-          </div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-            How to Use the White-Label PDF Report Generator
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {steps.map((step, idx) => (
-              <div
-                key={idx}
-                className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/10 space-y-2 relative overflow-hidden shadow-sm"
-              >
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  {step.title}
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed">
-                  {step.description}
-                </p>
+            <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-white/[0.05] text-[11px] text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-1.5 font-mono">
+                <Lock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span>Zero data logging · Client-side jsPDF rendering</span>
               </div>
-            ))}
+              <span className="font-mono text-[10px] text-slate-400 hidden sm:inline">6-Pillar Scope · Custom Agency Branding</span>
+            </div>
+
+            {error && <div className="text-xs text-red-600 dark:text-red-400 text-center font-semibold pt-1">{error}</div>}
           </div>
+
+          {/* Re-open Modal Button if Audit Ready */}
+          {auditResult && (
+            <div className="text-center animate-in fade-in duration-300">
+              <button
+                onClick={() => setIsPdfModalOpen(true)}
+                className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-xs inline-flex items-center gap-2 transition-all shadow-xs cursor-pointer active:scale-[0.98]"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Customize &amp; Export PDF Report for {new URL(auditResult.url).hostname}</span>
+              </button>
+            </div>
+          )}
         </section>
 
-        {/* Layer 3: Real-World Persona Use Cases */}
-        <section className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 space-y-6 shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 flex items-center gap-1">
-              <Users className="w-3.5 h-3.5" />
-              Use Cases & Benchmarks
-            </span>
-          </div>
-
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-            Real-World Use Cases for Branded PDF Audit Exporting
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-2">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm text-emerald-600 dark:text-emerald-400">
-                SEO Agencies & Growth Marketing Agencies
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
-                Win new client pitch proposals & retainer audits. Attach branded PDF audits to sales proposals. Demonstrating clear technical bottlenecks during initial sales calls builds trust and justifies agency retainer pricing.
+        {/* Editorial SEO & Reporting Knowledge Container */}
+        <div className="max-w-5xl mx-auto w-full space-y-16 pt-10 border-t border-slate-200/80 dark:border-white/[0.08]">
+          {/* 1. 3-Step How-To-Use Workflow */}
+          <section className="space-y-6">
+            <div className="space-y-2 text-center max-w-3xl mx-auto">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Usage & Workflow</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                How to Use the White-Label PDF Report Generator
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Generate branded client audit reports, customize agency themes, and export deliverables in 3 simple steps.
               </p>
             </div>
 
-            <div className="p-5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-2">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm text-cyan-600 dark:text-cyan-400">
-                Freelance SEO Consultants & Strategists
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
-                Deliver professional monthly progress reports. Provide clients with clean, professional monthly PDF reporting deliverables featuring your own logo and custom optimization notes.
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+              {steps.map((step, idx) => (
+                <div
+                  key={idx}
+                  className="glass-panel p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-2 relative shadow-xs"
+                >
+                  <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-white/[0.06]">
+                    STEP 0{idx + 1}
+                  </span>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">
+                    {step.title.replace(/^\d+\.\s*/, '')}
+                  </h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Persona Target Chips */}
+            <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
+                <Users className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>Who Uses This:</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 font-medium">
+                  <strong>Digital Agencies:</strong> Close new client retainer audits with branded proposals
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 font-medium">
+                  <strong>Freelance Consultants:</strong> Deliver polished monthly SEO health deliverables
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 font-medium">
+                  <strong>In-House Leads:</strong> Present clean executive health summaries to C-Suite
+                </span>
+              </div>
+            </div>
+          </section>
+
+          {/* 2. 4-Pillar PDF Reporting Architecture (2x2 Bento Grid) */}
+          <section className="space-y-6">
+            <div className="space-y-2 text-center max-w-3xl mx-auto">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                <FileText className="w-3.5 h-3.5" />
+                <span>Reporting Standards</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                The Anatomy of a High-Converting Client SEO Audit Report
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Professional reporting frameworks that turn complex technical metrics into actionable client retainers.
               </p>
             </div>
 
-            <div className="p-5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-2">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm text-indigo-600 dark:text-indigo-400">
-                In-House Marketing Directors & Leads
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
-                Present clear action roadmaps to C-Suite executives. Translate complex SEO jargon into high-level executive summaries and health scores easily consumable by non-technical stakeholders.
-              </p>
-            </div>
-          </div>
-        </section>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Card 1: Custom White-Label Agency Branding */}
+              <div className="glass-panel p-6 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-4 flex flex-col justify-between shadow-xs">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                        <FileText className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                        Brand Identity
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold border border-emerald-500/20">
+                      100% White-Label
+                    </span>
+                  </div>
 
-        {/* Layer 4: Deep-Dive Technical Guide (~850 Words with Cited Stats & Google Docs Links) */}
-        <article className="glass-panel p-6 sm:p-10 rounded-3xl border border-slate-200 dark:border-white/10 space-y-8 shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider border border-emerald-500/20">
-              Deep-Dive Technical Guide
-            </span>
-          </div>
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+                    1. Agency White-Label Presentation
+                  </h3>
 
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            The Anatomy of a High-Converting Client SEO Audit PDF Report
-          </h2>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Client retention and sales conversions rely heavily on presentation quality. Reports featuring your agency logo, brand color accents, and contact details position your firm as an authoritative leader.
+                  </p>
 
-          <div className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 leading-relaxed space-y-6">
-            <section className="space-y-3">
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
-                1. Why Custom Agency Branding Builds Immediate Authority
-              </h3>
-              <p>
-                Client retention and sales conversion rely heavily on presentation quality. White-label reports that feature your agency's logo, brand colors, and contact info position your firm as an authoritative market leader.
-              </p>
-            </section>
+                  <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] space-y-1.5 text-[11px] font-mono">
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Agency Customization:</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">Custom Logo & Accent Hex</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Executive Notes:</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">Tailored Action Recommendations</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Pitch Close Rate:</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">Builds Immediate Authority</span>
+                    </div>
+                  </div>
+                </div>
 
-            <section className="space-y-3 pt-2">
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
-                2. Core Audit Pillars Included in Every PDF Export
-              </h3>
-              <p>
-                AnalyzeSERP PDF reports compile a comprehensive 360-degree audit:
-              </p>
-              <ul className="list-disc pl-6 space-y-1 text-xs">
-                <li><strong>Metadata & SERP Snippet Truncation</strong>: Checks title tag pixel width and meta description limits.</li>
-                <li><strong>Heading Architecture</strong>: Visualizes H1, H2, H3 heading trees for topical depth.</li>
-                <li><strong>Keyword Density Tables</strong>: Extracts 1-gram, 2-gram, and 3-gram keyword frequency ratios.</li>
-                <li><strong>Technical Hygiene Checklist</strong>: Evaluates HTTPS security, canonical tags, and mobile viewport readiness.</li>
-              </ul>
-              <div className="pt-1">
                 <a
                   href="https://developers.google.com/search/docs/fundamentals/seo-starter-guide"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-600 dark:text-emerald-400 font-semibold underline inline-flex items-center gap-1"
+                  className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 pt-1"
                 >
-                  Official Reference: Google Search Central Guidance on Website Audit Best Practices <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Google Search Central SEO Starter Guide & Best Practices</span>
+                  <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
-            </section>
 
-            <section className="space-y-3 pt-2">
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
-                3. Executive Summary UX & Pitch Closing Rates (NNGroup UX Study)
-              </h3>
-              <p>
-                User experience research from the Nielsen Norman Group confirms that executive stakeholders scan top-level summaries before diving into technical details. Featuring a unified 0–100 health score at the top of the PDF report increases stakeholder comprehension and pitch conversion rates.
-              </p>
-              <div className="pt-1">
+              {/* Card 2: Executive Summary & UX */}
+              <div className="glass-panel p-6 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-4 flex flex-col justify-between shadow-xs">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                        Executive UX
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 font-bold border border-cyan-500/20">
+                      0–100 Health Score
+                    </span>
+                  </div>
+
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+                    2. Executive Summary UX & Pitch Conversions
+                  </h3>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    User experience research from the Nielsen Norman Group confirms stakeholders scan executive summaries before technical details. A unified health score accelerates client sign-offs.
+                  </p>
+
+                  <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] space-y-1.5 text-[11px] font-mono">
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Unified Scorecard:</span>
+                      <span className="font-bold text-cyan-600 dark:text-cyan-400">0–100 Weighted Score</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Priority Categorization:</span>
+                      <span className="font-bold text-cyan-600 dark:text-cyan-400">Critical, Warnings, Passed</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Stakeholder Clarity:</span>
+                      <span className="font-bold text-cyan-600 dark:text-cyan-400">Non-Technical C-Suite Friendly</span>
+                    </div>
+                  </div>
+                </div>
+
                 <a
                   href="https://www.nngroup.com/articles/executive-summary-ux/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-600 dark:text-emerald-400 font-semibold underline inline-flex items-center gap-1"
+                  className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 hover:underline inline-flex items-center gap-1 pt-1"
                 >
-                  Official Reference: Nielsen Norman Group Executive Summary UX Guidelines <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Nielsen Norman Group Executive Summary UX Guidelines</span>
+                  <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
-            </section>
 
-            <section className="space-y-3 pt-2">
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
-                4. Client-Side Vector PDF Rendering & Data Privacy
-              </h3>
-              <p>
-                Vector PDF rendering via <code>jsPDF</code> executed client-side inside the browser ensures sharp text crispness at any print resolution or screen size, while guaranteeing that proprietary client data remains strictly private.
-              </p>
-            </section>
-          </div>
-        </article>
-
-        {/* Layer 5: Dedicated Internal Cross-Linking Section: Explore Related AnalyzeSERP Tools */}
-        <section className="glass-panel p-6 sm:p-8 rounded-3xl border border-emerald-500/30 bg-emerald-500/5 space-y-4 shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-              <Zap className="w-3.5 h-3.5" />
-              Related AnalyzeSERP Tools
-            </span>
-          </div>
-
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-            Explore Related SEO & Content Optimization Utilities
-          </h3>
-
-          <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
-            Pair your PDF audit reporting with our complete suite of free SEO tools:
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 pt-2">
-            <Link
-              href="/serp-snippet-preview"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>SERP Preview</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Test title tag width & meta.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/affiliate-link-checker"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>Affiliate Auditor</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Audit rel="sponsored".
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/technical-health"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>Technical Health</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Audit SSL & indexation.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/readability"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>Readability</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Analyze Flesch grade.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/redirect-checker"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>Redirect Auditor</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Trace 301/302 HTTP chains.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/contrast-checker"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>Color Contrast</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Test W3C WCAG contrast.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/site-speed-checker"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>Site Speed</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Test TTFB & Core Web Vitals.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>Competitor Audit</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Compare 5 competitor URLs.
-                </p>
-              </div>
-            </Link>
-          </div>
-        </section>
-
-        {/* Layer 6: Frequently Asked Questions Accordion + JSON-LD Schema */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20 flex items-center gap-1">
-              <HelpCircle className="w-3.5 h-3.5" />
-              Frequently Asked Questions
-            </span>
-          </div>
-
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-            Frequently Asked Questions About White-Label PDF SEO Reports
-          </h2>
-
-          <div className="space-y-3">
-            {faqs.map((faq, index) => {
-              const isOpen = openFaqIndex === index;
-              return (
-                <div
-                  key={index}
-                  className="glass-panel rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden transition-all duration-200 shadow-sm"
-                >
-                  <button
-                    onClick={() => toggleFaq(index)}
-                    aria-controls={`faq-answer-${index}`}
-                    aria-expanded={isOpen}
-                    className="w-full px-6 py-4 text-left flex items-center justify-between gap-4 font-semibold text-xs sm:text-sm text-slate-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
-                  >
-                    <span>{faq.question}</span>
-                    <ChevronDown
-                      className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
-                        isOpen ? 'rotate-180 text-emerald-500' : ''
-                      }`}
-                    />
-                  </button>
-
-                  {isOpen && (
-                    <div
-                      id={`faq-answer-${index}`}
-                      role="region"
-                      aria-hidden={!isOpen}
-                      className="px-6 pb-4 pt-2 text-xs text-slate-600 dark:text-gray-300 border-t border-slate-100 dark:border-white/5 leading-relaxed"
-                    >
-                      {faq.answer}
+              {/* Card 3: 360-Degree Technical Scope */}
+              <div className="glass-panel p-6 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-4 flex flex-col justify-between shadow-xs">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                        <Globe className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                        Audit Breadth
+                      </span>
                     </div>
-                  )}
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-bold border border-indigo-500/20">
+                      6 Core Pillars
+                    </span>
+                  </div>
+
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+                    3. Comprehensive 6-Pillar Audit Scope
+                  </h3>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    AnalyzeSERP PDF reports compile a comprehensive 360-degree audit across SERP pixel truncation, heading hierarchy, keyword distributions, SSL security, and canonical tags.
+                  </p>
+
+                  <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] space-y-1.5 text-[11px] font-mono">
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>SERP Analysis:</span>
+                      <span className="font-bold text-indigo-600 dark:text-indigo-400">Pixel Width & Truncation</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Content Hierarchy:</span>
+                      <span className="font-bold text-indigo-600 dark:text-indigo-400">H1–H6 Trees & Keyword N-Grams</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Technical Hygiene:</span>
+                      <span className="font-bold text-indigo-600 dark:text-indigo-400">SSL, Canonical & Mobile Ready</span>
+                    </div>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </section>
+
+                <a
+                  href="https://developers.google.com/search/docs/crawling-indexing"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1 pt-1"
+                >
+                  <span>Google Search Central Crawling & Indexing Documentation</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+
+              {/* Card 4: Client-Side Privacy Guarantee */}
+              <div className="glass-panel p-6 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-4 flex flex-col justify-between shadow-xs">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                        Data Privacy
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/20">
+                      Client-Side jsPDF
+                    </span>
+                  </div>
+
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+                    4. Zero Data Logging & Confidentiality
+                  </h3>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Vector PDF generation executes client-side inside your browser via jsPDF. Agency logos, client URLs, and custom notes are never stored on external databases or shared with third parties.
+                  </p>
+
+                  <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] space-y-1.5 text-[11px] font-mono">
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Rendering Engine:</span>
+                      <span className="font-bold text-amber-600 dark:text-amber-400">Client-Side jsPDF Vector</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Server Logging:</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">Zero File Storage</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Compliance:</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">100% NDA & GDPR Safe</span>
+                    </div>
+                  </div>
+                </div>
+
+                <a
+                  href="https://github.com/parallax/jsPDF"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline inline-flex items-center gap-1 pt-1"
+                >
+                  <span>jsPDF Open Source Vector PDF Engine Architecture</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+          </section>
+
+          {/* 3. Frequently Asked Questions (Accordion) */}
+          <section className="space-y-6 max-w-4xl mx-auto">
+            <div className="space-y-2 text-center">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]">
+                <HelpCircle className="w-3.5 h-3.5" />
+                <span>Common Questions</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                Frequently Asked Questions About PDF Reports
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                Essential insights into white-label branding, executive summaries, and client delivery.
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              {faqs.map((faq, index) => {
+                const isOpen = openFaqIndex === index;
+                return (
+                  <div
+                    key={index}
+                    className={`rounded-xl border transition-colors duration-150 ${
+                      isOpen
+                        ? 'bg-slate-50/80 dark:bg-white/[0.03] border-slate-300 dark:border-white/15'
+                        : 'bg-white dark:bg-slate-900/40 border-slate-200/80 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/10'
+                    }`}
+                  >
+                    <button
+                      onClick={() => toggleFaq(index)}
+                      aria-controls={`faq-answer-${index}`}
+                      aria-expanded={isOpen}
+                      className="w-full px-5 py-3.5 text-left flex items-center justify-between gap-4 font-semibold text-xs sm:text-sm text-slate-800 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+                    >
+                      <span>{faq.question}</span>
+                      <ChevronDown
+                        className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                          isOpen ? 'rotate-180 text-emerald-500' : ''
+                        }`}
+                      />
+                    </button>
+
+                    {isOpen && (
+                      <div
+                        id={`faq-answer-${index}`}
+                        role="region"
+                        aria-hidden={!isOpen}
+                        className="px-5 pb-4 pt-1 text-xs text-slate-600 dark:text-slate-300 border-t border-slate-100 dark:border-white/5 leading-relaxed"
+                      >
+                        {faq.answer}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* 4. Related AnalyzeSERP Tools (Clean 4-Column Grid) */}
+          <section className="p-6 sm:p-8 rounded-2xl glass-panel border border-slate-200/80 dark:border-white/[0.08] space-y-4">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                <Zap className="w-3.5 h-3.5" />
+                <span>AnalyzeSERP Utility Suite</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">
+                Explore Related SEO & Performance Tools
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Enhance your client deliverables with our specialized web auditing utilities:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+              <Link
+                href="/technical-health"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>Technical Health</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  DOM depth, SSL & headers
+                </p>
+              </Link>
+
+              <Link
+                href="/site-speed-checker"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>Site Speed</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  Test TTFB & Core Web Vitals
+                </p>
+              </Link>
+
+              <Link
+                href="/serp-snippet-preview"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>SERP Preview</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  Pixel width & meta snippet test
+                </p>
+              </Link>
+
+              <Link
+                href="/redirect-checker"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>Redirects</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  Trace 301/302 HTTP chains
+                </p>
+              </Link>
+
+              <Link
+                href="/contrast-checker"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>Contrast</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  W3C WCAG 2.2 color check
+                </p>
+              </Link>
+
+              <Link
+                href="/affiliate-link-checker"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>Affiliate Links</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  Audit rel="sponsored" tags
+                </p>
+              </Link>
+
+              <Link
+                href="/readability"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>Readability</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  Flesch score & tone check
+                </p>
+              </Link>
+
+              <Link
+                href="/"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>Competitor Audit</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  Compare 5 competitor URLs
+                </p>
+              </Link>
+            </div>
+          </section>
+        </div>
       </main>
 
       <Footer />

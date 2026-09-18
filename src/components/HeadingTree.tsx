@@ -32,9 +32,9 @@ export const HeadingTree: React.FC<HeadingTreeProps> = ({ headings }) => {
             <ListOrdered className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-slate-900 dark:text-white">Heading Structure Tree</h4>
+            <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Heading Structure Tree</h4>
             <p className="text-xs text-slate-500 dark:text-gray-400">
-              Total Headings: <span className="text-slate-900 dark:text-white font-bold">{headings.length}</span> (H1: {h1Count}, H2: {h2Count}, H3: {h3Count})
+              Total Headings: <span className="text-slate-800 dark:text-slate-100 font-bold">{headings.length}</span> (H1: {h1Count}, H2: {h2Count}, H3: {h3Count})
             </p>
           </div>
         </div>

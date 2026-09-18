@@ -37,14 +37,51 @@ export const LinkInspectorCard: React.FC<LinkInspectorCardProps> = ({ linkAudit 
       l.text.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const intPct = totalLinks > 0 ? Math.round((internalCount / totalLinks) * 100) : 0;
+  const extPct = totalLinks > 0 ? Math.round((externalCount / totalLinks) * 100) : 0;
+  const affPct = totalLinks > 0 ? Math.round((affiliateCount / totalLinks) * 100) : 0;
+
   return (
     <div className="space-y-6">
+      {/* Visual Segmented Link Ratio Bar */}
+      {totalLinks > 0 && (
+        <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-bold text-slate-800 dark:text-gray-200 flex items-center gap-1.5">
+              <Link2 className="w-4 h-4 text-emerald-500" />
+              Link Ratio Distribution
+            </span>
+            <div className="flex items-center gap-3 text-[10px] font-mono">
+              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                Internal ({intPct}%)
+              </span>
+              <span className="flex items-center gap-1 text-cyan-600 dark:text-cyan-400 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-cyan-500" />
+                External ({extPct}%)
+              </span>
+              {affiliateCount > 0 && (
+                <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  Affiliate ({affPct}%)
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="h-2.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden flex">
+            <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${intPct}%` }} title={`Internal: ${internalCount} (${intPct}%)`} />
+            <div className="h-full bg-cyan-500 transition-all duration-500" style={{ width: `${extPct}%` }} title={`External: ${externalCount} (${extPct}%)`} />
+            <div className="h-full bg-amber-500 transition-all duration-500" style={{ width: `${affPct}%` }} title={`Affiliate: ${affiliateCount} (${affPct}%)`} />
+          </div>
+        </div>
+      )}
+
       {/* Metric Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
           <div className="text-xs text-slate-500 dark:text-gray-400">Total Outbound Links</div>
-          <div className="text-xl font-extrabold text-slate-900 dark:text-white mt-1">{totalLinks}</div>
-          <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">
+          <div className="text-xl font-extrabold text-slate-800 dark:text-slate-100 mt-1 tabular-nums">{totalLinks}</div>
+          <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono tabular-nums">
             {internalCount} Internal / {externalCount} External
           </div>
         </div>
@@ -54,24 +91,24 @@ export const LinkInspectorCard: React.FC<LinkInspectorCardProps> = ({ linkAudit 
             <ShoppingBag className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
             <span>Affiliate Links</span>
           </div>
-          <div className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">{affiliateCount}</div>
-          <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">
+          <div className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-1 tabular-nums">{affiliateCount}</div>
+          <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono tabular-nums">
             {affiliateNetworksDetected.length} networks detected
           </div>
         </div>
 
         <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
           <div className="text-xs text-slate-500 dark:text-gray-400">Keyword-Rich Anchors</div>
-          <div className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{anchorBreakdown.keywordRichCount}</div>
-          <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">
+          <div className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 tabular-nums">{anchorBreakdown.keywordRichCount}</div>
+          <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono tabular-nums">
             {totalLinks > 0 ? Math.round((anchorBreakdown.keywordRichCount / totalLinks) * 100) : 0}% of total
           </div>
         </div>
 
         <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
           <div className="text-xs text-slate-500 dark:text-gray-400">Generic Anchors ("click here")</div>
-          <div className="text-xl font-extrabold text-cyan-600 dark:text-cyan-400 mt-1">{anchorBreakdown.genericCount}</div>
-          <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">
+          <div className="text-xl font-extrabold text-cyan-600 dark:text-cyan-400 mt-1 tabular-nums">{anchorBreakdown.genericCount}</div>
+          <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono tabular-nums">
             {anchorBreakdown.brandedCount} Branded Anchors
           </div>
         </div>
@@ -201,7 +238,7 @@ export const LinkInspectorCard: React.FC<LinkInspectorCardProps> = ({ linkAudit 
                     </a>
                   </td>
 
-                  <td className="py-2.5 px-4 text-slate-900 dark:text-white max-w-xs truncate font-medium">
+                  <td className="py-2.5 px-4 text-slate-800 dark:text-slate-100 max-w-xs truncate font-medium">
                     {l.text || <span className="text-slate-400 dark:text-gray-500 italic">(No text anchor)</span>}
                   </td>
 

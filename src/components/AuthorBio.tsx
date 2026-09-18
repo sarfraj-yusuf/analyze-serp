@@ -30,7 +30,7 @@ export const AuthorBio: React.FC<AuthorBioProps> = ({
         <div className="space-y-1.5 flex-1">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <div className="flex items-center justify-center sm:justify-start gap-1.5 font-extrabold text-base text-slate-900 dark:text-white">
+              <div className="flex items-center justify-center sm:justify-start gap-1.5 font-extrabold text-base text-slate-800 dark:text-slate-100">
                 <span>{author}</span>
                 <ShieldCheck className="w-4 h-4 text-emerald-500" />
               </div>

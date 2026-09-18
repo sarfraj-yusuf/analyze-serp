@@ -44,7 +44,7 @@ export const ToolCTAWidget: React.FC<ToolCTAWidgetProps> = ({ toolType = 'compet
   const Icon = config.icon;
 
   return (
-    <div className="my-8 p-6 rounded-2xl glass-panel border border-emerald-500/40 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 shadow-lg space-y-4 not-prose">
+    <div className="my-8 p-6 rounded-2xl glass-panel border border-emerald-500/30 bg-emerald-500/5 shadow-xs space-y-4 not-prose">
       <div className="flex items-center gap-2">
         <span className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider flex items-center gap-1">
           <Sparkles className="w-3 h-3 text-amber-400" /> Free AnalyzeSERP Tool
@@ -53,7 +53,7 @@ export const ToolCTAWidget: React.FC<ToolCTAWidgetProps> = ({ toolType = 'compet
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h4 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <h4 className="text-base font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <Icon className="w-4 h-4 text-emerald-500" />
             <span>{config.title}</span>
           </h4>
@@ -64,7 +64,7 @@ export const ToolCTAWidget: React.FC<ToolCTAWidgetProps> = ({ toolType = 'compet
 
         <Link
           href={config.href}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold text-xs flex items-center justify-center gap-1.5 hover:opacity-95 transition-all shadow-md shadow-emerald-500/20 shrink-0 cursor-pointer"
+          className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs shrink-0 cursor-pointer active:scale-[0.98]"
         >
           <span>{config.btnText}</span>
           <ArrowRight className="w-4 h-4" />

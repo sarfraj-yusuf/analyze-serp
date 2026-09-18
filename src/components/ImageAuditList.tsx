@@ -18,7 +18,7 @@ export const ImageAuditList: React.FC<ImageAuditListProps> = ({ imageAudit }) =>
             <Image className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xl font-bold text-slate-900 dark:text-white">{totalImages}</div>
+            <div className="text-xl font-bold text-slate-800 dark:text-slate-100">{totalImages}</div>
             <div className="text-xs text-slate-500 dark:text-gray-400">Total Image Tags</div>
           </div>
         </div>
@@ -28,7 +28,7 @@ export const ImageAuditList: React.FC<ImageAuditListProps> = ({ imageAudit }) =>
             {missingAltCount > 0 ? <AlertCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
           </div>
           <div>
-            <div className="text-xl font-bold text-slate-900 dark:text-white">{missingAltCount}</div>
+            <div className="text-xl font-bold text-slate-800 dark:text-slate-100">{missingAltCount}</div>
             <div className="text-xs text-slate-500 dark:text-gray-400">Missing Alt Attributes</div>
           </div>
         </div>
@@ -38,7 +38,7 @@ export const ImageAuditList: React.FC<ImageAuditListProps> = ({ imageAudit }) =>
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xl font-bold text-slate-900 dark:text-white">{webpOrSvgCount}</div>
+            <div className="text-xl font-bold text-slate-800 dark:text-slate-100">{webpOrSvgCount}</div>
             <div className="text-xs text-slate-500 dark:text-gray-400">Modern WebP/SVG Assets</div>
           </div>
         </div>
@@ -49,9 +49,9 @@ export const ImageAuditList: React.FC<ImageAuditListProps> = ({ imageAudit }) =>
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-gray-400 font-semibold uppercase tracking-wider">
-              <th className="py-3 px-4">Image Source</th>
-              <th className="py-3 px-4">Alt Attribute</th>
-              <th className="py-3 px-4 text-center">Format</th>
+              <th scope="col" className="py-3 px-4">Image Source</th>
+              <th scope="col" className="py-3 px-4">Alt Attribute</th>
+              <th scope="col" className="py-3 px-4 text-center">Format</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-white/5 text-slate-800 dark:text-gray-200">

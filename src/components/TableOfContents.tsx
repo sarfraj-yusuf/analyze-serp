@@ -19,7 +19,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({ toc }) => {
     <div className="my-8 rounded-2xl glass-panel border border-emerald-500/30 bg-emerald-500/5 p-5 shadow-lg space-y-3 not-prose">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between text-left font-extrabold text-sm text-slate-900 dark:text-white cursor-pointer select-none"
+        className="w-full flex items-center justify-between text-left font-extrabold text-sm text-slate-800 dark:text-slate-100 cursor-pointer select-none"
       >
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/30">

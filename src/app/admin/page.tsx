@@ -137,7 +137,7 @@ export default function AdminPage() {
               <Lock className="w-3.5 h-3.5" />
               <span>Internal Admin & User Analytics Dashboard</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
               AnalyzeSERP <span className="gradient-text">Admin Control Center</span>
             </h1>
           </div>
@@ -163,7 +163,7 @@ export default function AdminPage() {
               </div>
 
               <div className="space-y-1.5">
-                <h3 className="text-xl font-black text-slate-900 dark:text-white">Admin Authentication</h3>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">Admin Authentication</h3>
                 <p className="text-xs text-slate-600 dark:text-gray-400">
                   Enter your Secret Admin Passkey to access real-time user activity logs and stored feedback database.
                 </p>
@@ -208,7 +208,7 @@ export default function AdminPage() {
                     </span>
                     <Users className="w-4 h-4 text-emerald-500" />
                   </div>
-                  <div className="text-3xl font-black text-slate-900 dark:text-white">
+                  <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">
                     {adminData.summary.totalVisitors}
                   </div>
                   <div className="text-[11px] text-slate-500 dark:text-gray-400">Unique IPs / Users</div>
@@ -221,7 +221,7 @@ export default function AdminPage() {
                     </span>
                     <Activity className="w-4 h-4 text-cyan-500" />
                   </div>
-                  <div className="text-3xl font-black text-slate-900 dark:text-white">
+                  <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">
                     {adminData.summary.totalAuditsRun}
                   </div>
                   <div className="text-[11px] text-slate-500 dark:text-gray-400">Tool Audits Completed</div>
@@ -234,7 +234,7 @@ export default function AdminPage() {
                     </span>
                     <Zap className="w-4 h-4 text-indigo-500" />
                   </div>
-                  <div className="text-lg font-black text-slate-900 dark:text-white truncate">
+                  <div className="text-lg font-bold text-slate-800 dark:text-slate-100 truncate">
                     {adminData.summary.topTool}
                   </div>
                   <div className="text-[11px] text-slate-500 dark:text-gray-400">Highest Engagement</div>
@@ -247,7 +247,7 @@ export default function AdminPage() {
                     </span>
                     <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
                   </div>
-                  <div className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  <div className="text-3xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                     <span>{adminData.summary.avgRating}</span>
                     <span className="text-xs font-normal text-slate-400">/ 5.0 ⭐</span>
                   </div>
@@ -305,7 +305,7 @@ export default function AdminPage() {
               {activeTab === 'usage' && (
                 <div className="glass-panel rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-xl">
                   <div className="px-6 py-4 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
-                    <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                    <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                       <Activity className="w-4 h-4 text-emerald-500" />
                       <span>User Session Activity & Tool Execution Table</span>
                     </h3>
@@ -329,7 +329,7 @@ export default function AdminPage() {
                               <td className="px-6 py-4 font-bold text-emerald-600 dark:text-emerald-400">
                                 {row.ip}
                               </td>
-                              <td className="px-6 py-4 font-extrabold text-slate-900 dark:text-white">
+                              <td className="px-6 py-4 font-extrabold text-slate-800 dark:text-slate-100">
                                 <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/20">
                                   {row.totalUses} executions
                                 </span>
@@ -380,7 +380,7 @@ export default function AdminPage() {
               {activeTab === 'feedback' && (
                 <div className="glass-panel rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-xl">
                   <div className="px-6 py-4 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
-                    <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                    <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                       <MessageSquare className="w-4 h-4 text-emerald-500" />
                       <span>User Reviews & Feature Suggestions Database</span>
                     </h3>

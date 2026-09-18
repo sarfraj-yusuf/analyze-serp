@@ -42,36 +42,66 @@ export default function SerpSimulatorPage() {
     },
   ];
 
+  const serpGuide = {
+    tag: 'METADATA & SERP CRAFT',
+    title: 'Search Snippets vs. Social Cards: Optimizing for Maximum Click-Through',
+    intro:
+      'Search engine snippets and social link previews serve as your digital storefront. Optimizing visual metadata ensures your links command high engagement and zero awkward truncation across Google, Twitter/X, Facebook, and LinkedIn.',
+    items: [
+      {
+        title: 'Title Tag Pixel Budgeting',
+        description:
+          'Google truncates titles at approximately 600 pixels on desktop. Keeping important primary keywords in the first 50–55 characters avoids ellipses and keeps brand context intact.',
+      },
+      {
+        title: 'Open Graph Aspect Ratio & Framing',
+        description:
+          'Maintain an exact 1.91:1 ratio (1200 x 630 pixels) with a safe center zone. This prevents crucial headings or logos from being cropped by mobile social feeds.',
+      },
+      {
+        title: 'Twitter / X Card Hierarchy',
+        description:
+          'Always declare twitter:card="summary_large_image" for editorial and landing pages to ensure your link renders as an expansive visual showcase rather than a cramped square thumbnail.',
+      },
+      {
+        title: 'Canonical URL & Favicon Integrity',
+        description:
+          'Search engines and modern feed algorithms rely on canonical tags to group social engagement signals. High-contrast 32x32 favicons enhance instant brand recall in mobile search carousels.',
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-slate-900 dark:text-gray-100 selection:bg-emerald-500 selection:text-black transition-colors duration-200">
       <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
         {/* Navigation Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
           <Link
             href="/"
-            className="text-slate-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-1 font-semibold transition-all"
+            className="hover:text-emerald-500 transition-colors flex items-center gap-1 font-medium"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Audit Suite</span>
           </Link>
-          <span className="text-slate-400 dark:text-gray-600">/</span>
-          <span className="text-slate-900 dark:text-white font-bold">SERP & Social Card Simulator</span>
+          <span>/</span>
+          <span className="text-slate-800 dark:text-slate-100 font-medium">SERP Simulator</span>
         </div>
 
-        {/* Page Hero Header */}
-        <div className="text-center space-y-3 max-w-3xl mx-auto py-4">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20">
+        {/* Hero Section */}
+        <div className="space-y-4 max-w-3xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Interactive Visual CTR Preview</span>
+            <span>Free Visual SERP & Social Card Preview Tool</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            Social & SERP <span className="gradient-text">Preview Simulator</span>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
+            Google SERP & Social Card Preview Tool
           </h1>
 
-          <p className="text-sm text-slate-600 dark:text-gray-400 leading-relaxed">
-            Preview title tags, meta descriptions, Open Graph images (<code className="text-emerald-400 font-mono">og:image</code>), and Twitter Cards (<code className="text-cyan-400 font-mono">twitter:card</code>) across search engines and social platforms.
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
+            Test how your title tags, meta descriptions, and Open Graph social share cards appear on Google Search, Facebook, Twitter/X, and LinkedIn before publishing.
           </p>
         </div>
 
@@ -91,6 +121,7 @@ Key Social & SERP Optimization Standards:
 2. Twitter Card Card Type: Specify twitter:card="summary_large_image" for prominent feed visibility.
 3. Pixel Precision: Keep titles under 600px to avoid awkward clipping in social cards.`}
           faqs={faqs}
+          guideSection={serpGuide}
         />
       </main>
 

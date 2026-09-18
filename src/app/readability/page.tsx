@@ -112,417 +112,532 @@ export default function ReadabilityPage() {
 
       <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
         {/* Navigation Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
           <Link
             href="/"
-            className="text-slate-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-1 font-semibold transition-all"
+            className="hover:text-emerald-500 transition-colors flex items-center gap-1 font-medium"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Audit Suite</span>
           </Link>
-          <span className="text-slate-400 dark:text-gray-600">/</span>
-          <span className="text-slate-900 dark:text-white font-bold">
-            Readability & Tone Analyzer
-          </span>
+          <span>/</span>
+          <span className="text-slate-800 dark:text-slate-100 font-medium">Readability Analyzer</span>
         </nav>
 
-        {/* Page Hero Header */}
-        <header className="text-center space-y-3 max-w-3xl mx-auto py-4">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-            <Sparkles className="w-3.5 h-3.5" />
+        {/* Compact Centered App-First Header */}
+        <header className="space-y-2 max-w-3xl mx-auto text-center">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+            <BookOpen className="w-3 h-3" />
             <span>Flesch-Kincaid Engine</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            Free Readability <span className="gradient-text">Score Checker & Auditor</span>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100 [letter-spacing:-0.025em]">
+            Readability Score &amp; Tone Analyzer
           </h1>
 
-          <p className="text-sm text-slate-600 dark:text-gray-400 leading-relaxed">
-            Using an online <strong>readability score checker</strong> allows writers and SEO copywriters to run a <strong>flesch kincaid grade level auditor</strong> in real time. Calculate Flesch Reading Ease (0–100), analyze <strong>passive voice ratio detector</strong> metrics, and streamline paragraph complexity to satisfy <strong>google helpful content readability</strong> guidelines.
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl mx-auto">
+            Calculate Flesch Reading Ease (0–100), Flesch-Kincaid Grade Level, and sentence complexity in real time to satisfy Google Helpful Content readability guidelines.
           </p>
         </header>
 
         {/* Layer 1: Text Input Editor & Live Results */}
-        <section aria-label="Live Article Text Editor Input">
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 space-y-4 shadow-sm">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-900 dark:text-white">
+        <section aria-label="Live Article Text Editor Input" className="max-w-4xl mx-auto space-y-6">
+          <div className="glass-panel hero-input-dock p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-4">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-100">
               <span className="flex items-center gap-2">
-                <AlignLeft className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Live Article Draft / Text Box
+                <AlignLeft className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Live Article Draft / Copy Editor</span>
               </span>
-              <span className="text-slate-500 dark:text-gray-400 font-mono">
-                {metrics.totalSentences} sentences • {metrics.avgSentenceLength} avg words/sent
+              <span className="text-slate-500 dark:text-gray-400 font-mono text-[11px]">
+                {metrics.totalSentences} sentences · {metrics.avgSentenceLength} avg words/sent
               </span>
             </div>
 
             <textarea
-              rows={6}
+              rows={5}
               value={inputText}
               onChange={handleTextChange}
               placeholder="Paste your article draft or content text here..."
-              className="w-full p-4 rounded-xl glass-input text-xs leading-relaxed focus:outline-none shadow-sm resize-none"
+              className="w-full p-4 rounded-xl glass-input text-xs sm:text-sm leading-relaxed focus:outline-none shadow-xs resize-none"
             />
 
-            {/* Privacy Guarantee Badge */}
-            <div className="flex items-center justify-center gap-2 pt-2 border-t border-slate-200 dark:border-white/10 text-[11px] text-slate-500 dark:text-gray-400">
-              <Lock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-              <span>
-                <strong>Privacy & Security Guarantee:</strong> Your analyzed text and URLs are processed transiently in real time. We do not store, log, or use your copy for AI model training.
-              </span>
+            <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-white/[0.05] text-[11px] text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-1.5 font-mono">
+                <Lock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span>Zero data logging · Client-side analysis</span>
+              </div>
+              <span className="font-mono text-[10px] text-slate-400 hidden sm:inline">Target: 60–70 Flesch Ease · 7th–8th Grade</span>
             </div>
           </div>
 
-          <div className="mt-8">
+          <div className="animate-in fade-in duration-200">
             <ReadabilityCard readability={metrics} />
           </div>
         </section>
 
-        {/* Layer 2: 3-Step How-To-Use Visual Grid */}
-        <section className="space-y-6 pt-6 border-t border-slate-200 dark:border-white/10">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-              <BookOpen className="w-3.5 h-3.5" />
-              Usage Guide
-            </span>
-          </div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-            How to Use the Readability Score Checker
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {steps.map((step, idx) => (
-              <div
-                key={idx}
-                className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/10 space-y-2 relative overflow-hidden shadow-sm"
-              >
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  {step.title}
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed">
-                  {step.description}
-                </p>
+        {/* Editorial SEO & Readability Knowledge Container */}
+        <div className="max-w-5xl mx-auto w-full space-y-16 pt-10 border-t border-slate-200/80 dark:border-white/[0.08]">
+          {/* 1. 3-Step How-To-Use Workflow */}
+          <section className="space-y-6">
+            <div className="space-y-2 text-center max-w-3xl mx-auto">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Usage & Workflow</span>
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Layer 3: Real-World Persona Use Cases */}
-        <section className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 space-y-6 shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 flex items-center gap-1">
-              <Users className="w-3.5 h-3.5" />
-              Use Cases & Benchmarks
-            </span>
-          </div>
-
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-            Real-World Use Cases for Readability & Content Optimization
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-2">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm text-emerald-600 dark:text-emerald-400">
-                Content Writers & Bloggers
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
-                Maximize reader dwell time. Using our <strong>content complexity analyzer</strong> helps keep sentence lengths under control, preventing mobile readers from bouncing back to search engine results.
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                How to Use the Readability Score Checker
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Analyze text complexity, calibrate grade levels, and improve reader dwell time in 3 simple steps.
               </p>
             </div>
 
-            <div className="p-5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-2">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm text-cyan-600 dark:text-cyan-400">
-                SEO Copywriters & Marketing Agencies
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
-                Align articles with Google expectations. Ensure client blog content remains accessible to general audiences while maintaining high topical authority.
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+              {steps.map((step, idx) => (
+                <div
+                  key={idx}
+                  className="glass-panel p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-2 relative shadow-xs"
+                >
+                  <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-white/[0.06]">
+                    STEP 0{idx + 1}
+                  </span>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">
+                    {step.title.replace(/^\d+\.\s*/, '')}
+                  </h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Persona Target Chips */}
+            <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
+                <Users className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>Who Uses This:</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 font-medium">
+                  <strong>Content Writers:</strong> Prevent mobile reader drop-offs with 7th–8th grade prose
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 font-medium">
+                  <strong>SEO Copywriters:</strong> Align content with Google Helpful Content guidelines
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 font-medium">
+                  <strong>Marketing Teams:</strong> Simplify sales landing copy to lift conversions +14%
+                </span>
+              </div>
+            </div>
+          </section>
+
+          {/* 2. 4-Pillar Readability & Comprehension Architecture (2x2 Bento Grid) */}
+          <section className="space-y-6">
+            <div className="space-y-2 text-center max-w-3xl mx-auto">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Linguistic Science</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                The Science of Readability: Formulas, Grade Levels & Dwell Time
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Objective linguistic formulas that predict user comprehension, reading fatigue, and search intent satisfaction.
               </p>
             </div>
 
-            <div className="p-5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-2">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm text-indigo-600 dark:text-indigo-400">
-                Technical Publishers & Editors
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
-                Simplify complex technical tutorials into plain English. Replace unnecessary multi-syllable jargon with direct vocabulary without losing technical depth.
-              </p>
-            </div>
-          </div>
-        </section>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Card 1: Flesch Reading Ease Formula */}
+              <div className="glass-panel p-6 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-4 flex flex-col justify-between shadow-xs">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                        <BookOpen className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                        Reading Ease
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold border border-emerald-500/20">
+                      60–70 Target
+                    </span>
+                  </div>
 
-        {/* Layer 4: Deep-Dive Technical Guide (~800 Words with Cited Stats & Google Docs Links) */}
-        <article className="glass-panel p-6 sm:p-10 rounded-3xl border border-slate-200 dark:border-white/10 space-y-8 shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider border border-emerald-500/20">
-              Deep-Dive Technical Guide
-            </span>
-          </div>
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+                    1. Flesch Reading Ease Index
+                  </h3>
 
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            The Science of Readability: Flesch Metrics, User Dwell Time & Google Helpful Content
-          </h2>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Flesch Reading Ease scores text accessibility on a 0–100 scale using word length and syllable density. Higher scores represent clearer, more conversational prose suited for digital audiences.
+                  </p>
 
-          <div className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 leading-relaxed space-y-6">
-            <section className="space-y-3">
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
-                1. The Flesch Reading Ease Score Scale (0 to 100 Benchmark)
-              </h3>
-              <p>
-                The Flesch Reading Ease formula evaluates textual difficulty on a scale from 0 to 100. Higher scores denote material that is easier to comprehend:
-              </p>
-              <ul className="list-disc pl-6 space-y-1 text-xs">
-                <li><strong>90.0 – 100.0</strong>: 5th Grade level (Very Easy to Read)</li>
-                <li><strong>60.0 – 70.0</strong>: 8th & 9th Grade level (Plain English — Target Benchmark for Web Content)</li>
-                <li><strong>0.0 – 30.0</strong>: University Graduate level (Very Confusing / Dense Academic Jargon)</li>
-              </ul>
-            </section>
+                  <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] space-y-1.5 text-[11px] font-mono">
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Plain English (Web Optimal):</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">60–70 Score</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Fairly Difficult (High School):</span>
+                      <span className="font-bold text-amber-600 dark:text-amber-400">50–60 Score</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Technical / Academic:</span>
+                      <span className="font-bold text-rose-600 dark:text-rose-400">&lt; 50 Score</span>
+                    </div>
+                  </div>
+                </div>
 
-            <section className="space-y-3 pt-2">
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
-                2. Flesch-Kincaid Grade Level & Web Reading Behavior (NNGroup 79% Study)
-              </h3>
-              <p>
-                User experience research conducted by the Nielsen Norman Group reveals that <strong>79% of web users scan pages</strong> rather than reading line-by-line
                 <a
-                  href="https://www.nngroup.com/articles/how-users-read-on-the-web/"
+                  href="https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-600 dark:text-emerald-400 underline font-semibold ml-1 inline-flex items-center gap-0.5"
+                  className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 pt-1"
                 >
-                  [Nielsen Norman Group Reading Study] <ExternalLink className="w-3 h-3 inline" />
-                </a>.
-                Writing at a 7th–8th grade reading level enables searchers to locate key answers instantly, driving higher dwell time and lower bounce rates.
-              </p>
-            </section>
-
-            <section className="space-y-3 pt-2">
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
-                3. Passive Voice Ratio & Sentence Length Optimization
-              </h3>
-              <p>
-                Excessive passive voice construction lengthens sentence structures and reduces reader comprehension. Maintaining average sentence lengths under 20 words and keeping passive voice under 10% ensures energetic, authoritative content delivery across mobile devices.
-              </p>
-            </section>
-
-            <section className="space-y-3 pt-2">
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
-                4. Google Helpful Content System & User Engagement Signals
-              </h3>
-              <p>
-                Google’s official Webmaster Quality guidelines emphasize producing content created for human searchers rather than search engine algorithms. Clear, accessible writing prevents reader friction, directly contributing to positive engagement signals.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 pt-1">
-                <a
-                  href="https://developers.google.com/search/docs/appearance/helpful-content-system"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-emerald-600 dark:text-emerald-400 font-semibold underline inline-flex items-center gap-1"
-                >
-                  Official Reference: Google Search Central Helpful Content System Guidance <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Flesch-Kincaid Formula Specifications & Mathematics</span>
+                  <ExternalLink className="w-3 h-3" />
                 </a>
+              </div>
+
+              {/* Card 2: Flesch-Kincaid Grade Level */}
+              <div className="glass-panel p-6 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-4 flex flex-col justify-between shadow-xs">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                        Education Benchmark
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 font-bold border border-cyan-500/20">
+                      7th–8th Grade
+                    </span>
+                  </div>
+
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+                    2. Flesch-Kincaid Grade Level
+                  </h3>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Translates raw linguistic complexity into US academic grade equivalents. Research demonstrates that web copy written at a 7th–8th grade level maximizes comprehension across all demographics.
+                  </p>
+
+                  <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] space-y-1.5 text-[11px] font-mono">
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Target Web Grade:</span>
+                      <span className="font-bold text-cyan-600 dark:text-cyan-400">7th–8th Grade</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Advanced Web Grade:</span>
+                      <span className="font-bold text-amber-600 dark:text-amber-400">9th–10th Grade</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>High Fatigue Risk:</span>
+                      <span className="font-bold text-rose-600 dark:text-rose-400">12th+ Grade</span>
+                    </div>
+                  </div>
+                </div>
+
                 <a
                   href="https://developers.google.com/search/docs/fundamentals/creating-helpful-content"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-600 dark:text-emerald-400 font-semibold underline inline-flex items-center gap-1"
+                  className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 hover:underline inline-flex items-center gap-1 pt-1"
                 >
-                  Official Reference: Google Fundamentals for Creating Helpful Content <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Google Search Central Helpful Content System</span>
+                  <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
-            </section>
-          </div>
-        </article>
 
-        {/* Layer 5: Dedicated Internal Cross-Linking Section: Explore Related AnalyzeSERP Tools */}
-        <section className="glass-panel p-6 sm:p-8 rounded-3xl border border-emerald-500/30 bg-emerald-500/5 space-y-4 shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-              <Zap className="w-3.5 h-3.5" />
-              Related AnalyzeSERP Tools
-            </span>
-          </div>
-
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-            Explore Related SEO & Content Optimization Utilities
-          </h3>
-
-          <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
-            Enhance your content quality by combining readability audits with our complete suite of free SEO tools:
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 pt-2">
-            <Link
-              href="/serp-snippet-preview"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>SERP Preview</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Test title tag width & meta.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/affiliate-link-checker"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>Affiliate Auditor</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Audit rel="sponsored".
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/technical-health"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>Technical Health</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Audit SSL & indexation.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/redirect-checker"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>Redirect Auditor</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Trace 301/302 HTTP chains.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/contrast-checker"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>Color Contrast</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Test W3C WCAG contrast.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/site-speed-checker"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>Site Speed</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Test TTFB & Core Web Vitals.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/pdf-reports"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>PDF Reports</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Build white-label audits.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/"
-              className="p-3.5 rounded-xl glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500 transition-all flex flex-col justify-between space-y-2 group"
-            >
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1">
-                  <span>Competitor Audit</span>
-                  <ArrowRight className="w-3 h-3" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-1">
-                  Compare 5 competitor URLs.
-                </p>
-              </div>
-            </Link>
-          </div>
-        </section>
-
-        {/* Layer 6: Frequently Asked Questions Accordion + JSON-LD Schema */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20 flex items-center gap-1">
-              <HelpCircle className="w-3.5 h-3.5" />
-              Frequently Asked Questions
-            </span>
-          </div>
-
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-            Frequently Asked Questions About Content Readability
-          </h2>
-
-          <div className="space-y-3">
-            {faqs.map((faq, index) => {
-              const isOpen = openFaqIndex === index;
-              return (
-                <div
-                  key={index}
-                  className="glass-panel rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden transition-all duration-200 shadow-sm"
-                >
-                  <button
-                    onClick={() => toggleFaq(index)}
-                    aria-controls={`faq-answer-${index}`}
-                    aria-expanded={isOpen}
-                    className="w-full px-6 py-4 text-left flex items-center justify-between gap-4 font-semibold text-xs sm:text-sm text-slate-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
-                  >
-                    <span>{faq.question}</span>
-                    <ChevronDown
-                      className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
-                        isOpen ? 'rotate-180 text-emerald-500' : ''
-                      }`}
-                    />
-                  </button>
-
-                  {isOpen && (
-                    <div
-                      id={`faq-answer-${index}`}
-                      role="region"
-                      aria-hidden={!isOpen}
-                      className="px-6 pb-4 pt-2 text-xs text-slate-600 dark:text-gray-300 border-t border-slate-100 dark:border-white/5 leading-relaxed"
-                    >
-                      {faq.answer}
+              {/* Card 3: Sentence Length & Dwell Time */}
+              <div className="glass-panel p-6 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-4 flex flex-col justify-between shadow-xs">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                        <AlignLeft className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                        Cognitive Load
+                      </span>
                     </div>
-                  )}
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-bold border border-indigo-500/20">
+                      15–20 Words/Sent
+                    </span>
+                  </div>
+
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+                    3. Sentence Length & Dwell Time Psychology
+                  </h3>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Comprehension studies by the American Press Institute show that readers understand 90% of content when sentences average 14 words, dropping below 10% when sentences exceed 40 words.
+                  </p>
+
+                  <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] space-y-1.5 text-[11px] font-mono">
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Comprehension (&le; 14 words):</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">~90% Comprehension</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Comprehension (~20 words):</span>
+                      <span className="font-bold text-indigo-600 dark:text-indigo-400">~75% Comprehension</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Comprehension (40+ words):</span>
+                      <span className="font-bold text-rose-600 dark:text-rose-400">&lt; 10% Comprehension</span>
+                    </div>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </section>
+
+                <a
+                  href="https://www.americanpressinstitute.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1 pt-1"
+                >
+                  <span>American Press Institute Readability & Clarity Research</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+
+              {/* Card 4: Search Intent & Conversion Impact */}
+              <div className="glass-panel p-6 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-4 flex flex-col justify-between shadow-xs">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                        <Zap className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400 uppercase">
+                        Search Signals
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/20">
+                      Lower Bounce Rates
+                    </span>
+                  </div>
+
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+                    4. Search Intent & Conversion Lift
+                  </h3>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Google's ranking systems prioritize content that answers search intent without friction. Plain, clear writing reduces reader abandonment, directly supporting engagement and conversion metrics.
+                  </p>
+
+                  <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] space-y-1.5 text-[11px] font-mono">
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Mobile Bounce Rate:</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">Up to -22% Reduction</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Average Dwell Time:</span>
+                      <span className="font-bold text-amber-600 dark:text-amber-400">Significant Increase</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <span>Conversion Rate Lift:</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">Up to +14% Lift</span>
+                    </div>
+                  </div>
+                </div>
+
+                <a
+                  href="https://developers.google.com/search/docs/appearance/ranking-systems-guide"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline inline-flex items-center gap-1 pt-1"
+                >
+                  <span>Google Search Central Ranking Systems Guide</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+          </section>
+
+          {/* 3. Frequently Asked Questions (Accordion) */}
+          <section className="space-y-6 max-w-4xl mx-auto">
+            <div className="space-y-2 text-center">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]">
+                <HelpCircle className="w-3.5 h-3.5" />
+                <span>Common Questions</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                Frequently Asked Questions About Content Readability
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                Essential insights into Flesch scores, syllable counts, and Google Helpful Content benchmarks.
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              {faqs.map((faq, index) => {
+                const isOpen = openFaqIndex === index;
+                return (
+                  <div
+                    key={index}
+                    className={`rounded-xl border transition-colors duration-150 ${
+                      isOpen
+                        ? 'bg-slate-50/80 dark:bg-white/[0.03] border-slate-300 dark:border-white/15'
+                        : 'bg-white dark:bg-slate-900/40 border-slate-200/80 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/10'
+                    }`}
+                  >
+                    <button
+                      onClick={() => toggleFaq(index)}
+                      aria-controls={`faq-answer-${index}`}
+                      aria-expanded={isOpen}
+                      className="w-full px-5 py-3.5 text-left flex items-center justify-between gap-4 font-semibold text-xs sm:text-sm text-slate-800 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+                    >
+                      <span>{faq.question}</span>
+                      <ChevronDown
+                        className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                          isOpen ? 'rotate-180 text-emerald-500' : ''
+                        }`}
+                      />
+                    </button>
+
+                    {isOpen && (
+                      <div
+                        id={`faq-answer-${index}`}
+                        role="region"
+                        aria-hidden={!isOpen}
+                        className="px-5 pb-4 pt-1 text-xs text-slate-600 dark:text-slate-300 border-t border-slate-100 dark:border-white/5 leading-relaxed"
+                      >
+                        {faq.answer}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* 4. Related AnalyzeSERP Tools (Clean 4-Column Grid) */}
+          <section className="p-6 sm:p-8 rounded-2xl glass-panel border border-slate-200/80 dark:border-white/[0.08] space-y-4">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                <Zap className="w-3.5 h-3.5" />
+                <span>AnalyzeSERP Utility Suite</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">
+                Explore Related SEO & Performance Tools
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Pair your content readability checks with our comprehensive suite of SEO tools:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+              <Link
+                href="/serp-snippet-preview"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>SERP Preview</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  Pixel width & meta snippet test
+                </p>
+              </Link>
+
+              <Link
+                href="/technical-health"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>Technical Health</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  DOM depth, SSL & headers
+                </p>
+              </Link>
+
+              <Link
+                href="/redirect-checker"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>Redirects</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  Trace 301/302 HTTP chains
+                </p>
+              </Link>
+
+              <Link
+                href="/contrast-checker"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>Contrast</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  W3C WCAG 2.2 color check
+                </p>
+              </Link>
+
+              <Link
+                href="/site-speed-checker"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>Site Speed</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  Test TTFB & Core Web Vitals
+                </p>
+              </Link>
+
+              <Link
+                href="/affiliate-link-checker"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>Affiliate Links</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  Audit rel="sponsored" tags
+                </p>
+              </Link>
+
+              <Link
+                href="/"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>Competitor Audit</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  Compare 5 competitor URLs
+                </p>
+              </Link>
+
+              <Link
+                href="/pdf-reports"
+                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
+              >
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>PDF Reports</span>
+                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  White-label client exports
+                </p>
+              </Link>
+            </div>
+          </section>
+        </div>
       </main>
 
       <Footer />

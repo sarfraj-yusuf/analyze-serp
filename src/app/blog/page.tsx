@@ -61,7 +61,7 @@ export default async function BlogListingPage({ searchParams }: BlogPageProps) {
             <span>SEO Knowledge Base & Strategy Guides</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-3xl sm:text-5xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
             Actionable SEO Guides & <br />
             <span className="gradient-text">Competitor Growth Tactics</span>
           </h1>
@@ -86,7 +86,7 @@ export default async function BlogListingPage({ searchParams }: BlogPageProps) {
                   </span>
                 </div>
 
-                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-tight">
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100 leading-tight">
                   <Link href={`/blog/${featuredPost.slug}`} className="hover:text-emerald-500 transition-colors">
                     {featuredPost.title}
                   </Link>
@@ -102,7 +102,7 @@ export default async function BlogListingPage({ searchParams }: BlogPageProps) {
                       SY
                     </div>
                     <div className="text-xs">
-                      <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                      <div className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
                         <span>{featuredPost.author}</span>
                         <ShieldCheck className="w-3 h-3 text-emerald-500" />
                       </div>
@@ -137,7 +137,7 @@ export default async function BlogListingPage({ searchParams }: BlogPageProps) {
                   <div className="w-full h-full bg-gradient-to-tr from-emerald-500/20 via-teal-500/20 to-indigo-500/20 flex items-center justify-center p-6 text-center">
                     <div className="space-y-2">
                       <BookOpen className="w-12 h-12 text-emerald-400 mx-auto" />
-                      <div className="text-sm font-bold text-slate-900 dark:text-white">Competitor SEO Intelligence</div>
+                      <div className="text-sm font-bold text-slate-800 dark:text-slate-100">Competitor SEO Intelligence</div>
                       <div className="text-xs text-slate-500 dark:text-gray-400">Step-by-step optimization walkthrough</div>
                     </div>
                   </div>
@@ -183,7 +183,7 @@ export default async function BlogListingPage({ searchParams }: BlogPageProps) {
                   </span>
                 </div>
 
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-snug group-hover:text-emerald-500 transition-colors">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 leading-snug group-hover:text-emerald-500 transition-colors">
                   <Link href={`/blog/${post.slug}`}>{post.title}</Link>
                 </h3>
 
@@ -194,7 +194,7 @@ export default async function BlogListingPage({ searchParams }: BlogPageProps) {
 
               <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-white/10 text-slate-900 dark:text-white flex items-center justify-center font-bold text-[10px]">
+                  <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-white/10 text-slate-800 dark:text-slate-100 flex items-center justify-center font-bold text-[10px]">
                     SY
                   </div>
                   <span className="text-slate-600 dark:text-gray-400 text-[11px]">{post.author}</span>

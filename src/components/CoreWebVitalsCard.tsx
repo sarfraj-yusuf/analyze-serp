@@ -95,7 +95,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
               </span>
             )}
           </div>
-          <h3 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2.5">
             <Gauge className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
             Google <span className="gradient-text">Core Web Vitals Dashboard</span>
           </h3>
@@ -135,7 +135,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
       {isLoading ? (
         <div className="py-12 flex flex-col items-center justify-center space-y-3 text-center">
           <RefreshCw className="w-8 h-8 text-emerald-500 animate-spin" />
-          <div className="text-sm font-bold text-slate-900 dark:text-white">
+          <div className="text-sm font-bold text-slate-800 dark:text-slate-100">
             Running Live Google PageSpeed Audit ({strategy.toUpperCase()})...
           </div>
           <p className="text-xs text-slate-500 dark:text-gray-400 max-w-sm">
@@ -164,7 +164,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
               <div
                 className={`w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center shrink-0 shadow-lg transition-all ${scoreColor}`}
               >
-                <span className="text-2xl font-black">{score}</span>
+                <span className="text-2xl font-bold">{score}</span>
                 <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-70">
                   / 100
                 </span>
@@ -182,7 +182,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
                       : 'Slow Performance'}
                   </span>
                 </div>
-                <h4 className="text-lg font-extrabold text-slate-900 dark:text-white mt-1 flex items-center gap-2">
+                <h4 className="text-lg font-extrabold text-slate-800 dark:text-slate-100 mt-1 flex items-center gap-2">
                   <span>Lighthouse Score ({strategy})</span>
                 </h4>
                 <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
@@ -207,7 +207,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
             {/* 1. LCP Card */}
             <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-white/20 transition-all">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900 dark:text-white">
+                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-slate-100">
                   <Clock className="w-4 h-4 text-emerald-500" />
                   <span>LCP (Largest Content)</span>
                   <SEOExplanationTooltip text="Largest Contentful Paint: Measures how long it takes for the main content image or text block to load. Good: <= 2.5s" />
@@ -215,7 +215,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
               </div>
 
               <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-black text-slate-900 dark:text-white">
+                <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
                   {data.lcp.displayValue}
                 </div>
                 <span
@@ -252,7 +252,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
             {/* 2. INP Card */}
             <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-white/20 transition-all">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900 dark:text-white">
+                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-slate-100">
                   <MousePointerClick className="w-4 h-4 text-cyan-500" />
                   <span>INP (Responsiveness)</span>
                   <SEOExplanationTooltip text="Interaction to Next Paint: Measures user click, tap, and keyboard response latency. Good: <= 200ms" />
@@ -260,7 +260,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
               </div>
 
               <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-black text-slate-900 dark:text-white">
+                <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
                   {data.inp.displayValue}
                 </div>
                 <span
@@ -297,7 +297,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
             {/* 3. CLS Card */}
             <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-white/20 transition-all">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900 dark:text-white">
+                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-slate-100">
                   <Layout className="w-4 h-4 text-indigo-500" />
                   <span>CLS (Layout Shift)</span>
                   <SEOExplanationTooltip text="Cumulative Layout Shift: Measures visual stability of elements during page load. Good: <= 0.10" />
@@ -305,7 +305,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
               </div>
 
               <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-black text-slate-900 dark:text-white">
+                <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
                   {data.cls.displayValue}
                 </div>
                 <span
@@ -342,7 +342,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
             {/* 4. FCP Card */}
             <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-white/20 transition-all">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900 dark:text-white">
+                <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-slate-100">
                   <Activity className="w-4 h-4 text-purple-500" />
                   <span>FCP (First Render)</span>
                   <SEOExplanationTooltip text="First Contentful Paint: Time taken to render the first DOM text or image element. Good: <= 1.8s" />
@@ -350,7 +350,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
               </div>
 
               <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-black text-slate-900 dark:text-white">
+                <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
                   {data.fcp.displayValue}
                 </div>
                 <span
@@ -402,7 +402,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
                       <AlertTriangle className="w-4 h-4" />
                     </div>
                     <div className="space-y-0.5">
-                      <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center justify-between gap-2">
+                      <div className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between gap-2">
                         <span>{op.title}</span>
                         {op.displayValue && (
                           <span className="text-[10px] font-mono font-bold text-amber-600 dark:text-amber-400 shrink-0">

@@ -39,7 +39,7 @@ export const CookieConsentBanner: React.FC = () => {
             <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
             </span>
-            <h4 className="text-xs font-black uppercase tracking-wider text-emerald-400">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">
               Data Privacy & Usage Notice
             </h4>
           </div>
@@ -67,7 +67,7 @@ export const CookieConsentBanner: React.FC = () => {
         <div className="flex items-center justify-end gap-2 pt-1">
           <button
             onClick={handleAccept}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-emerald-500/30 cursor-pointer"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-emerald-500/30 cursor-pointer"
           >
             <span>Accept & Continue</span>
             <ArrowRight className="w-4 h-4 text-slate-950" />

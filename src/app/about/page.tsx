@@ -22,7 +22,7 @@ export default function AboutPage() {
             <span>About AnalyzeSERP.com</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-4xl sm:text-5xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
             Fast, Non-AI <span className="gradient-text">Competitor SERP Intelligence</span>
           </h1>
 
@@ -37,7 +37,7 @@ export default function AboutPage() {
             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
               <Zap className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Zero AI Latency</h3>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Zero AI Latency</h3>
             <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed">
               Unlike AI tools that hallucinate data and take 30+ seconds to respond, AnalyzeSERP parses live DOM structures in milliseconds using Cheerio.
             </p>
@@ -47,7 +47,7 @@ export default function AboutPage() {
             <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center border border-cyan-500/20">
               <Layers className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Keyword Gap Detection</h3>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Keyword Gap Detection</h3>
             <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed">
               Cross-compare 2 to 5 competitor pages simultaneously to reveal Common Core Keywords and high-value Keyword Gaps missed by top rankings.
             </p>
@@ -57,7 +57,7 @@ export default function AboutPage() {
             <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-500/20">
               <ShieldCheck className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">White-Label Client PDFs</h3>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">White-Label Client PDFs</h3>
             <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed">
               Export 3-page, colorful executive PDF reports complete with your agency logo, custom accent colors, health scorecards, and action checklists.
             </p>
@@ -66,7 +66,7 @@ export default function AboutPage() {
 
         {/* Mission Statement */}
         <div className="glass-panel p-8 rounded-3xl border border-slate-200 dark:border-white/10 space-y-4">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Why AnalyzeSERP?</h2>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Why AnalyzeSERP?</h2>
           <p className="text-sm text-slate-600 dark:text-gray-300 leading-relaxed">
             In modern search engine optimization, outranking top competitors requires precision data: knowing exact word counts, heading structures, Flesch-Kincaid reading grade levels, and competitor affiliate monetization models.
           </p>

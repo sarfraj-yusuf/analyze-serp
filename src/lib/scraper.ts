@@ -43,15 +43,35 @@ export async function scrapePage(targetUrl: string): Promise<ScrapedRawDOM> {
   const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
 
   const ttfbStart = Date.now();
-  const response = await fetch(formattedUrl, {
-    signal: controller.signal,
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 SEOCompetitorAnalyzer/1.0',
-      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.9',
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(formattedUrl, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 SEOCompetitorAnalyzer/1.0',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+    });
+  } catch (fetchErr: any) {
+    // If https failed and user did not explicitly demand https://, try http:// fallback
+    if (formattedUrl.startsWith('https://') && !/^https:\/\//i.test(targetUrl.trim())) {
+      const fallbackUrl = `http://${targetUrl.trim().replace(/^https?:\/\//i, '')}`;
+      await validateUrlSafety(fallbackUrl);
+      response = await fetch(fallbackUrl, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 SEOCompetitorAnalyzer/1.0',
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+      });
+    } else {
+      throw fetchErr;
+    }
+  }
 
   const ttfbMs = Date.now() - ttfbStart;
   clearTimeout(timeoutId);

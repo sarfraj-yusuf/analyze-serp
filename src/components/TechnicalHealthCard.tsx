@@ -1,3 +1,5 @@
+'use client';
+
 import { TechnicalAudit, RobotsValidationResult } from '@/types/seo';
 import { Zap, Clock, FileCode, Layers, ShieldCheck, AlertTriangle, Check, Cpu, Code2, Lock, FileText, ExternalLink } from 'lucide-react';
 import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
@@ -42,7 +44,7 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
       <div className="p-6 sm:p-8 rounded-2xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
         <div className="flex items-center gap-4">
           <div className={`w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center shrink-0 shadow-md ${gradeColor}`}>
-            <span className="text-2xl font-black">{technicalScore}</span>
+            <span className="text-2xl font-bold">{technicalScore}</span>
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">/ 100 Speed</span>
           </div>
 
@@ -52,7 +54,7 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
                 {technicalGrade}
               </span>
             </div>
-            <h4 className="text-lg font-bold text-slate-900 dark:text-white mt-1">Lightweight Technical Audit</h4>
+            <h4 className="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1">Lightweight Technical Audit</h4>
             <p className="text-xs text-slate-500 dark:text-gray-400">
               Zero-browser latency score measuring payload size, TTFB, DOM node density & script overhead.
             </p>
@@ -79,7 +81,7 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
             <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span>TTFB Latency</span>
           </div>
-          <div className="text-lg font-extrabold text-slate-900 dark:text-white">{ttfbMs} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">ms</span></div>
+          <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{ttfbMs} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">ms</span></div>
           <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">Download: {totalDownloadTimeMs}ms</div>
         </div>
 
@@ -88,7 +90,7 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
             <FileCode className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
             <span>HTML Payload Size</span>
           </div>
-          <div className="text-lg font-extrabold text-slate-900 dark:text-white">{htmlSizeKb} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">kB</span></div>
+          <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{htmlSizeKb} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">kB</span></div>
           <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">{htmlSizeKb < 100 ? 'Optimal Size' : 'Heavy Payload'}</div>
         </div>
 
@@ -97,7 +99,7 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
             <Layers className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
             <span>DOM Node Count</span>
           </div>
-          <div className="text-lg font-extrabold text-slate-900 dark:text-white">{domNodeCount} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">nodes</span></div>
+          <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{domNodeCount} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">nodes</span></div>
           <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">Depth: {maxDomDepth} levels</div>
         </div>
 
@@ -106,7 +108,7 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
             <Code2 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
             <span>Inline Script Overhead</span>
           </div>
-          <div className="text-lg font-extrabold text-slate-900 dark:text-white">{inlineScriptSizeKb} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">kB</span></div>
+          <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{inlineScriptSizeKb} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">kB</span></div>
           <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">{inlineScriptCount} inline scripts</div>
         </div>
       </div>
@@ -128,7 +130,7 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
                 <AlertTriangle className="w-3.5 h-3.5" />
               </div>
             )}
-            <span className={hasHttps ? 'text-slate-900 dark:text-white' : 'text-red-600 dark:text-red-400'}>
+            <span className={hasHttps ? 'text-slate-800 dark:text-slate-100' : 'text-red-600 dark:text-red-400'}>
               {hasHttps ? 'SSL / HTTPS Enabled' : 'Non-HTTPS (HTTP Only)'}
             </span>
           </div>
@@ -143,7 +145,7 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
                 <AlertTriangle className="w-3.5 h-3.5" />
               </div>
             )}
-            <span className={hasViewportMeta ? 'text-slate-900 dark:text-white' : 'text-red-600 dark:text-red-400'}>
+            <span className={hasViewportMeta ? 'text-slate-800 dark:text-slate-100' : 'text-red-600 dark:text-red-400'}>
               {hasViewportMeta ? 'Mobile Viewport Tag' : 'Missing Viewport Meta'}
             </span>
           </div>
@@ -158,7 +160,7 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
                 <AlertTriangle className="w-3.5 h-3.5" />
               </div>
             )}
-            <span className="text-slate-900 dark:text-white">
+            <span className="text-slate-800 dark:text-slate-100">
               {hasCharsetMeta ? 'UTF-8 Charset Tag' : 'Missing Charset Meta'}
             </span>
           </div>
@@ -169,7 +171,7 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
       {robotsValidation && (
         <div className="p-4 rounded-xl bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-100">
               <FileText className="w-4 h-4 text-cyan-500" />
               <span>robots.txt Crawlability Status</span>
               <SEOExplanationTooltip text="Evaluates live robots.txt directives for Googlebot & general crawlers to ensure search engine indexability." />

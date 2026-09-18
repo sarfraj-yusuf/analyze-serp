@@ -20,7 +20,7 @@ export default function PrivacyPage() {
             <span>GDPR & CCPA Compliant</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
             Privacy Policy — <span className="gradient-text">AnalyzeSERP</span>
           </h1>
 
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
 
         <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 space-y-6 text-sm text-slate-700 dark:text-gray-300 leading-relaxed">
           <section className="space-y-2">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">1. Information We Collect</h2>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">1. Information We Collect</h2>
             <p>
               AnalyzeSERP ("we", "our", or "us") respects your privacy. When you use <strong>analyzeserp.com</strong>, we collect minimal data required to perform live web audits:
             </p>
@@ -43,14 +43,14 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">2. How We Process URL Data</h2>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">2. How We Process URL Data</h2>
             <p>
               URLs submitted to AnalyzeSERP are fetched on-demand using server-side Cheerio parsing. We do not store or sell scraped content. Temporary audit results may be cached in memory for up to 24 hours to prevent redundant server traffic.
             </p>
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">3. User Consent & Usage Data Processing</h2>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">3. User Consent & Usage Data Processing</h2>
             <p>
               When you visit AnalyzeSERP, a Privacy & Usage Consent Banner is presented. Clicking <strong>"Accept & Continue"</strong> saves your consent preference token (<code>analyzeserp_consent_accepted</code>) in your browser's LocalStorage. This acknowledges your agreement for AnalyzeSERP to collect anonymous usage telemetry, audit frequency logs, target domain performance metrics, and technical signals used strictly to continuously improve tool accuracy, speed, and overall user experience.
             </p>
@@ -60,21 +60,21 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">4. Cookies & Local Storage</h2>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">4. Cookies & Local Storage</h2>
             <p>
               AnalyzeSERP uses browser LocalStorage solely to remember your light/dark theme preference, privacy consent status, and free daily audit quota. We do not use intrusive third-party tracking cookies or advertising tracking pixels.
             </p>
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">5. Zero Data Selling Guarantee</h2>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">5. Zero Data Selling Guarantee</h2>
             <p>
               We never sell, rent, or trade your audit data, client details, or agency white-label reports to third-party advertisers or data brokers.
             </p>
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">6. Contact Privacy & Support</h2>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">6. Contact Privacy & Support</h2>
             <p className="text-xs text-slate-600 dark:text-gray-400">
               For privacy inquiries, data deletion requests, or general support, contact Founder Sarfraj Yusuf and our team at{' '}
               <a

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Zap, Sun, Moon, Share2, Search, Link2, Sparkles } from 'lucide-react';
+import { Zap, Sun, Moon, Share2, Search, Link2, Sparkles, Menu, X } from 'lucide-react';
 
 interface NavbarProps {
   onOpenProModal?: () => void;
@@ -11,6 +11,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
   const [theme, setTheme] = useState<'dark' | 'light'>('light');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -39,7 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
     <header className="sticky top-0 z-50 glass-panel border-b px-4 lg:px-8 py-3.5 shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* AnalyzeSERP Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 shrink-0">
+        <Link href="/" aria-label="AnalyzeSERP Home" className="flex items-center gap-3 shrink-0">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 via-cyan-500 to-indigo-500 p-0.5 shadow-lg shadow-emerald-500/20">
             <div className="w-full h-full bg-slate-900 dark:bg-[#0b0f19] rounded-[10px] flex items-center justify-center">
               <Zap className="w-5 h-5 text-emerald-400 fill-emerald-400/20" />
@@ -47,7 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+              <span className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
                 Analyze<span className="gradient-text font-black">SERP</span>
               </span>
             </div>
@@ -57,10 +58,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           </div>
         </Link>
 
-        {/* Multi-Page Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1 text-xs font-semibold">
+        {/* Multi-Page Desktop Navigation Links */}
+        <nav aria-label="Main Desktop Navigation" className="hidden md:flex items-center gap-1 text-xs font-semibold">
           <Link
             href="/"
+            aria-current={pathname === '/' ? 'page' : undefined}
             className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
               pathname === '/'
                 ? 'bg-emerald-700 text-white font-bold shadow-sm shadow-emerald-700/20'
@@ -73,6 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
 
           <Link
             href="/technical-health"
+            aria-current={pathname === '/technical-health' ? 'page' : undefined}
             className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
               pathname === '/technical-health'
                 ? 'bg-emerald-700 text-white font-bold shadow-sm shadow-emerald-700/20'
@@ -85,6 +88,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
 
           <Link
             href="/serp-snippet-preview"
+            aria-current={pathname === '/serp-snippet-preview' ? 'page' : undefined}
             className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
               pathname === '/serp-snippet-preview'
                 ? 'bg-emerald-700 text-white font-bold shadow-sm shadow-emerald-700/20'
@@ -97,6 +101,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
 
           <Link
             href="/blog"
+            aria-current={pathname?.startsWith('/blog') ? 'page' : undefined}
             className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all relative ${
               pathname?.startsWith('/blog')
                 ? 'bg-emerald-700 text-white font-bold shadow-sm shadow-emerald-700/20'
@@ -105,18 +110,19 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           >
             <span className="relative">
               Blog
-              <span className="absolute -top-2.5 -right-6 px-1 py-0.2 text-[8px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-sm animate-pulse">
+              <span className="absolute -top-2.5 -right-6 px-1 py-0.2 text-[8px] font-bold uppercase tracking-wider rounded-full bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-sm animate-pulse">
                 NEW
               </span>
             </span>
           </Link>
         </nav>
 
-        {/* Badges, Theme Toggle & Strikethrough Beta Button */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Badges, Theme Toggle, Strikethrough Beta & Mobile Menu Button */}
+        <div className="flex items-center gap-2.5 shrink-0">
           {/* Light / Dark Mode Toggle Button */}
           <button
             onClick={toggleTheme}
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
             className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-sm"
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
           >
@@ -136,16 +142,94 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           {/* Strikethrough Price Anchor Button */}
           <button
             onClick={onOpenProModal}
-            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-500 to-cyan-500 text-black hover:opacity-95 transition-all shadow-md shadow-emerald-500/20 cursor-pointer shrink-0 flex items-center gap-1.5"
+            aria-label="View Pro Beta details"
+            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-xs active:scale-[0.98] cursor-pointer shrink-0 flex items-center gap-1.5"
           >
-            <Sparkles className="w-3.5 h-3.5 text-black fill-black/20" />
+            <Sparkles className="w-3.5 h-3.5 fill-white/20" />
             <span>
-              <span className="line-through opacity-75 mr-1">$19/mo</span>
+              <span className="line-through opacity-80 mr-1 hidden sm:inline">$19/mo</span>
               <span className="font-extrabold underline">FREE Beta</span>
             </span>
           </button>
+
+          {/* Mobile Hamburger Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Close mobile menu" : "Open mobile menu"}
+            aria-expanded={isMobileMenuOpen}
+            className="md:hidden p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300 transition-all cursor-pointer"
+          >
+            {isMobileMenuOpen ? <X className="w-5 h-5 text-emerald-500" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </div>
+
+      {/* Responsive Mobile Navigation Drawer */}
+      {isMobileMenuOpen && (
+        <nav aria-label="Mobile Navigation" className="md:hidden pt-4 pb-2 px-2 border-t border-slate-200/80 dark:border-white/10 mt-3 space-y-1.5 animate-in fade-in duration-200">
+          <Link
+            href="/"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-current={pathname === '/' ? 'page' : undefined}
+            className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 text-xs font-semibold transition-all ${
+              pathname === '/'
+                ? 'bg-emerald-700 text-white font-bold shadow-sm'
+                : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
+            }`}
+          >
+            <Search className="w-4 h-4 text-emerald-500" />
+            <span>Competitor SEO Audit Suite</span>
+          </Link>
+
+          <Link
+            href="/technical-health"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-current={pathname === '/technical-health' ? 'page' : undefined}
+            className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 text-xs font-semibold transition-all ${
+              pathname === '/technical-health'
+                ? 'bg-emerald-700 text-white font-bold shadow-sm'
+                : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
+            }`}
+          >
+            <Zap className="w-4 h-4 text-emerald-500" />
+            <span>Technical Health Checker</span>
+          </Link>
+
+          <Link
+            href="/serp-snippet-preview"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-current={pathname === '/serp-snippet-preview' ? 'page' : undefined}
+            className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 text-xs font-semibold transition-all ${
+              pathname === '/serp-snippet-preview'
+                ? 'bg-emerald-700 text-white font-bold shadow-sm'
+                : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
+            }`}
+          >
+            <Share2 className="w-4 h-4 text-emerald-500" />
+            <span>SERP Snippet & Pixel Preview</span>
+          </Link>
+
+          <Link
+            href="/blog"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-current={pathname?.startsWith('/blog') ? 'page' : undefined}
+            className={`w-full px-4 py-2.5 rounded-xl flex items-center justify-between text-xs font-semibold transition-all ${
+              pathname?.startsWith('/blog')
+                ? 'bg-emerald-700 text-white font-bold shadow-sm'
+                : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-4 h-4 text-emerald-500" />
+              <span>SEO Articles & Blog</span>
+            </div>
+            <span className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+              NEW
+            </span>
+          </Link>
+        </nav>
+      )}
     </header>
   );
 };

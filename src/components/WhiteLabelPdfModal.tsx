@@ -42,7 +42,7 @@ export const WhiteLabelPdfModal: React.FC<WhiteLabelPdfModalProps> = ({ isOpen, 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-white dark:bg-[#131b2e] rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-white/20 shadow-2xl space-y-6 text-slate-900 dark:text-white">
+      <div className="relative w-full max-w-lg bg-white dark:bg-[#131b2e] rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-white/20 shadow-2xl space-y-6 text-slate-800 dark:text-slate-100">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -58,7 +58,7 @@ export const WhiteLabelPdfModal: React.FC<WhiteLabelPdfModalProps> = ({ isOpen, 
             <span>White-Label B2B Agency Feature</span>
           </div>
 
-          <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+          <h3 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
             Export <span className="gradient-text">Branded Client PDF</span>
           </h3>
 

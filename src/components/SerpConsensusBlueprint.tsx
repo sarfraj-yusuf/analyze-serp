@@ -18,12 +18,12 @@ export const SerpConsensusBlueprint: React.FC<SerpConsensusBlueprintProps> = ({ 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-white/10">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-black tracking-wider bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 flex items-center gap-1">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 flex items-center gap-1">
               <Sparkles className="w-3.5 h-3.5" />
               SERP Pattern Blueprint
             </span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
             Winning SERP Consensus Patterns
             <SEOExplanationTooltip text="Identifies features, subtopic sections, and structural modules present across top-ranking competitors on Google." />
           </h3>
@@ -48,12 +48,12 @@ export const SerpConsensusBlueprint: React.FC<SerpConsensusBlueprintProps> = ({ 
             {patterns.map((p, idx) => (
               <tr key={idx} className="hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all">
                 {/* Frequency Ratio Badge */}
-                <td className="py-3.5 px-4 font-mono font-black">
+                <td className="py-3.5 px-4 font-mono font-bold">
                   <span
-                    className={`px-2.5 py-1 rounded-lg text-xs border font-extrabold inline-block text-center ${
+                    className={`px-2.5 py-0.5 rounded-md text-xs font-semibold inline-block text-center ${
                       p.frequencyPercent >= 80
-                        ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/40'
-                        : 'bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 border-cyan-500/40'
+                        ? 'bg-slate-200 dark:bg-white/10 text-slate-900 dark:text-gray-100'
+                        : 'bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-gray-300'
                     }`}
                   >
                     {p.frequencyRatio}
@@ -62,13 +62,13 @@ export const SerpConsensusBlueprint: React.FC<SerpConsensusBlueprintProps> = ({ 
 
                 {/* Pattern Title & Description */}
                 <td className="py-3.5 px-4">
-                  <div className="font-bold text-slate-900 dark:text-white text-xs">{p.title}</div>
+                  <div className="font-bold text-slate-800 dark:text-slate-100 text-xs">{p.title}</div>
                   <div className="text-[11px] text-slate-500 dark:text-gray-400 mt-0.5">{p.description}</div>
                 </td>
 
                 {/* Type Badge */}
                 <td className="py-3.5 px-4">
-                  <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-white/10">
+                  <span className="px-2 py-0.5 rounded text-[10px] uppercase font-semibold text-slate-500 dark:text-gray-400">
                     {p.patternType}
                   </span>
                 </td>
@@ -76,12 +76,12 @@ export const SerpConsensusBlueprint: React.FC<SerpConsensusBlueprintProps> = ({ 
                 {/* Status on Target Page */}
                 <td className="py-3.5 px-4 text-center">
                   {p.isPresentOnTarget ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[11px] font-bold">
+                    <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                       <span>Present</span>
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/30 text-[11px] font-bold">
+                    <span className="inline-flex items-center gap-1 text-red-600 dark:text-red-400 text-xs font-semibold">
                       <XCircle className="w-3.5 h-3.5 text-red-500" />
                       <span>Missing</span>
                     </span>

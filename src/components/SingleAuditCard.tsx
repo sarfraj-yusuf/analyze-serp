@@ -87,7 +87,7 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
               <ExternalLink className="w-3 h-3 shrink-0" />
             </a>
           </div>
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white line-clamp-2">{meta.title || 'No Title Tag Found'}</h3>
+          <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100 line-clamp-2">{meta.title || 'No Title Tag Found'}</h3>
           <p className="text-xs text-slate-600 dark:text-gray-400 mt-1 line-clamp-2">{meta.description || 'No Meta Description Found'}</p>
         </div>
 
@@ -95,88 +95,94 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <button
             onClick={() => setIsPdfModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-extrabold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-md shadow-emerald-500/20 hover:opacity-95"
+            className="px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-[0.98]"
           >
-            <Download className="w-4 h-4" />
-            <span>Export Branded Client PDF</span>
+            <Download className="w-3.5 h-3.5" />
+            <span>Export Client PDF</span>
           </button>
 
-          <div className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-center shadow-sm">
-            <div className="text-xs text-slate-500 dark:text-gray-400 flex items-center justify-center gap-1">
-              <FileText className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Word Count
-            </div>
-            <div className="text-base font-bold text-slate-900 dark:text-white mt-0.5">{wordCount.toLocaleString()}</div>
+          <div className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.06] flex items-center gap-2">
+            <FileText className="w-3.5 h-3.5 text-slate-400" />
+            <div className="text-xs text-slate-500 dark:text-slate-400">Words:</div>
+            <div className="text-xs font-mono font-bold text-slate-800 dark:text-slate-100 tabular-nums">{wordCount.toLocaleString()}</div>
           </div>
 
-          <div className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-center shadow-sm">
-            <div className="text-xs text-slate-500 dark:text-gray-400 flex items-center justify-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" /> Read Time
-            </div>
-            <div className="text-base font-bold text-slate-900 dark:text-white mt-0.5">{readingTimeMinutes} min</div>
+          <div className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.06] flex items-center gap-2">
+            <Clock className="w-3.5 h-3.5 text-slate-400" />
+            <div className="text-xs text-slate-500 dark:text-slate-400">Read Time:</div>
+            <div className="text-xs font-mono font-bold text-slate-800 dark:text-slate-100 tabular-nums">{readingTimeMinutes} min</div>
           </div>
         </div>
       </div>
 
       {/* Title & Meta Health Check Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
         {/* Title Tag Analysis */}
-        <div className="p-4 rounded-xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-2">
+        <div className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.06] space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-slate-800 dark:text-gray-300">Title Tag Validation</span>
+            <span className="font-semibold text-slate-800 dark:text-slate-200">Title Tag Validation</span>
             <span
-              className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] ${
+              className={`px-2 py-0.5 rounded font-mono font-semibold text-[10px] ${
                 meta.titleTruncated
-                  ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/40'
-                  : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40'
+                  ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+                  : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
               }`}
             >
-              {meta.titleTruncated ? 'May Truncate on SERP' : 'Optimal Length'}
+              {meta.titleTruncated ? 'May Truncate' : 'Optimal Length'}
             </span>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-gray-400 pt-1 border-t border-slate-200 dark:border-white/5">
-            <span>Character Count: <strong className="text-slate-900 dark:text-white">{meta.titleLength}</strong> / 60 chars</span>
-            <span>Pixel Estimate: <strong className="text-slate-900 dark:text-white">~{meta.titlePixelEstimate}px</strong> / 580px</span>
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/60 dark:border-white/[0.05]">
+            <span>Character Count: <strong className="text-slate-800 dark:text-slate-100 font-mono">{meta.titleLength}</strong> / 60 chars</span>
+            <span>Pixel Width: <strong className="text-slate-800 dark:text-slate-100 font-mono">~{meta.titlePixelEstimate}px</strong> / 580px</span>
           </div>
         </div>
 
         {/* Meta Description Analysis */}
-        <div className="p-4 rounded-xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-2">
+        <div className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.06] space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-slate-800 dark:text-gray-300">Meta Description Validation</span>
+            <span className="font-semibold text-slate-800 dark:text-slate-200">Meta Description Validation</span>
             <span
-              className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] ${
+              className={`px-2 py-0.5 rounded font-mono font-semibold text-[10px] ${
                 meta.descriptionTruncated
-                  ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/40'
-                  : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40'
+                  ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+                  : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
               }`}
             >
-              {meta.descriptionTruncated ? 'Too Long (>160 Chars)' : 'Optimal Length'}
+              {meta.descriptionTruncated ? 'Too Long (>160)' : 'Optimal Length'}
             </span>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-gray-400 pt-1 border-t border-slate-200 dark:border-white/5">
-            <span>Character Count: <strong className="text-slate-900 dark:text-white">{meta.descriptionLength}</strong> / 160 chars</span>
-            <span>JSON-LD Schema: <strong className={meta.hasJsonLdSchema ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-gray-500'}>{meta.hasJsonLdSchema ? 'Detected' : 'None'}</strong></span>
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/60 dark:border-white/[0.05]">
+            <span>Character Count: <strong className="text-slate-800 dark:text-slate-100 font-mono">{meta.descriptionLength}</strong> / 160 chars</span>
+            <span>JSON-LD Schema: <strong className={`font-mono ${meta.hasJsonLdSchema ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>{meta.hasJsonLdSchema ? 'Detected' : 'None'}</strong></span>
           </div>
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <div role="tablist" aria-label="Page Audit Sections" className="flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-3 overflow-x-auto">
+      {/* Tactile Segmented Control Track */}
+      <div
+        role="tablist"
+        aria-label="Page Audit Sections"
+        className="p-1 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.06] flex items-center gap-1 overflow-x-auto scrollbar-none"
+      >
         <button
           role="tab"
           aria-selected={activeTab === 'scorecard'}
           aria-controls="panel-scorecard"
           onClick={() => setActiveTab('scorecard')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer transition-all ${
             activeTab === 'scorecard'
-              ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-              : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300'
+              ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/70 dark:border-white/10 font-semibold'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/[0.04] font-medium'
           }`}
         >
-          <Award className="w-4 h-4" />
-          <span>On-Page SEO Basics</span>
+          {activeTab === 'scorecard' ? (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          ) : (
+            <Award className="w-3.5 h-3.5 text-slate-400" />
+          )}
+          <span>SEO Basics</span>
         </button>
 
         <button
@@ -184,14 +190,18 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           aria-selected={activeTab === 'technical'}
           aria-controls="panel-technical"
           onClick={() => setActiveTab('technical')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer transition-all ${
             activeTab === 'technical'
-              ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-              : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300'
+              ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/70 dark:border-white/10 font-semibold'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/[0.04] font-medium'
           }`}
         >
-          <Zap className="w-4 h-4" />
-          <span>Technical Health & Speed</span>
+          {activeTab === 'technical' ? (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          ) : (
+            <Zap className="w-3.5 h-3.5 text-slate-400" />
+          )}
+          <span>Technical Health</span>
         </button>
 
         <button
@@ -199,14 +209,18 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           aria-selected={activeTab === 'vitals'}
           aria-controls="panel-vitals"
           onClick={() => setActiveTab('vitals')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer transition-all ${
             activeTab === 'vitals'
-              ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-              : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300'
+              ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/70 dark:border-white/10 font-semibold'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/[0.04] font-medium'
           }`}
         >
-          <Activity className="w-4 h-4 text-cyan-500" />
-          <span>Core Web Vitals</span>
+          {activeTab === 'vitals' ? (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          ) : (
+            <Activity className="w-3.5 h-3.5 text-slate-400" />
+          )}
+          <span>Web Vitals</span>
         </button>
 
         <button
@@ -214,14 +228,18 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           aria-selected={activeTab === 'intent'}
           aria-controls="panel-intent"
           onClick={() => setActiveTab('intent')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer transition-all ${
             activeTab === 'intent'
-              ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-              : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300'
+              ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/70 dark:border-white/10 font-semibold'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/[0.04] font-medium'
           }`}
         >
-          <Target className="w-4 h-4 text-indigo-500" />
-          <span>Search Intent & Entities</span>
+          {activeTab === 'intent' ? (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          ) : (
+            <Target className="w-3.5 h-3.5 text-slate-400" />
+          )}
+          <span>Search Intent</span>
         </button>
 
         <button
@@ -229,14 +247,18 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           aria-selected={activeTab === 'serp'}
           aria-controls="panel-serp"
           onClick={() => setActiveTab('serp')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer transition-all ${
             activeTab === 'serp'
-              ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-              : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300'
+              ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/70 dark:border-white/10 font-semibold'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/[0.04] font-medium'
           }`}
         >
-          <Share2 className="w-4 h-4" />
-          <span>SERP & Social Preview</span>
+          {activeTab === 'serp' ? (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          ) : (
+            <Share2 className="w-3.5 h-3.5 text-slate-400" />
+          )}
+          <span>SERP Preview</span>
         </button>
 
         <button
@@ -244,14 +266,18 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           aria-selected={activeTab === 'readability'}
           aria-controls="panel-readability"
           onClick={() => setActiveTab('readability')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer transition-all ${
             activeTab === 'readability'
-              ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-              : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300'
+              ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/70 dark:border-white/10 font-semibold'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/[0.04] font-medium'
           }`}
         >
-          <BookOpen className="w-4 h-4" />
-          <span>Readability & Tone</span>
+          {activeTab === 'readability' ? (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          ) : (
+            <BookOpen className="w-3.5 h-3.5 text-slate-400" />
+          )}
+          <span>Readability</span>
         </button>
 
         <button
@@ -259,14 +285,18 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           aria-selected={activeTab === 'headings'}
           aria-controls="panel-headings"
           onClick={() => setActiveTab('headings')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer transition-all ${
             activeTab === 'headings'
-              ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-              : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300'
+              ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/70 dark:border-white/10 font-semibold'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/[0.04] font-medium'
           }`}
         >
-          <Layers className="w-4 h-4" />
-          <span>Heading Hierarchy ({headings.length})</span>
+          {activeTab === 'headings' ? (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          ) : (
+            <Layers className="w-3.5 h-3.5 text-slate-400" />
+          )}
+          <span>Headings ({headings.length})</span>
         </button>
 
         <button
@@ -274,14 +304,18 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           aria-selected={activeTab === 'keywords'}
           aria-controls="panel-keywords"
           onClick={() => setActiveTab('keywords')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer transition-all ${
             activeTab === 'keywords'
-              ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-              : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300'
+              ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/70 dark:border-white/10 font-semibold'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/[0.04] font-medium'
           }`}
         >
-          <Key className="w-4 h-4" />
-          <span>Keyword Density</span>
+          {activeTab === 'keywords' ? (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          ) : (
+            <Key className="w-3.5 h-3.5 text-slate-400" />
+          )}
+          <span>Keywords</span>
         </button>
 
         <button
@@ -289,14 +323,18 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           aria-selected={activeTab === 'images'}
           aria-controls="panel-images"
           onClick={() => setActiveTab('images')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer transition-all ${
             activeTab === 'images'
-              ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-              : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300'
+              ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/70 dark:border-white/10 font-semibold'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/[0.04] font-medium'
           }`}
         >
-          <Image className="w-4 h-4" />
-          <span>Image Audit ({imageAudit.totalImages})</span>
+          {activeTab === 'images' ? (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          ) : (
+            <Image className="w-3.5 h-3.5 text-slate-400" />
+          )}
+          <span>Images ({imageAudit.totalImages})</span>
         </button>
 
         <button
@@ -304,14 +342,18 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           aria-selected={activeTab === 'links'}
           aria-controls="panel-links"
           onClick={() => setActiveTab('links')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer transition-all ${
             activeTab === 'links'
-              ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20'
-              : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300'
+              ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/70 dark:border-white/10 font-semibold'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/[0.04] font-medium'
           }`}
         >
-          <Link2 className="w-4 h-4" />
-          <span>Deep Link & Affiliate ({linkAudit.totalLinks})</span>
+          {activeTab === 'links' ? (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          ) : (
+            <Link2 className="w-3.5 h-3.5 text-slate-400" />
+          )}
+          <span>Links ({linkAudit.totalLinks})</span>
         </button>
       </div>
 

@@ -203,7 +203,7 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
           <div
             className={`w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center shrink-0 shadow-md ${gradeColor}`}
           >
-            <span className="text-2xl font-black">{score}</span>
+            <span className="text-2xl font-bold">{score}</span>
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">
               / 100
             </span>
@@ -217,7 +217,7 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
                 {gradeLabel}
               </span>
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-1.5">
+            <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100 mt-1 flex items-center gap-1.5">
               <span>On-Page SEO Basics Score</span>
               <SEOExplanationTooltip text="Evaluates foundational HTML markup, title/meta length, image alt tags, and keyword safety. Measures technical on-page health — not Google rank position." />
             </h3>
@@ -268,7 +268,7 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
               )}
 
               <div className="space-y-0.5">
-                <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <div className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                   <span>{item.title}</span>
                 </div>
                 <p className="text-[11px] text-slate-600 dark:text-gray-400 leading-relaxed">

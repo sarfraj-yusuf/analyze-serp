@@ -59,6 +59,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    site: "@analyzeserp",
     title: "Competitor SEO Audit Tool – 100% Free | AnalyzeSERP",
     description:
       "Run a free competitor SEO audit instantly. Compare titles, meta tags, headings, keywords, links & technical SEO — no signup, no credit card required.",
@@ -74,25 +75,49 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLdSchema = {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "AnalyzeSERP",
-  "url": "https://analyzeserp.com",
-  "description": "High-speed non-AI competitor SEO auditor and SERP intelligence suite.",
-  "applicationCategory": "BusinessApplication",
-  "operatingSystem": "All",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD",
+const jsonLdSchema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "AnalyzeSERP",
+    "url": "https://analyzeserp.com",
+    "description": "High-speed non-AI competitor SEO auditor and SERP intelligence suite.",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "All",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "AnalyzeSERP",
+      "url": "https://analyzeserp.com",
+    },
   },
-  "author": {
+  {
+    "@context": "https://schema.org",
     "@type": "Organization",
     "name": "AnalyzeSERP",
     "url": "https://analyzeserp.com",
+    "logo": "https://analyzeserp.com/og-image.jpg",
+    "sameAs": [
+      "https://twitter.com/analyzeserp",
+      "https://twitter.com/sarfrajyusuf"
+    ]
   },
-};
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "AnalyzeSERP",
+    "url": "https://analyzeserp.com",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://analyzeserp.com/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+];
 
 import { ClientFeedbackWrapper } from "@/components/ClientFeedbackWrapper";
 

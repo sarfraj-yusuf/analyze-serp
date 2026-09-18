@@ -76,7 +76,7 @@ export default function PricingPage() {
             <span>Simple, Transparent Pricing</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-4xl sm:text-5xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
             Plans Built for Writers, <br />
             <span className="gradient-text">SEO Pros & B2B Agencies</span>
           </h1>
@@ -87,7 +87,7 @@ export default function PricingPage() {
 
           {/* Billing Cycle Toggle */}
           <div className="pt-2 flex items-center justify-center gap-3">
-            <span className={`text-xs font-bold ${billingCycle === 'monthly' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-gray-400'}`}>
+            <span className={`text-xs font-bold ${billingCycle === 'monthly' ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-gray-400'}`}>
               Monthly Billing
             </span>
 
@@ -102,7 +102,7 @@ export default function PricingPage() {
               />
             </button>
 
-            <span className={`text-xs font-bold flex items-center gap-1.5 ${billingCycle === 'yearly' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-gray-400'}`}>
+            <span className={`text-xs font-bold flex items-center gap-1.5 ${billingCycle === 'yearly' ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-gray-400'}`}>
               Annual Billing
               <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                 Save 20%
@@ -118,7 +118,7 @@ export default function PricingPage() {
             <div className="space-y-4">
               <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Free Starter</div>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-slate-900 dark:text-white">$0</span>
+                <span className="text-4xl font-bold text-slate-800 dark:text-slate-100">$0</span>
                 <span className="text-xs text-slate-500 dark:text-gray-400">/ forever free</span>
               </div>
               <p className="text-xs text-slate-600 dark:text-gray-400">
@@ -151,7 +151,7 @@ export default function PricingPage() {
 
             <Link
               href="/"
-              className="w-full py-3 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white font-bold text-xs text-center border border-slate-200 dark:border-white/10 transition-all cursor-pointer block"
+              className="w-full py-3 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 font-bold text-xs text-center border border-slate-200 dark:border-white/10 transition-all cursor-pointer block"
             >
               Start Free Audits
             </Link>
@@ -166,7 +166,7 @@ export default function PricingPage() {
             <div className="space-y-4 pt-2">
               <div className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Pro Auditor</div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-slate-900 dark:text-white">$0</span>
+                <span className="text-3xl font-bold text-slate-800 dark:text-slate-100">$0</span>
                 <span className="line-through text-sm text-slate-400">$19 / month</span>
                 <span className="text-[11px] font-extrabold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                   FREE Beta Access
@@ -213,7 +213,7 @@ export default function PricingPage() {
             <div className="space-y-4">
               <div className="text-xs font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">Agency Unlimited</div>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-slate-900 dark:text-white">
+                <span className="text-4xl font-bold text-slate-800 dark:text-slate-100">
                   ${billingCycle === 'yearly' ? '23' : '29'}
                 </span>
                 <span className="text-xs text-slate-500 dark:text-gray-400">/ month</span>
@@ -248,7 +248,7 @@ export default function PricingPage() {
 
             <button
               onClick={() => setIsProModalOpen(true)}
-              className="w-full py-3 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white font-bold text-xs text-center border border-slate-200 dark:border-white/10 transition-all cursor-pointer"
+              className="w-full py-3 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 font-bold text-xs text-center border border-slate-200 dark:border-white/10 transition-all cursor-pointer"
             >
               Contact Agency Sales
             </button>
@@ -257,7 +257,7 @@ export default function PricingPage() {
 
         {/* Pro vs Free Feature Comparison Table */}
         <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-xl space-y-6">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <Layers className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
             Detailed Feature Comparison Matrix
           </h2>
@@ -277,7 +277,7 @@ export default function PricingPage() {
               <tbody className="divide-y divide-slate-200 dark:divide-white/5 text-slate-800 dark:text-gray-200">
                 {featuresList.map((f, idx) => (
                   <tr key={idx} className="hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all">
-                    <td className="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">{f.name}</td>
+                    <td className="py-3.5 px-4 font-semibold text-slate-800 dark:text-slate-100">{f.name}</td>
                     <td className="py-3.5 px-4 text-center font-mono">
                       {typeof f.free === 'boolean' ? (
                         f.free ? (
@@ -322,7 +322,7 @@ export default function PricingPage() {
 
         {/* FAQ Accordion Section */}
         <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 space-y-6">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <HelpCircle className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
             Frequently Asked Questions
           </h2>
@@ -330,7 +330,7 @@ export default function PricingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {faqs.map((faq, idx) => (
               <div key={idx} className="p-5 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-2">
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-start gap-2">
+                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-start gap-2">
                   <span className="text-emerald-600 dark:text-emerald-400 font-mono">Q:</span>
                   <span>{faq.q}</span>
                 </h4>

@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
                   <Zap className="w-4 h-4 text-emerald-400 fill-emerald-400/20" />
                 </div>
               </div>
-              <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+              <span className="text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100">
                 Analyze<span className="gradient-text font-black">SERP</span>
               </span>
             </Link>
@@ -27,7 +27,7 @@ export const Footer: React.FC = () => {
 
           {/* Tools Navigation */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">SEO Audit Tools</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">SEO Audit Tools</h4>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link href="/" className="text-slate-700 dark:text-gray-200 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors inline-block py-1 font-medium">
@@ -47,7 +47,7 @@ export const Footer: React.FC = () => {
               <li>
                 <Link href="/pdf-reports" className="text-slate-700 dark:text-gray-200 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors inline-flex items-center gap-1.5 py-1 font-medium">
                   <span>White-Label PDF Reports</span>
-                  <span className="px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full bg-emerald-500/20 text-emerald-800 dark:text-emerald-200 border border-emerald-500/40">
+                  <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/20 text-emerald-800 dark:text-emerald-200 border border-emerald-500/40">
                     NEW
                   </span>
                 </Link>
@@ -62,7 +62,7 @@ export const Footer: React.FC = () => {
 
           {/* Specialized Utilities */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Specialized Utilities</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">Specialized Utilities</h4>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link href="/serp-snippet-preview" className="text-slate-700 dark:text-gray-200 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors inline-block py-1 font-medium">
@@ -77,7 +77,7 @@ export const Footer: React.FC = () => {
               <li>
                 <Link href="/site-speed-checker" className="text-slate-700 dark:text-gray-200 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors inline-flex items-center gap-1.5 py-1 font-medium">
                   <span>Site Speed & Core Web Vitals</span>
-                  <span className="px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm">
+                  <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm">
                     NEW
                   </span>
                 </Link>
@@ -85,7 +85,7 @@ export const Footer: React.FC = () => {
               <li>
                 <Link href="/contrast-checker" className="text-slate-700 dark:text-gray-200 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors inline-flex items-center gap-1.5 py-1 font-medium">
                   <span>Color Contrast & WCAG Auditor</span>
-                  <span className="px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm">
+                  <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm">
                     NEW
                   </span>
                 </Link>
@@ -93,7 +93,7 @@ export const Footer: React.FC = () => {
               <li>
                 <Link href="/redirect-checker" className="text-slate-700 dark:text-gray-200 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors inline-flex items-center gap-1.5 py-1 font-medium">
                   <span>301 Redirect Chain Inspector</span>
-                  <span className="px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm">
+                  <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-extrabold shadow-sm">
                     NEW
                   </span>
                 </Link>
@@ -103,12 +103,12 @@ export const Footer: React.FC = () => {
 
           {/* Company & Resources */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Company & Resources</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">Company & Resources</h4>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link href="/blog" className="text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 font-bold transition-colors inline-flex items-center gap-1.5 py-1">
                   <span>SEO Blog & Knowledge Base</span>
-                  <span className="px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-cyan-600 to-indigo-600 text-white font-extrabold shadow-sm">
+                  <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-gradient-to-r from-cyan-600 to-indigo-600 text-white font-extrabold shadow-sm">
                     NEW
                   </span>
                 </Link>

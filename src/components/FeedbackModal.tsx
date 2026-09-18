@@ -65,7 +65,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-white dark:bg-[#131b2e] rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-white/20 shadow-2xl space-y-6 text-slate-900 dark:text-white max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-lg bg-white dark:bg-[#131b2e] rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-white/20 shadow-2xl space-y-6 text-slate-800 dark:text-slate-100 max-h-[90vh] overflow-y-auto">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -79,7 +79,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
             <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-10 h-10" />
             </div>
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white">Thank You!</h3>
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Thank You!</h3>
             <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed max-w-sm mx-auto">
               Your feedback & suggestions have been stored in our database. You have officially unlocked <strong>Early Adopter Status</strong>!
             </p>
@@ -101,7 +101,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Public Beta Feedback & Review</span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              <h3 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                 Help Us Improve AnalyzeSERP
               </h3>
               <p className="text-xs text-slate-600 dark:text-gray-400">
@@ -123,7 +123,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
             {/* Star Rating */}
             <div className="space-y-1.5 text-center">
-              <label className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider block">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider block">
                 How would you rate AnalyzeSERP?
               </label>
               <div className="flex items-center justify-center gap-2">
@@ -146,7 +146,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
             {/* Category Tabs */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider block">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider block">
                 Feedback Category
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -169,7 +169,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
             {/* User Type */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider block">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider block">
                 Your Role / Background
               </label>
               <select
@@ -187,7 +187,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
             {/* Message Input */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider block">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider block">
                 Your Suggestion / Detailed Review
               </label>
               <textarea
@@ -202,7 +202,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
             {/* Email (Optional) */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider block">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider block">
                 Email Address <span className="text-slate-400 font-normal">(Optional for Early Adopter Rewards)</span>
               </label>
               <input

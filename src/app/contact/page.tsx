@@ -32,7 +32,7 @@ export default function ContactPage() {
             <span>AnalyzeSERP Support</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
             Contact <span className="gradient-text">AnalyzeSERP</span>
           </h1>
 
@@ -48,7 +48,7 @@ export default function ContactPage() {
               <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
                 <Mail className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">Email Support</h3>
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">Email Support</h3>
               <p className="text-xs text-slate-600 dark:text-gray-400">
                 Our support team responds within 24 hours.
               </p>
@@ -64,7 +64,7 @@ export default function ContactPage() {
               <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center border border-cyan-500/20">
                 <Globe className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">Official Domain</h3>
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">Official Domain</h3>
               <p className="text-xs text-slate-600 dark:text-gray-400">
                 AnalyzeSERP Official Portal
               </p>
@@ -81,7 +81,7 @@ export default function ContactPage() {
                 <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Message Sent Successfully!</h3>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">Message Sent Successfully!</h3>
                 <p className="text-xs text-slate-600 dark:text-gray-400">
                   Thank you for reaching out to AnalyzeSERP. We will reply to <strong>{formData.email}</strong> shortly.
                 </p>

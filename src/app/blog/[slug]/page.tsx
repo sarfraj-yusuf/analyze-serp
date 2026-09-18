@@ -102,10 +102,10 @@ export default async function SingleBlogPostPage({ params }: SingleBlogPageProps
   const mdxComponents = {
     ToolCTAWidget,
     h1: (props: any) => (
-      <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-10 mb-5 tracking-tight border-b border-slate-200 dark:border-white/10 pb-3" {...props} />
+      <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100 mt-10 mb-5 tracking-tight border-b border-slate-200 dark:border-white/10 pb-3" {...props} />
     ),
     h2: (props: any) => (
-      <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-10 mb-4 tracking-tight border-l-4 border-emerald-500 pl-4 py-1.5 bg-emerald-500/5 rounded-r-xl shadow-sm" {...props} />
+      <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-100 mt-10 mb-4 tracking-tight border-l-4 border-emerald-500 pl-4 py-1.5 bg-emerald-500/5 rounded-r-xl shadow-sm" {...props} />
     ),
     h3: (props: any) => (
       <h3 className="text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-8 mb-3" {...props} />
@@ -132,7 +132,7 @@ export default async function SingleBlogPostPage({ params }: SingleBlogPageProps
       <hr className="my-10 border-t-2 border-dashed border-slate-200 dark:border-white/10" />
     ),
     strong: (props: any) => (
-      <strong className="font-extrabold text-slate-900 dark:text-white" {...props} />
+      <strong className="font-extrabold text-slate-800 dark:text-slate-100" {...props} />
     ),
     a: (props: any) => (
       <a className="text-emerald-600 dark:text-emerald-400 underline font-bold hover:text-emerald-500 transition-colors" {...props} />
@@ -146,7 +146,7 @@ export default async function SingleBlogPostPage({ params }: SingleBlogPageProps
       </div>
     ),
     thead: (props: any) => (
-      <thead className="bg-slate-100 dark:bg-white/5 border-b border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-extrabold uppercase text-[11px] tracking-wider" {...props} />
+      <thead className="bg-slate-100 dark:bg-white/5 border-b border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-100 font-extrabold uppercase text-[11px] tracking-wider" {...props} />
     ),
     tbody: (props: any) => (
       <tbody className="divide-y divide-slate-200 dark:divide-white/10 text-slate-700 dark:text-gray-300" {...props} />
@@ -155,7 +155,7 @@ export default async function SingleBlogPostPage({ params }: SingleBlogPageProps
       <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors" {...props} />
     ),
     th: (props: any) => (
-      <th className="px-5 py-4 font-extrabold text-slate-900 dark:text-white shrink-0" {...props} />
+      <th className="px-5 py-4 font-extrabold text-slate-800 dark:text-slate-100 shrink-0" {...props} />
     ),
     td: (props: any) => (
       <td className="px-5 py-4 leading-relaxed font-normal" {...props} />
@@ -200,7 +200,7 @@ export default async function SingleBlogPostPage({ params }: SingleBlogPageProps
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Blog Knowledge Base
           </Link>
           <span className="text-slate-400 dark:text-gray-600">/</span>
-          <span className="text-slate-900 dark:text-white font-bold truncate max-w-xs">{meta.title}</span>
+          <span className="text-slate-800 dark:text-slate-100 font-bold truncate max-w-xs">{meta.title}</span>
         </div>
 
         {/* Header Metadata */}
@@ -219,7 +219,7 @@ export default async function SingleBlogPostPage({ params }: SingleBlogPageProps
             </span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 dark:text-slate-100 tracking-tight leading-tight">
             {meta.title}
           </h1>
 

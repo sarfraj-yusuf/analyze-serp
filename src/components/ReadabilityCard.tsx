@@ -35,7 +35,7 @@ export const ReadabilityCard: React.FC<ReadabilityCardProps> = ({ readability })
       <div className="p-6 sm:p-8 rounded-2xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
         <div className="flex items-center gap-4">
           <div className={`w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center shrink-0 shadow-md ${easeColor}`}>
-            <span className="text-2xl font-black">{fleschReadingEase}</span>
+            <span className="text-2xl font-bold">{fleschReadingEase}</span>
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">/ 100 Ease</span>
           </div>
 
@@ -45,7 +45,7 @@ export const ReadabilityCard: React.FC<ReadabilityCardProps> = ({ readability })
                 {gradeLabel}
               </span>
             </div>
-            <h4 className="text-lg font-bold text-slate-900 dark:text-white mt-1">Readability & Tone Profile</h4>
+            <h4 className="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1">Readability & Tone Profile</h4>
             <p className="text-xs text-slate-500 dark:text-gray-400">
               Evaluated via Flesch-Kincaid sentence length and syllable metrics.
             </p>
@@ -72,7 +72,7 @@ export const ReadabilityCard: React.FC<ReadabilityCardProps> = ({ readability })
             <AlignLeft className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span>Sentence Length</span>
           </div>
-          <div className="text-lg font-extrabold text-slate-900 dark:text-white">{avgSentenceLength} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">words/sent</span></div>
+          <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{avgSentenceLength} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">words/sent</span></div>
         </div>
 
         <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
@@ -80,7 +80,7 @@ export const ReadabilityCard: React.FC<ReadabilityCardProps> = ({ readability })
             <Hash className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
             <span>Syllables per Word</span>
           </div>
-          <div className="text-lg font-extrabold text-slate-900 dark:text-white">{avgSyllablesPerWord} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">avg</span></div>
+          <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{avgSyllablesPerWord} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">avg</span></div>
         </div>
 
         <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
@@ -88,7 +88,7 @@ export const ReadabilityCard: React.FC<ReadabilityCardProps> = ({ readability })
             <Percent className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
             <span>Complex Words</span>
           </div>
-          <div className="text-lg font-extrabold text-slate-900 dark:text-white">{complexWordsPercentage}% <span className="text-xs font-normal text-slate-500 dark:text-gray-400">({complexWordsCount})</span></div>
+          <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{complexWordsPercentage}% <span className="text-xs font-normal text-slate-500 dark:text-gray-400">({complexWordsCount})</span></div>
         </div>
 
         <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
@@ -96,7 +96,7 @@ export const ReadabilityCard: React.FC<ReadabilityCardProps> = ({ readability })
             <MessageSquare className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
             <span>Total Sentences</span>
           </div>
-          <div className="text-lg font-extrabold text-slate-900 dark:text-white">{totalSentences} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">sentences</span></div>
+          <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{totalSentences} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">sentences</span></div>
         </div>
       </div>
     </div>

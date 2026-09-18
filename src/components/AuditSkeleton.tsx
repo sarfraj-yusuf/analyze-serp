@@ -11,7 +11,7 @@ export const AuditSkeleton: React.FC = () => {
             <Zap className="w-4 h-4 text-emerald-600 dark:text-emerald-400 animate-bounce" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Analyzing Competitor DOM & Parsing SERP...</h4>
+            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">Analyzing Competitor DOM & Parsing SERP...</h4>
             <p className="text-xs text-slate-500 dark:text-gray-400">Fetching title tags, heading trees, word counts, and N-gram keyword densities</p>
           </div>
         </div>

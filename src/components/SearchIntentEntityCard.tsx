@@ -74,7 +74,7 @@ export const SearchIntentEntityCard: React.FC<SearchIntentEntityCardProps> = ({ 
                 {intentConfig.label} ({confidencePercent}% Fit)
               </span>
             </div>
-            <h3 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white mt-1 flex items-center gap-2">
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 mt-1 flex items-center gap-2">
               Search Intent & <span className="gradient-text">Topical Entity Analysis</span>
               <SEOExplanationTooltip text="Classifies search intent (Informational, Commercial, Transactional) and extracts primary topic entities for content optimization." />
             </h3>
@@ -89,7 +89,7 @@ export const SearchIntentEntityCard: React.FC<SearchIntentEntityCardProps> = ({ 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Intent Keyword Signals */}
         <div className="p-5 rounded-xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-3">
-          <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <Target className="w-4 h-4 text-emerald-500" />
             <span>Search Intent Indicators Detected</span>
           </div>
@@ -112,7 +112,7 @@ export const SearchIntentEntityCard: React.FC<SearchIntentEntityCardProps> = ({ 
 
         {/* Top Extracted Entities */}
         <div className="p-5 rounded-xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-3">
-          <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <Key className="w-4 h-4 text-cyan-500" />
             <span>Topical Entities Discovered</span>
           </div>

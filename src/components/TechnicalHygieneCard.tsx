@@ -21,15 +21,15 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
   return (
     <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-sm space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-white/10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200/80 dark:border-white/10">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-black tracking-wider bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20 flex items-center gap-1">
-              Category 1: Foundation Check
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-gray-400">
+              Foundation Check
             </span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-indigo-500" />
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-emerald-500" />
             Critical Technical Hygiene & Crawlability
             <SEOExplanationTooltip text="Verifies that your target page can be fetched, crawled, and indexed by search engine bots without security or canonical blocks." />
           </h3>
@@ -40,14 +40,14 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
 
         <div className="shrink-0">
           <span
-            className={`px-3 py-1.5 rounded-xl text-xs font-black border flex items-center gap-1.5 ${
+            className={`px-3 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 ${
               isHealthy
-                ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40'
-                : 'bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/40'
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                : 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
             }`}
           >
             {isHealthy ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertOctagon className="w-4 h-4 text-red-500" />}
-            <span>{isHealthy ? 'Technical Foundation Pass' : 'Action Required'}</span>
+            <span>{isHealthy ? 'Foundation Pass' : 'Action Required'}</span>
           </span>
         </div>
       </div>
@@ -55,18 +55,18 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
       {/* Grid Status Checks */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 1. Crawlability */}
-        <div className="p-4 rounded-2xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-2">
+        <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
-              <FileSearch className="w-4 h-4 text-indigo-400" /> Page Crawlability
+            <span className="text-xs font-bold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
+              <FileSearch className="w-3.5 h-3.5 text-slate-500" /> Page Crawlability
             </span>
             {isCrawlable ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
             ) : (
-              <AlertOctagon className="w-4 h-4 text-red-500" />
+              <AlertOctagon className="w-3.5 h-3.5 text-red-500" />
             )}
           </div>
-          <div className="text-xs font-bold text-slate-900 dark:text-white">
+          <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
             {isCrawlable ? 'Crawlable (HTTP 200)' : 'Unreachable / Empty'}
           </div>
           <p className="text-[10px] text-slate-500 dark:text-gray-400">
@@ -75,18 +75,18 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
         </div>
 
         {/* 2. Indexability */}
-        <div className="p-4 rounded-2xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-2">
+        <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
-              <Eye className="w-4 h-4 text-cyan-400" /> Indexability Status
+            <span className="text-xs font-bold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
+              <Eye className="w-3.5 h-3.5 text-slate-500" /> Indexability Status
             </span>
             {isIndexable ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
             ) : (
-              <AlertOctagon className="w-4 h-4 text-red-500" />
+              <AlertOctagon className="w-3.5 h-3.5 text-red-500" />
             )}
           </div>
-          <div className="text-xs font-bold text-slate-900 dark:text-white">
+          <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
             {isIndexable ? 'Indexable Allowed' : 'Blocked / Noindex'}
           </div>
           <p className="text-[10px] text-slate-500 dark:text-gray-400">
@@ -95,18 +95,18 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
         </div>
 
         {/* 3. HTTPS Security */}
-        <div className="p-4 rounded-2xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-2">
+        <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
-              <Lock className="w-4 h-4 text-emerald-400" /> SSL Encryption
+            <span className="text-xs font-bold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-slate-500" /> SSL Encryption
             </span>
             {hasHttps ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
             ) : (
-              <AlertOctagon className="w-4 h-4 text-red-500" />
+              <AlertOctagon className="w-3.5 h-3.5 text-red-500" />
             )}
           </div>
-          <div className="text-xs font-bold text-slate-900 dark:text-white">
+          <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
             {hasHttps ? 'Secure HTTPS' : 'Insecure HTTP'}
           </div>
           <p className="text-[10px] text-slate-500 dark:text-gray-400">
@@ -115,18 +115,18 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
         </div>
 
         {/* 4. Canonical Tag Match */}
-        <div className="p-4 rounded-2xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-2">
+        <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-amber-400" /> Canonical Tag Match
+            <span className="text-xs font-bold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-slate-500" /> Canonical Tag Match
             </span>
             {hasCanonicalMatch ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
             ) : (
-              <AlertOctagon className="w-4 h-4 text-amber-500" />
+              <AlertOctagon className="w-3.5 h-3.5 text-amber-500" />
             )}
           </div>
-          <div className="text-xs font-bold text-slate-900 dark:text-white">
+          <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
             {hasCanonicalMatch ? 'Self-Referencing / Valid' : 'Domain Mismatch'}
           </div>
           <p className="text-[10px] text-slate-500 dark:text-gray-400">

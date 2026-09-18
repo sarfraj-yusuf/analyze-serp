@@ -36,7 +36,7 @@ export const RedirectChainVisualizer: React.FC<RedirectChainVisualizerProps> = (
                 : 'text-rose-500 border-rose-500/40 bg-rose-500/10'
             }`}
           >
-            <span className="text-2xl font-black">{report.overallScore}%</span>
+            <span className="text-2xl font-bold">{report.overallScore}%</span>
             <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
               Redirect Score
             </span>
@@ -59,11 +59,11 @@ export const RedirectChainVisualizer: React.FC<RedirectChainVisualizerProps> = (
                 {report.statusVerdict === 'BROKEN_CHAIN' && '🔴 Broken Redirect Chain'}
               </span>
             </div>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">
               {report.isDirectRoute ? 'Direct Route (0 Redirect Hops)' : `${report.totalHops} Redirect Hop(s) Traced`}
             </h3>
             <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
-              Total Redirect Delay: <strong className="text-slate-900 dark:text-white font-mono">{report.totalLatencyMs}ms</strong> across {report.hops.length} requests.
+              Total Redirect Delay: <strong className="text-slate-800 dark:text-slate-100 font-mono">{report.totalLatencyMs}ms</strong> across {report.hops.length} requests.
             </p>
           </div>
         </div>
@@ -74,7 +74,7 @@ export const RedirectChainVisualizer: React.FC<RedirectChainVisualizerProps> = (
             <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-gray-400">
               Total Hops
             </div>
-            <div className="text-xl font-black text-slate-900 dark:text-white mt-0.5">
+            <div className="text-xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">
               {report.totalHops}
             </div>
           </div>
@@ -82,7 +82,7 @@ export const RedirectChainVisualizer: React.FC<RedirectChainVisualizerProps> = (
             <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-gray-400">
               Total Delay
             </div>
-            <div className="text-xl font-black text-emerald-500 font-mono mt-0.5">
+            <div className="text-xl font-bold text-emerald-500 font-mono mt-0.5">
               {report.totalLatencyMs}ms
             </div>
           </div>
@@ -92,7 +92,7 @@ export const RedirectChainVisualizer: React.FC<RedirectChainVisualizerProps> = (
       {/* Visual Flowchart Hop Diagram */}
       <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-xl space-y-6">
         <div className="flex items-center justify-between">
-          <h4 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h4 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <Layers className="w-5 h-5 text-emerald-500" />
             <span>HTTP Redirect Chain Flowchart</span>
           </h4>
@@ -120,7 +120,7 @@ export const RedirectChainVisualizer: React.FC<RedirectChainVisualizerProps> = (
                   }`}
                 >
                   <span className="text-xs font-bold opacity-75">Hop</span>
-                  <span className="text-sm sm:text-base font-black">#{hop.hopNumber}</span>
+                  <span className="text-sm sm:text-base font-bold">#{hop.hopNumber}</span>
                 </div>
 
                 {/* Hop Details Box */}
@@ -129,7 +129,7 @@ export const RedirectChainVisualizer: React.FC<RedirectChainVisualizerProps> = (
                     {/* Status Code Pill */}
                     <div className="flex items-center gap-2">
                       <span
-                        className={`px-3 py-1 rounded-xl text-xs font-black font-mono border ${
+                        className={`px-3 py-1 rounded-xl text-xs font-bold font-mono border ${
                           hop.statusCode >= 200 && hop.statusCode < 300
                             ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
                             : hop.statusCode === 301 || hop.statusCode === 308
@@ -169,7 +169,7 @@ export const RedirectChainVisualizer: React.FC<RedirectChainVisualizerProps> = (
                   </div>
 
                   {/* URL Path */}
-                  <div className="font-mono text-xs text-slate-900 dark:text-white break-all bg-slate-100 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10 flex items-center justify-between gap-2">
+                  <div className="font-mono text-xs text-slate-800 dark:text-slate-100 break-all bg-slate-100 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10 flex items-center justify-between gap-2">
                     <span className="truncate">{hop.url}</span>
                     <a
                       href={hop.url}
@@ -200,7 +200,7 @@ export const RedirectChainVisualizer: React.FC<RedirectChainVisualizerProps> = (
 
       {/* SEO Optimization Recommendations Card */}
       <div className="p-6 sm:p-8 rounded-3xl glass-panel border border-slate-200 dark:border-white/10 space-y-4 shadow-lg">
-        <h4 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <h4 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
           <Zap className="w-5 h-5 text-amber-500" />
           <span>SEO Crawl Budget & Redirect Recommendations</span>
         </h4>
