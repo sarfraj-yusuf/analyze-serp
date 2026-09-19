@@ -6,7 +6,7 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { BatchAuditResponse, SinglePageAudit, KeywordGapAnalysis } from '@/types/seo';
 import { analyzeKeywordGaps } from '@/lib/keyword-gap';
-import { Search, Plus, Trash2, Zap, AlertCircle, Sparkles, Layers, ShieldCheck, ArrowRight, Clock, X, ChevronDown, ChevronUp, Key } from 'lucide-react';
+import { Search, Plus, Trash2, Zap, AlertCircle, Sparkles, Layers, ShieldCheck, ArrowRight, Clock, X, ChevronDown, ChevronUp, Key, Target } from 'lucide-react';
 import { triggerToolExecutionFeedback } from '@/lib/feedback-trigger';
 import { AuditSkeleton } from '@/components/AuditSkeleton';
 import { KeywordGapSkeleton, ContentBriefSkeleton, ComparisonMatrixSkeleton } from '@/components/SkeletonComponents';
@@ -468,16 +468,34 @@ export default function Home() {
 
             {/* 2. Side-by-Side Keyword Gap Matrix */}
             {auditResponse.results.filter((r) => r.status === 'success').length >= 2 && (
-              <KeywordGapMatrix results={auditResponse.results.filter((r) => r.status === 'success')} />
+              <div id="keyword-gap-section" className="space-y-4 pt-4">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 pb-2 border-b border-slate-200/80 dark:border-white/[0.08]">
+                  <div>
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 mb-1.5">
+                      <Target className="w-3 h-3" />
+                      <span>Stage 02 · Editorial &amp; Semantic Strategy</span>
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
+                      Competitor Keyword Gaps &amp; Topic Matrix
+                    </h3>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                      Cross-compare search terminology between your target page and ranking competitors to eliminate topic gaps.
+                    </p>
+                  </div>
+                </div>
+                <KeywordGapMatrix results={auditResponse.results.filter((r) => r.status === 'success')} />
+              </div>
             )}
 
             {/* 3. Architected Strategic Content Brief Generator Export */}
             {auditResponse.results.filter((r) => r.status === 'success').length > 0 && (
-              <ContentBriefGenerator results={auditResponse.results.filter((r) => r.status === 'success')} />
+              <div id="content-brief-section">
+                <ContentBriefGenerator results={auditResponse.results.filter((r) => r.status === 'success')} />
+              </div>
             )}
 
             {/* 4. Deep-Dive Raw Matrix & Single Page Inspector (Collapsible) */}
-            <div className="pt-6 border-t border-slate-200 dark:border-white/10 space-y-6">
+            <div id="deep-dive-section" className="pt-6 border-t border-slate-200 dark:border-white/10 space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">

@@ -8,6 +8,7 @@ import { SerpConsensusBlueprint } from './SerpConsensusBlueprint';
 import { TechnicalHygieneCard } from './TechnicalHygieneCard';
 import { ActionMatrixRoadmap } from './ActionMatrixRoadmap';
 import { DontTouchStrengthsCard } from './DontTouchStrengthsCard';
+import { Sparkles, ArrowRight } from 'lucide-react';
 
 interface SerpDecisionCenterProps {
   results: SinglePageAudit[];
@@ -46,7 +47,11 @@ export const SerpDecisionCenter: React.FC<SerpDecisionCenterProps> = ({
             Report Sections
           </span>
         </div>
-        <div className="flex items-center gap-1 shrink-0 p-0.5 rounded-lg bg-slate-100 dark:bg-white/[0.04]">
+        <div className="flex items-center gap-1 shrink-0 p-1 rounded-lg bg-slate-100/90 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06]">
+          {/* Chapter 1: Strategy & Triage */}
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500 px-1 font-semibold hidden md:inline">
+            Stage 1:
+          </span>
           <button
             onClick={() => handleScrollToSection('decision-hero-section')}
             className="px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-xs font-medium transition-all cursor-pointer"
@@ -60,22 +65,53 @@ export const SerpDecisionCenter: React.FC<SerpDecisionCenterProps> = ({
             Blueprint
           </button>
           <button
-            onClick={() => handleScrollToSection('technical-hygiene-section')}
-            className="px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-xs font-medium transition-all cursor-pointer"
-          >
-            Technical
-          </button>
-          <button
             onClick={() => handleScrollToSection('action-plan-section')}
             className="px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-xs font-medium transition-all cursor-pointer"
           >
-            Action Roadmap
+            Roadmap
           </button>
           <button
             onClick={() => handleScrollToSection('strengths-section')}
             className="px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-xs font-medium transition-all cursor-pointer"
           >
             Strengths
+          </button>
+          <button
+            onClick={() => handleScrollToSection('technical-hygiene-section')}
+            className="px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-xs font-medium transition-all cursor-pointer"
+          >
+            Technical
+          </button>
+
+          {/* Divider */}
+          <span className="w-px h-3.5 bg-slate-200 dark:border-white/10 mx-0.5" />
+
+          {/* Chapter 2: Content & Keywords */}
+          <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-600 dark:text-emerald-400 px-1 font-semibold hidden md:inline">
+            Stage 2:
+          </span>
+          <button
+            onClick={() => handleScrollToSection('keyword-gap-section')}
+            className="px-2.5 py-1 rounded-md text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-500/10 text-xs font-semibold transition-all cursor-pointer"
+          >
+            Keyword Gaps
+          </button>
+          <button
+            onClick={() => handleScrollToSection('content-brief-section')}
+            className="px-2.5 py-1 rounded-md text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-500/10 text-xs font-semibold transition-all cursor-pointer"
+          >
+            Content Brief
+          </button>
+
+          {/* Divider */}
+          <span className="w-px h-3.5 bg-slate-200 dark:border-white/10 mx-0.5" />
+
+          {/* Chapter 3: Deep Dive */}
+          <button
+            onClick={() => handleScrollToSection('deep-dive-section')}
+            className="px-2.5 py-1 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-800 text-xs font-medium transition-all cursor-pointer"
+          >
+            Raw Data
           </button>
         </div>
       </div>
@@ -92,19 +128,43 @@ export const SerpDecisionCenter: React.FC<SerpDecisionCenterProps> = ({
         </div>
       )}
 
-      {/* 3. Category 1: Technical Hygiene & Crawlability */}
-      <div id="technical-hygiene-section">
-        <TechnicalHygieneCard technicalHygiene={report.technicalHygiene} />
-      </div>
-
-      {/* 4. Category 2: Impact x Effort Action Roadmap */}
+      {/* 3. Category 1: Impact x Effort Action Roadmap */}
       <div id="action-plan-section">
         <ActionMatrixRoadmap actions={report.evidenceActions} />
       </div>
 
-      {/* 5. "Don't Waste Time Changing These" Strengths */}
+      {/* 4. "Don't Waste Time Changing These" Strengths */}
       <div id="strengths-section">
         <DontTouchStrengthsCard strengths={report.dontTouchStrengths} />
+      </div>
+
+      {/* 5. Category 2: Technical Hygiene & Crawlability */}
+      <div id="technical-hygiene-section">
+        <TechnicalHygieneCard technicalHygiene={report.technicalHygiene} />
+      </div>
+
+      {/* Stage Transition Bridge: Connects Technical Triage to Editorial Content Engine */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-500/5 via-slate-50 to-emerald-500/10 dark:from-emerald-950/20 dark:via-slate-900 dark:to-emerald-900/20 border border-emerald-500/30 dark:border-emerald-500/20 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+            <Sparkles className="w-3 h-3" />
+            <span>Next Phase · Semantic &amp; Editorial Engine</span>
+          </div>
+          <h4 className="text-base font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+            Ready to close content gaps? Discover missing competitor keywords
+          </h4>
+          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl">
+            You've audited technical infrastructure and structural parity. Now analyze the specific N-gram keyword phrases your competitors use and generate a tailored content brief.
+          </p>
+        </div>
+
+        <button
+          onClick={() => handleScrollToSection('keyword-gap-section')}
+          className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-xs flex items-center gap-2 shrink-0 shadow-xs cursor-pointer active:scale-95 transition-all"
+        >
+          <span>Explore Keyword Gaps</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   );

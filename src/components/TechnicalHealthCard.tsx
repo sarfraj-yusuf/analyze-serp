@@ -75,41 +75,83 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
-          <div className="text-xs text-slate-500 dark:text-gray-400 flex items-center gap-1.5 mb-1">
-            <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>TTFB Latency</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm flex flex-col justify-between space-y-2">
+          <div>
+            <div className="text-xs text-slate-500 dark:text-gray-400 flex items-center gap-1.5 mb-1">
+              <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>TTFB Latency</span>
+            </div>
+            <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{ttfbMs} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">ms</span></div>
+            <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">Download: {totalDownloadTimeMs}ms</div>
           </div>
-          <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{ttfbMs} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">ms</span></div>
-          <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">Download: {totalDownloadTimeMs}ms</div>
+          <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 text-[10px] leading-snug">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Business Impact:</span>{' '}
+            <span className="text-slate-500 dark:text-slate-400">
+              {ttfbMs <= 300
+                ? 'Fast server response: Keeps initial visitors from bouncing.'
+                : ttfbMs <= 600
+                ? 'Moderate latency: Minor delay before content starts rendering.'
+                : 'High latency risk: Sluggish server increases mobile bounce rate by ~32%.'}
+            </span>
+          </div>
         </div>
 
-        <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
-          <div className="text-xs text-slate-500 dark:text-gray-400 flex items-center gap-1.5 mb-1">
-            <FileCode className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
-            <span>HTML Payload Size</span>
+        <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm flex flex-col justify-between space-y-2">
+          <div>
+            <div className="text-xs text-slate-500 dark:text-gray-400 flex items-center gap-1.5 mb-1">
+              <FileCode className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+              <span>HTML Payload Size</span>
+            </div>
+            <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{htmlSizeKb} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">kB</span></div>
+            <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">{htmlSizeKb < 100 ? 'Optimal Size' : 'Heavy Payload'}</div>
           </div>
-          <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{htmlSizeKb} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">kB</span></div>
-          <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">{htmlSizeKb < 100 ? 'Optimal Size' : 'Heavy Payload'}</div>
+          <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 text-[10px] leading-snug">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Business Impact:</span>{' '}
+            <span className="text-slate-500 dark:text-slate-400">
+              {htmlSizeKb < 100
+                ? 'Lightweight payload: Downloads fast over mobile 4G/5G connections.'
+                : 'Heavy page weight: Consumes visitor data and delays initial screen paint.'}
+            </span>
+          </div>
         </div>
 
-        <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
-          <div className="text-xs text-slate-500 dark:text-gray-400 flex items-center gap-1.5 mb-1">
-            <Layers className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span>DOM Node Count</span>
+        <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm flex flex-col justify-between space-y-2">
+          <div>
+            <div className="text-xs text-slate-500 dark:text-gray-400 flex items-center gap-1.5 mb-1">
+              <Layers className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+              <span>DOM Node Count</span>
+            </div>
+            <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{domNodeCount} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">nodes</span></div>
+            <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">Depth: {maxDomDepth} levels</div>
           </div>
-          <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{domNodeCount} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">nodes</span></div>
-          <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">Depth: {maxDomDepth} levels</div>
+          <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 text-[10px] leading-snug">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Business Impact:</span>{' '}
+            <span className="text-slate-500 dark:text-slate-400">
+              {domNodeCount < 800 && maxDomDepth <= 32
+                ? 'Clean DOM structure: Smooth page scrolling with zero layout stutter.'
+                : 'Deep DOM tree: Causes UI lag and hurts Google Core Web Vitals (INP).'}
+            </span>
+          </div>
         </div>
 
-        <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
-          <div className="text-xs text-slate-500 dark:text-gray-400 flex items-center gap-1.5 mb-1">
-            <Code2 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-            <span>Inline Script Overhead</span>
+        <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm flex flex-col justify-between space-y-2">
+          <div>
+            <div className="text-xs text-slate-500 dark:text-gray-400 flex items-center gap-1.5 mb-1">
+              <Code2 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+              <span>Inline Script Overhead</span>
+            </div>
+            <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{inlineScriptSizeKb} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">kB</span></div>
+            <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">{inlineScriptCount} inline scripts</div>
           </div>
-          <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{inlineScriptSizeKb} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">kB</span></div>
-          <div className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 font-mono">{inlineScriptCount} inline scripts</div>
+          <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 text-[10px] leading-snug">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Business Impact:</span>{' '}
+            <span className="text-slate-500 dark:text-slate-400">
+              {inlineScriptSizeKb < 25
+                ? 'Unblocked parser: Browsers render headline text without script pause.'
+                : 'Render-blocking scripts: Delays the moment visitors can interact with page.'}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -120,49 +162,64 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
         </h5>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="flex items-center gap-2 text-xs font-semibold p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10">
-            {hasHttps ? (
-              <div className="p-1 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                <Lock className="w-3.5 h-3.5" />
-              </div>
-            ) : (
-              <div className="p-1 rounded bg-red-500/20 text-red-600 dark:text-red-400">
-                <AlertTriangle className="w-3.5 h-3.5" />
-              </div>
-            )}
-            <span className={hasHttps ? 'text-slate-800 dark:text-slate-100' : 'text-red-600 dark:text-red-400'}>
-              {hasHttps ? 'SSL / HTTPS Enabled' : 'Non-HTTPS (HTTP Only)'}
-            </span>
+          <div className="p-3 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              {hasHttps ? (
+                <div className="p-1 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                  <Lock className="w-3.5 h-3.5" />
+                </div>
+              ) : (
+                <div className="p-1 rounded bg-red-500/20 text-red-600 dark:text-red-400">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                </div>
+              )}
+              <span className={hasHttps ? 'text-slate-800 dark:text-slate-100' : 'text-red-600 dark:text-red-400'}>
+                {hasHttps ? 'SSL / HTTPS Enabled' : 'Non-HTTPS (HTTP Only)'}
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-500 dark:text-gray-400 leading-tight">
+              {hasHttps ? 'Protects data transactions and satisfies Google security standard.' : 'Triggers browser warnings, driving away potential leads.'}
+            </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-semibold p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10">
-            {hasViewportMeta ? (
-              <div className="p-1 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
-              </div>
-            ) : (
-              <div className="p-1 rounded bg-red-500/20 text-red-600 dark:text-red-400">
-                <AlertTriangle className="w-3.5 h-3.5" />
-              </div>
-            )}
-            <span className={hasViewportMeta ? 'text-slate-800 dark:text-slate-100' : 'text-red-600 dark:text-red-400'}>
-              {hasViewportMeta ? 'Mobile Viewport Tag' : 'Missing Viewport Meta'}
-            </span>
+          <div className="p-3 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              {hasViewportMeta ? (
+                <div className="p-1 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                </div>
+              ) : (
+                <div className="p-1 rounded bg-red-500/20 text-red-600 dark:text-red-400">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                </div>
+              )}
+              <span className={hasViewportMeta ? 'text-slate-800 dark:text-slate-100' : 'text-red-600 dark:text-red-400'}>
+                {hasViewportMeta ? 'Mobile Viewport Tag' : 'Missing Viewport Meta'}
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-500 dark:text-gray-400 leading-tight">
+              {hasViewportMeta ? 'Enables responsive layout across smartphone displays.' : 'Breaks mobile UI and risks mobile ranking penalties.'}
+            </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-semibold p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10">
-            {hasCharsetMeta ? (
-              <div className="p-1 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
-              </div>
-            ) : (
-              <div className="p-1 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400">
-                <AlertTriangle className="w-3.5 h-3.5" />
-              </div>
-            )}
-            <span className="text-slate-800 dark:text-slate-100">
-              {hasCharsetMeta ? 'UTF-8 Charset Tag' : 'Missing Charset Meta'}
-            </span>
+          <div className="p-3 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              {hasCharsetMeta ? (
+                <div className="p-1 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                </div>
+              ) : (
+                <div className="p-1 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                </div>
+              )}
+              <span className="text-slate-800 dark:text-slate-100">
+                {hasCharsetMeta ? 'UTF-8 Charset Tag' : 'Missing Charset Meta'}
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-500 dark:text-gray-400 leading-tight">
+              {hasCharsetMeta ? 'Renders foreign characters and symbols without corruption.' : 'Risk of distorted text and symbol rendering on mobile.'}
+            </p>
           </div>
         </div>
       </div>

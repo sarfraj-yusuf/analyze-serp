@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { EvidenceRecommendation } from '@/types/seo';
-import { Target, Zap, Clock, CheckCircle2, AlertTriangle, ArrowRight, Filter, Info } from 'lucide-react';
+import { Target, Zap, Clock, CheckCircle2, AlertTriangle, ArrowRight, Filter, Info, TrendingUp } from 'lucide-react';
 import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
 
 interface ActionMatrixRoadmapProps {
@@ -137,6 +137,17 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
                   <strong className="font-semibold text-slate-800 dark:text-slate-100">Recommended Action:</strong> {item.action}
                 </p>
               </div>
+
+              {/* Plain-English Business Impact Callout */}
+              {item.businessImpact && (
+                <div className="flex items-start gap-2 p-2.5 rounded-xl bg-emerald-500/5 dark:bg-emerald-500/[0.04] border border-emerald-500/20 text-[11px] text-slate-700 dark:text-slate-300">
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">
+                    <strong className="font-semibold text-emerald-700 dark:text-emerald-400">Why this matters:</strong>{' '}
+                    {item.businessImpact}
+                  </span>
+                </div>
+              )}
 
               {/* Empirical SERP Evidence Tag (Clean Inline Meta Row) */}
               <div className="flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-300 pt-0.5">

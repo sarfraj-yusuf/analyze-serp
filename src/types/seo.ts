@@ -198,6 +198,7 @@ export interface EvidenceRecommendation {
   title: string;
   action: string;
   evidence: string; // e.g. "4/5 ranking pages cover this subtopic"
+  businessImpact?: string; // 1-line plain-English commercial/ranking consequence
   isMissing: boolean;
   impact: 'HIGH' | 'MEDIUM' | 'LOW';
   effort: 'LOW' | 'MEDIUM' | 'HIGH';

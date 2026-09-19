@@ -55,83 +55,123 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
       {/* Grid Status Checks */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 1. Crawlability */}
-        <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
-              <FileSearch className="w-3.5 h-3.5 text-slate-500" /> Page Crawlability
+        <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 flex flex-col justify-between space-y-2">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
+                <FileSearch className="w-3.5 h-3.5 text-slate-500" /> Page Crawlability
+              </span>
+              {isCrawlable ? (
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              ) : (
+                <AlertOctagon className="w-3.5 h-3.5 text-red-500" />
+              )}
+            </div>
+            <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
+              {isCrawlable ? 'Crawlable (HTTP 200)' : 'Unreachable / Empty'}
+            </div>
+            <p className="text-[10px] text-slate-500 dark:text-gray-400">
+              {isCrawlable ? 'Server returned valid HTML content.' : 'Bots cannot fetch HTML text.'}
+            </p>
+          </div>
+          <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 text-[10px] leading-snug">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Business Impact:</span>{' '}
+            <span className="text-slate-500 dark:text-slate-400">
+              {isCrawlable
+                ? 'Search bots can parse your content without technical blockage.'
+                : 'Googlebot cannot crawl — 0 pages can rank or generate revenue.'}
             </span>
-            {isCrawlable ? (
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-            ) : (
-              <AlertOctagon className="w-3.5 h-3.5 text-red-500" />
-            )}
           </div>
-          <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
-            {isCrawlable ? 'Crawlable (HTTP 200)' : 'Unreachable / Empty'}
-          </div>
-          <p className="text-[10px] text-slate-500 dark:text-gray-400">
-            {isCrawlable ? 'Server returned valid HTML content.' : 'Bots cannot fetch HTML text.'}
-          </p>
         </div>
 
         {/* 2. Indexability */}
-        <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
-              <Eye className="w-3.5 h-3.5 text-slate-500" /> Indexability Status
+        <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 flex flex-col justify-between space-y-2">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
+                <Eye className="w-3.5 h-3.5 text-slate-500" /> Indexability Status
+              </span>
+              {isIndexable ? (
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              ) : (
+                <AlertOctagon className="w-3.5 h-3.5 text-red-500" />
+              )}
+            </div>
+            <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
+              {isIndexable ? 'Indexable Allowed' : 'Blocked / Noindex'}
+            </div>
+            <p className="text-[10px] text-slate-500 dark:text-gray-400">
+              {isIndexable ? 'Robots.txt & meta tags allow indexing.' : 'Robots rule prohibits indexing.'}
+            </p>
+          </div>
+          <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 text-[10px] leading-snug">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Business Impact:</span>{' '}
+            <span className="text-slate-500 dark:text-slate-400">
+              {isIndexable
+                ? 'Page is eligible to appear in search and capture user queries.'
+                : '"noindex" commands Google to hide this page from search results.'}
             </span>
-            {isIndexable ? (
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-            ) : (
-              <AlertOctagon className="w-3.5 h-3.5 text-red-500" />
-            )}
           </div>
-          <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
-            {isIndexable ? 'Indexable Allowed' : 'Blocked / Noindex'}
-          </div>
-          <p className="text-[10px] text-slate-500 dark:text-gray-400">
-            {isIndexable ? 'Robots.txt & meta tags allow indexing.' : 'Robots rule prohibits indexing.'}
-          </p>
         </div>
 
         {/* 3. HTTPS Security */}
-        <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5 text-slate-500" /> SSL Encryption
+        <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 flex flex-col justify-between space-y-2">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-slate-500" /> SSL Encryption
+              </span>
+              {hasHttps ? (
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              ) : (
+                <AlertOctagon className="w-3.5 h-3.5 text-red-500" />
+              )}
+            </div>
+            <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
+              {hasHttps ? 'Secure HTTPS' : 'Insecure HTTP'}
+            </div>
+            <p className="text-[10px] text-slate-500 dark:text-gray-400">
+              {hasHttps ? 'Valid SSL protocol active.' : 'Missing SSL encryption.'}
+            </p>
+          </div>
+          <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 text-[10px] leading-snug">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Business Impact:</span>{' '}
+            <span className="text-slate-500 dark:text-slate-400">
+              {hasHttps
+                ? 'Safeguards user trust and passes Google’s core HTTPS ranking check.'
+                : 'Browsers show "Not Secure" warning, causing up to 85% visitor bounce.'}
             </span>
-            {hasHttps ? (
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-            ) : (
-              <AlertOctagon className="w-3.5 h-3.5 text-red-500" />
-            )}
           </div>
-          <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
-            {hasHttps ? 'Secure HTTPS' : 'Insecure HTTP'}
-          </div>
-          <p className="text-[10px] text-slate-500 dark:text-gray-400">
-            {hasHttps ? 'Valid SSL protocol active.' : 'Missing SSL encryption.'}
-          </p>
         </div>
 
         {/* 4. Canonical Tag Match */}
-        <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-slate-500" /> Canonical Tag Match
+        <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 flex flex-col justify-between space-y-2">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-slate-500" /> Canonical Tag Match
+              </span>
+              {hasCanonicalMatch ? (
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              ) : (
+                <AlertOctagon className="w-3.5 h-3.5 text-amber-500" />
+              )}
+            </div>
+            <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
+              {hasCanonicalMatch ? 'Self-Referencing / Valid' : 'Domain Mismatch'}
+            </div>
+            <p className="text-[10px] text-slate-500 dark:text-gray-400">
+              {hasCanonicalMatch ? 'Canonical URL aligns with target domain.' : 'Canonical points elsewhere.'}
+            </p>
+          </div>
+          <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 text-[10px] leading-snug">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Business Impact:</span>{' '}
+            <span className="text-slate-500 dark:text-slate-400">
+              {hasCanonicalMatch
+                ? 'Consolidates ranking authority directly into this target URL.'
+                : 'Dilutes SEO equity across duplicate URLs or transfers to external site.'}
             </span>
-            {hasCanonicalMatch ? (
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-            ) : (
-              <AlertOctagon className="w-3.5 h-3.5 text-amber-500" />
-            )}
           </div>
-          <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
-            {hasCanonicalMatch ? 'Self-Referencing / Valid' : 'Domain Mismatch'}
-          </div>
-          <p className="text-[10px] text-slate-500 dark:text-gray-400">
-            {hasCanonicalMatch ? 'Canonical URL aligns with target domain.' : 'Canonical points elsewhere.'}
-          </p>
         </div>
       </div>
 
