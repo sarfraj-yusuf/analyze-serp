@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 240" width="100%" height="100%">
+  <defs>
+    <!-- Slab 1 (Base Dark Slate) -->
+    <linearGradient id="flS1L" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="flS1R" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+    <linearGradient id="flS1T" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155" />
+      <stop offset="100%" stop-color="#1E293B" />
+    </linearGradient>
+
+    <!-- Slab 2 (Middle Slate Blue) -->
+    <linearGradient id="flS2L" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A5F" />
+      <stop offset="100%" stop-color="#0F2038" />
+    </linearGradient>
+    <linearGradient id="flS2R" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2D5584" />
+      <stop offset="100%" stop-color="#193354" />
+    </linearGradient>
+    <linearGradient id="flS2T" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#41729F" />
+      <stop offset="100%" stop-color="#234974" />
+    </linearGradient>
+
+    <!-- Slab 3 (Top Icy Cyan) -->
+    <linearGradient id="flS3L" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B6E8C" />
+      <stop offset="100%" stop-color="#244A62" />
+    </linearGradient>
+    <linearGradient id="flS3R" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5B93B2" />
+      <stop offset="100%" stop-color="#396884" />
+    </linearGradient>
+    <linearGradient id="flS3T" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A5D8D6" />
+      <stop offset="50%" stop-color="#6FAFC1" />
+      <stop offset="100%" stop-color="#467B97" />
+    </linearGradient>
+
+    <!-- Emerald Apex Crystal -->
+    <linearGradient id="flCTopL" x1="30%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#A7F3D0" />
+      <stop offset="40%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="flCTopR" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="60%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#064E3B" />
+    </linearGradient>
+    <linearGradient id="flCBotL" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="flCBotR" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#022C22" />
+    </linearGradient>
+
+    <!-- Ray Gradient -->
+    <linearGradient id="flRGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#34D399" />
+    </linearGradient>
+
+    <!-- Crystal Glow Aura -->
+    <radialGradient id="flAuraGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.7" />
+      <stop offset="50%" stop-color="#10B981" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#10B981" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- SERP Text Gradient -->
+    <linearGradient id="serpGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+  </defs>
+
+  <!-- ========================================== -->
+  <!-- LEFT: 3D ISOMETRIC ICON MARK               -->
+  <!-- ========================================== -->
+  <g id="full-icon" transform="translate(-10, -25) scale(0.88)">
+    <ellipse cx="160" cy="272" rx="100" ry="26" fill="#020617" opacity="0.35" />
+
+    <!-- Slab 1: Base -->
+    <g id="fl-slab-1">
+      <polygon points="64,228 160,272 160,296 64,252" fill="url(#flS1L)" />
+      <polygon points="160,272 256,228 256,252 160,296" fill="url(#flS1R)" />
+      <polygon points="160,204 256,228 160,272 64,228" fill="url(#flS1T)" />
+      <polyline points="64,228 160,272 256,228" stroke="#475569" stroke-width="1.2" opacity="0.6" />
+    </g>
+
+    <!-- Slab 2: Mid -->
+    <g id="fl-slab-2" transform="translate(0, -32)">
+      <polygon points="64,228 160,272 160,296 64,252" fill="url(#flS2L)" />
+      <polygon points="160,272 256,228 256,252 160,296" fill="url(#flS2R)" />
+      <polygon points="160,204 256,228 160,272 64,228" fill="url(#flS2T)" />
+      <polyline points="64,228 160,272 256,228" stroke="#60A5FA" stroke-width="1.4" opacity="0.5" />
+    </g>
+
+    <!-- Slab 3: Top -->
+    <g id="fl-slab-3" transform="translate(0, -64)">
+      <polygon points="64,228 160,272 160,296 64,252" fill="url(#flS3L)" />
+      <polygon points="160,272 256,228 256,252 160,296" fill="url(#flS3R)" />
+      <polygon points="160,204 256,228 160,272 64,228" fill="url(#flS3T)" />
+      <ellipse cx="160" cy="238" rx="42" ry="18" fill="url(#flAuraGlow)" />
+      <polyline points="64,228 160,272 256,228" stroke="#E2F1F8" stroke-width="1.6" opacity="0.75" />
+    </g>
+
+    <!-- Emerald Apex Crystal -->
+    <g id="fl-crystal">
+      <circle cx="160" cy="120" r="46" fill="url(#flAuraGlow)" />
+      <polygon points="118,136 160,154 160,172 118,136" fill="url(#flCBotL)" opacity="0.95" />
+      <polygon points="160,154 202,136 160,172 160,154" fill="url(#flCBotR)" opacity="0.95" />
+      <polygon points="160,82 118,136 160,154" fill="url(#flCTopL)" />
+      <polygon points="160,82 160,154 202,136" fill="url(#flCTopR)" />
+      <line x1="160" y1="82" x2="160" y2="154" stroke="#D1FAE5" stroke-width="2" stroke-linecap="round" />
+      <circle cx="160" cy="82" r="3" fill="#FFFFFF" />
+    </g>
+
+    <!-- Rays -->
+    <g id="fl-rays" stroke-linecap="round" stroke-width="5">
+      <line x1="160" y1="64" x2="160" y2="44" stroke="url(#flRGrad)" />
+      <line x1="138" y1="72" x2="122" y2="56" stroke="url(#flRGrad)" />
+      <line x1="182" y1="72" x2="198" y2="56" stroke="url(#flRGrad)" />
+    </g>
+  </g>
+
+  <!-- ========================================== -->
+  <!-- RIGHT: BRAND WORDMARK & TAGLINE            -->
+  <!-- ========================================== -->
+  <g id="brand-typography" transform="translate(230, 138)">
+    <text
+      x="0"
+      y="0"
+      font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Plus Jakarta Sans', sans-serif"
+      font-size="94"
+      font-weight="900"
+      letter-spacing="-2px"
+      fill="#0F172A"
+    >Analyze<tspan fill="url(#serpGrad)" font-weight="900" letter-spacing="-1px">SERP</tspan></text>
+
+    <!-- Tagline -->
+    <g transform="translate(6, 42)">
+      <text
+        x="0"
+        y="0"
+        font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Plus Jakarta Sans', sans-serif"
+        font-size="20"
+        font-weight="700"
+        letter-spacing="5.5px"
+        fill="#475569"
+      >ANALYZE <tspan fill="#10B981" font-weight="900" letter-spacing="3px">•</tspan> COMPARE <tspan fill="#10B981" font-weight="900" letter-spacing="3px">•</tspan> RANK HIGHER</text>
+    </g>
+  </g>
+</svg>

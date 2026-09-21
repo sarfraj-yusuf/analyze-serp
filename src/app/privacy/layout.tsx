@@ -1,17 +1,24 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy & Data Compliance',
+  title: 'Privacy Policy & Data Compliance | AnalyzeSERP',
   description:
-    'Read how AnalyzeSERP protects user privacy and manages cookie data compliance.',
+    'Read how AnalyzeSERP protects user privacy with transient serverless DOM parsing, zero URL tracking logs, and GDPR & CCPA compliance.',
   alternates: {
     canonical: 'https://analyzeserp.com/privacy',
   },
   openGraph: {
     title: 'Privacy Policy & Data Compliance | AnalyzeSERP',
     description:
-      'Read how AnalyzeSERP protects user privacy and manages cookie data compliance.',
+      'Read how AnalyzeSERP protects user privacy with transient serverless DOM parsing, zero URL tracking logs, and GDPR & CCPA compliance.',
     url: 'https://analyzeserp.com/privacy',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Privacy Policy & Data Compliance | AnalyzeSERP',
+    description:
+      'Read how AnalyzeSERP protects user privacy with transient serverless DOM parsing, zero URL tracking logs, and GDPR & CCPA compliance.',
   },
 };
 

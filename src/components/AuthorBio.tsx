@@ -17,13 +17,11 @@ export const AuthorBio: React.FC<AuthorBioProps> = ({
   linkedin = 'https://linkedin.com/in/sarfrajyusuf',
 }) => {
   return (
-    <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/10 my-8 bg-gradient-to-r from-slate-900/5 via-slate-900/0 to-emerald-500/5 space-y-4">
+    <div className="glass-panel p-6 rounded-2xl border border-slate-200/80 dark:border-white/10 my-8 space-y-4">
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
         {/* Author Avatar */}
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-indigo-500 p-0.5 shadow-md shrink-0">
-          <div className="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center font-extrabold text-white text-xl">
-            {author.split(' ').map((n) => n[0]).join('')}
-          </div>
+        <div className="size-14 rounded-2xl bg-emerald-500 text-slate-950 font-extrabold text-xl flex items-center justify-center shrink-0 shadow-xs">
+          {author.split(' ').map((n) => n[0]).join('')}
         </div>
 
         {/* Author Metadata */}

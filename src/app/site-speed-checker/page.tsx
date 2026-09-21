@@ -7,6 +7,7 @@ import { TechnicalHealthCard } from '@/components/TechnicalHealthCard';
 import { CoreWebVitalsCard } from '@/components/CoreWebVitalsCard';
 import { ProUpgradeModal } from '@/components/ProUpgradeModal';
 import { TechnicalAudit } from '@/types/seo';
+import { CompactToolDock } from '@/components/CompactToolDock';
 import {
   Zap,
   Sparkles,
@@ -571,127 +572,8 @@ export default function SiteSpeedCheckerPage() {
             </div>
           </section>
 
-          {/* 4. Related AnalyzeSERP Tools (Clean 4-Column Grid) */}
-          <section className="p-6 sm:p-8 rounded-2xl glass-panel border border-slate-200/80 dark:border-white/[0.08] space-y-4">
-            <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                <Zap className="w-3.5 h-3.5" />
-                <span>AnalyzeSERP Utility Suite</span>
-              </div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">
-                Explore Related SEO & Performance Tools
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                Enhance your site's search visibility by pairing speed checks with our specialized tools:
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-              <Link
-                href="/technical-health"
-                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
-              >
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
-                  <span>Technical Health</span>
-                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-                  DOM depth, SSL & headers
-                </p>
-              </Link>
-
-              <Link
-                href="/serp-snippet-preview"
-                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
-              >
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
-                  <span>SERP Preview</span>
-                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-                  Pixel width & meta snippet test
-                </p>
-              </Link>
-
-              <Link
-                href="/redirect-checker"
-                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
-              >
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
-                  <span>Redirects</span>
-                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-                  Trace 301/302 HTTP chains
-                </p>
-              </Link>
-
-              <Link
-                href="/contrast-checker"
-                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
-              >
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
-                  <span>Contrast</span>
-                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-                  W3C WCAG 2.2 color check
-                </p>
-              </Link>
-
-              <Link
-                href="/affiliate-link-checker"
-                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
-              >
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
-                  <span>Affiliate Links</span>
-                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-                  Audit rel="sponsored" tags
-                </p>
-              </Link>
-
-              <Link
-                href="/readability"
-                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
-              >
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
-                  <span>Readability</span>
-                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-                  Flesch score & tone check
-                </p>
-              </Link>
-
-              <Link
-                href="/"
-                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
-              >
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
-                  <span>Competitor Audit</span>
-                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-                  Compare 5 competitor URLs
-                </p>
-              </Link>
-
-              <Link
-                href="/pdf-reports"
-                className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-1.5 group"
-              >
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
-                  <span>PDF Reports</span>
-                  <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-                </h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-                  White-label client exports
-                </p>
-              </Link>
-            </div>
-          </section>
+          {/* 4. Complementary Diagnostic Engines */}
+          <CompactToolDock currentTool="site-speed-checker" />
         </div>
       </main>
 

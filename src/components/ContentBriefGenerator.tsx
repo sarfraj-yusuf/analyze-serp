@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { SinglePageAudit } from '@/types/seo';
 import { analyzeKeywordGaps } from '@/lib/keyword-gap';
 import {
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
+import { AiSectionWriterModal } from './AiSectionWriterModal';
 
 interface ContentBriefGeneratorProps {
   results: SinglePageAudit[];
@@ -25,6 +26,29 @@ interface ContentBriefGeneratorProps {
 export const ContentBriefGenerator: React.FC<ContentBriefGeneratorProps> = ({ results }) => {
   const [copied, setCopied] = useState(false);
   const [customKeyword, setCustomKeyword] = useState<string>('');
+  const [isAiWriterOpen, setIsAiWriterOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem('analyzeserp_pending_ai_modal');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed.type === 'section-writer') {
+        if (parsed.timestamp && Date.now() - parsed.timestamp > 15 * 60 * 1000) {
+          localStorage.removeItem('analyzeserp_pending_ai_modal');
+          return;
+        }
+        localStorage.removeItem('analyzeserp_pending_ai_modal');
+        if (parsed.targetKeyword) {
+          setCustomKeyword(parsed.targetKeyword);
+        }
+        setIsAiWriterOpen(true);
+      }
+    } catch (err) {
+      console.warn('[ContentBriefGenerator] Failed to restore pending AI section writer modal:', err);
+    }
+  }, []);
 
   const validResults = useMemo(
     () => results.filter((r) => r.status === 'success'),
@@ -261,6 +285,16 @@ ${aggregatedHeadings
 
         <div className="flex items-center gap-2 flex-wrap">
           <button
+            type="button"
+            onClick={() => setIsAiWriterOpen(true)}
+            aria-label="Draft section with AI"
+            className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-95"
+          >
+            <Sparkles className="w-4 h-4 fill-slate-950" />
+            <span>AI Draft Section</span>
+          </button>
+
+          <button
             onClick={handleCopyMarkdown}
             aria-label="Copy markdown brief"
             className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-gray-200 text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer border border-slate-200 dark:border-slate-700/60"
@@ -408,6 +442,14 @@ ${aggregatedHeadings
           ))}
         </div>
       </div>
+
+      <AiSectionWriterModal
+        isOpen={isAiWriterOpen}
+        onClose={() => setIsAiWriterOpen(false)}
+        topic={activeTargetKeyword}
+        targetKeyword={activeTargetKeyword}
+        sectionHeading={`Comprehensive Guide to ${activeTargetKeyword.charAt(0).toUpperCase() + activeTargetKeyword.slice(1)}`}
+      />
     </div>
   );
 };

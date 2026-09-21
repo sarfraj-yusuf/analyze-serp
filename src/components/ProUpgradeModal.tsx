@@ -52,7 +52,7 @@ export const ProUpgradeModal: React.FC<ProUpgradeModalProps> = ({ isOpen, onClos
           </div>
 
           <h3 id="pro-modal-title" className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-            AnalyzeSERP Pro <span className="gradient-text">(Valued at $19/month)</span> is 100% FREE during Public Beta!
+            AnalyzeSERP Pro <span className="text-emerald-600 dark:text-emerald-400 font-bold">(Valued at $19/mo)</span> is 100% FREE during Public Beta!
           </h3>
 
           <p className="text-xs text-slate-600 dark:text-gray-300 max-w-md mx-auto leading-relaxed">

@@ -1,17 +1,50 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { BatchAuditResponse, SinglePageAudit, KeywordGapAnalysis } from '@/types/seo';
 import { analyzeKeywordGaps } from '@/lib/keyword-gap';
-import { Search, Plus, Trash2, Zap, AlertCircle, Sparkles, Layers, ShieldCheck, ArrowRight, Clock, X, ChevronDown, ChevronUp, Key, Target } from 'lucide-react';
+import {
+  Search,
+  Plus,
+  Trash2,
+  Zap,
+  AlertCircle,
+  Sparkles,
+  Layers,
+  ShieldCheck,
+  ArrowRight,
+  Clock,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Key,
+  Target,
+  HelpCircle,
+  CheckCircle2,
+  BookOpen,
+  ExternalLink,
+  Users,
+  Compass,
+  Gauge,
+  FileCheck,
+  Check,
+  Activity,
+  Eye,
+  Palette,
+  Link2,
+  GitFork,
+  RotateCcw,
+} from 'lucide-react';
 import { triggerToolExecutionFeedback } from '@/lib/feedback-trigger';
 import { AuditSkeleton } from '@/components/AuditSkeleton';
 import { KeywordGapSkeleton, ContentBriefSkeleton, ComparisonMatrixSkeleton } from '@/components/SkeletonComponents';
-import { SEOContentSection } from '@/components/SEOContentSection';
 import { CookieConsentBanner } from '@/components/CookieConsentBanner';
+import { SpotlightCard } from '@/components/SpotlightCard';
+import { SerpComparisonToggle } from '@/components/SerpComparisonToggle';
 
 // Lazy-loaded heavy result & modal components (reduces initial JS payload by ~209 KiB)
 const SerpDecisionCenter = dynamic(
@@ -62,6 +95,15 @@ const ProUpgradeModal = dynamic(
 );
 
 const MAX_FREE_DAILY_AUDITS = 20;
+const ACTIVE_AUDIT_STORAGE_KEY = 'analyzeserp_active_audit_session';
+
+interface PersistedAuditSession {
+  urls: string[];
+  targetKeyword: string;
+  auditResponse: BatchAuditResponse;
+  keywordGapAnalysis: KeywordGapAnalysis | null;
+  savedAt: number;
+}
 
 export default function Home() {
   const [urls, setUrls] = useState<string[]>(['']);
@@ -77,6 +119,11 @@ export default function Home() {
   const [cooldownSeconds, setCooldownSeconds] = useState<number>(0);
   const [isCooldownActive, setIsCooldownActive] = useState<boolean>(false);
   const [isQuotaBarDismissed, setIsQuotaBarDismissed] = useState<boolean>(false);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+  const toggleFaq = (index: number) => {
+    setOpenFaqIndex(openFaqIndex === index ? null : index);
+  };
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -109,7 +156,57 @@ export default function Home() {
     if (localStorage.getItem('quota_bar_dismissed') === 'true') {
       setIsQuotaBarDismissed(true);
     }
+
+    // Auto-hydrate saved audit session (survives OAuth login, page reloads, tab closure within 24h)
+    try {
+      const storedAudit = localStorage.getItem(ACTIVE_AUDIT_STORAGE_KEY);
+      if (storedAudit) {
+        const parsed: PersistedAuditSession = JSON.parse(storedAudit);
+        const isFresh = Date.now() - (parsed.savedAt || 0) < 24 * 60 * 60 * 1000;
+        if (isFresh && parsed.auditResponse && parsed.auditResponse.results?.length > 0) {
+          setUrls(parsed.urls && parsed.urls.length > 0 ? parsed.urls : ['']);
+          setTargetKeyword(parsed.targetKeyword || '');
+          setAuditResponse(parsed.auditResponse);
+          setKeywordGapAnalysis(parsed.keywordGapAnalysis || null);
+
+          // If returning from an auth login or URL requested results anchor
+          const shouldScroll =
+            typeof window !== 'undefined' &&
+            (window.location.hash === '#audit-results-container' ||
+              localStorage.getItem('analyzeserp_just_logged_in') === 'true' ||
+              window.location.search.includes('callbackUrl'));
+
+          if (shouldScroll) {
+            try {
+              localStorage.removeItem('analyzeserp_just_logged_in');
+            } catch (e) {}
+            setTimeout(() => {
+              const el = document.getElementById('audit-results-container');
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }, 350);
+          }
+        }
+      }
+    } catch (auditRestoreErr) {
+      console.warn('[Storage] Failed to restore active audit session:', auditRestoreErr);
+    }
   }, []);
+
+  const handleClearAudit = () => {
+    setAuditResponse(null);
+    setKeywordGapAnalysis(null);
+    setUrls(['']);
+    setTargetKeyword('');
+    setErrorMsg(null);
+    try {
+      localStorage.removeItem(ACTIVE_AUDIT_STORAGE_KEY);
+      localStorage.removeItem('analyzeserp_pending_ai_modal');
+      localStorage.removeItem('analyzeserp_just_logged_in');
+    } catch (e) {}
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const incrementDailyQuota = (count: number) => {
     const today = new Date().toISOString().split('T')[0];
@@ -189,9 +286,24 @@ export default function Home() {
       setAuditResponse(data);
 
       const successfulAudits = data.results.filter((r) => r.status === 'success');
+      let gapAnalysis: KeywordGapAnalysis | null = null;
       if (successfulAudits.length >= 2) {
-        const gapAnalysis = analyzeKeywordGaps(successfulAudits);
+        gapAnalysis = analyzeKeywordGaps(successfulAudits);
         setKeywordGapAnalysis(gapAnalysis);
+      }
+
+      // Persist active audit to localStorage so OAuth login / refresh never wipes audit data
+      try {
+        const sessionPayload: PersistedAuditSession = {
+          urls: validUrls,
+          targetKeyword,
+          auditResponse: data,
+          keywordGapAnalysis: gapAnalysis,
+          savedAt: Date.now(),
+        };
+        localStorage.setItem(ACTIVE_AUDIT_STORAGE_KEY, JSON.stringify(sessionPayload));
+      } catch (saveErr) {
+        console.warn('[Storage] Failed to persist active audit session:', saveErr);
       }
 
       incrementDailyQuota(validUrls.length);
@@ -427,6 +539,18 @@ export default function Home() {
                     <span>Add Competitor URL</span>
                   </button>
 
+                  {auditResponse && (
+                    <button
+                      type="button"
+                      onClick={handleClearAudit}
+                      className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all border border-slate-200 dark:border-white/10 cursor-pointer active:scale-[0.98]"
+                      title="Clear current audit and start a fresh benchmark"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Start New Audit</span>
+                    </button>
+                  )}
+
                   <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 tabular-nums">
                     {Math.max(0, MAX_FREE_DAILY_AUDITS - dailyAuditCount)}/20 free audits today
                   </span>
@@ -458,7 +582,7 @@ export default function Home() {
         {isAuditing ? (
           <AuditSkeleton />
         ) : auditResponse && auditResponse.results.length > 0 ? (
-          <div className="space-y-12 animate-in fade-in duration-300">
+          <div id="audit-results-container" className="space-y-12 animate-in fade-in duration-300">
             {/* 1. SERP Consensus & Master Priority Action Center */}
             <SerpDecisionCenter
               results={auditResponse.results}
@@ -534,178 +658,763 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="space-y-16 pt-6">
-            {/* Feature Highlights Bento Showcase */}
-            <div className="space-y-6 max-w-5xl mx-auto pt-4">
-              <div className="text-center space-y-2">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]">
-                  <span>Audit Capabilities</span>
+          <div className="max-w-5xl mx-auto space-y-16 pt-12 border-t border-slate-200/80 dark:border-white/[0.08]">
+            {/* 1. How It Works & Target Personas */}
+            <section className="space-y-6">
+              <div className="space-y-2 text-center max-w-2xl mx-auto">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                  <Search className="w-3 h-3" />
+                  <span>COMPETITOR SERP INTELLIGENCE</span>
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100 [letter-spacing:-0.025em]">
-                  Empirical SERP Intelligence
+                  Why Benchmark Multi-URL Competitor Signals?
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-                  Direct server-side HTML parsing and competitive gap detection without AI latency.
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  The pages ranking on Page 1 demonstrate exactly what Google expects for a search query. By extracting real-time DOM differences across competitors, you isolate actionable content and technical gaps with zero guesswork.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                {/* Hero Feature Card: Multi-URL Benchmark (Spans 7 cols) */}
-                <div className="md:col-span-7 glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/10 space-y-3 flex flex-col justify-between">
+              {/* Persona Chip Bar */}
+              <div className="p-3.5 sm:p-4 rounded-xl glass-panel border border-slate-200/80 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-200">
+                  <Users className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>Engineered for High-Output Search Teams:</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06]">
+                    Technical SEOs
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06]">
+                    Content Directors
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06]">
+                    Agency Consultants
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06]">
+                    Growth Founders
+                  </span>
+                </div>
+              </div>
+
+              {/* 3 Step Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+                <div className="glass-panel p-5 sm:p-6 rounded-xl border border-slate-200/80 dark:border-white/[0.08] flex flex-col justify-between space-y-3">
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                        Signature Benchmark
-                      </span>
-                      <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                        <Layers className="w-4 h-4" />
-                      </div>
-                    </div>
-                    <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                      Multi-URL Competitor Consensus & Differential
+                    <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06]">
+                      STEP 01
+                    </span>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                      Input Up to 5 Competitor URLs
                     </h3>
                     <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                      Benchmark title tag pixel budgets (580px/600px), complete heading hierarchy trees (H1–H6), word volumes, and Flesch reading levels side-by-side to uncover exactly why ranking pages hold top search positions.
+                      Enter your own target page alongside up to 4 ranking competitors, product review pages, or category hubs into the input dock above.
                     </p>
                   </div>
-                  <div className="pt-2 flex items-center gap-2 text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    <span>Side-by-side comparison for up to 5 URLs</span>
+                  <div className="pt-2 flex items-center gap-1.5 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Side-by-side batching</span>
                   </div>
                 </div>
 
-                {/* Feature Card 2: Keyword Gap (Spans 5 cols) */}
-                <div className="md:col-span-5 glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/10 space-y-3 flex flex-col justify-between">
+                <div className="glass-panel p-5 sm:p-6 rounded-xl border border-slate-200/80 dark:border-white/[0.08] flex flex-col justify-between space-y-3">
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                        Topic Telemetry
-                      </span>
-                      <div className="p-2 rounded-lg bg-slate-100 dark:bg-white/[0.05] text-slate-700 dark:text-slate-300">
-                        <Key className="w-4 h-4 text-emerald-500" />
-                      </div>
-                    </div>
-                    <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                      N-Gram Keyword Gap Matrix
+                    <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06]">
+                      STEP 02
+                    </span>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                      Sub-500ms Cheerio Extraction
                     </h3>
                     <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                      Extract 1-gram, 2-gram, and 3-gram phrases to expose common core topics across all competitors and identify high-value keyword deficits in your content.
+                      Our deterministic serverless crawler inspects raw HTML DOM nodes in parallel—extracting title pixel caps, heading trees, word counts, and Core Web Vitals.
                     </p>
                   </div>
-                  <div className="pt-2 flex items-center gap-2 text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    <span>1-Gram, 2-Gram & 3-Gram extraction</span>
+                  <div className="pt-2 flex items-center gap-1.5 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>0.0% AI Hallucination rate</span>
                   </div>
                 </div>
 
-                {/* Feature Card 3: Technical Health (Spans 5 cols) */}
-                <div className="md:col-span-5 glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/10 space-y-3 flex flex-col justify-between">
+                <div className="glass-panel p-5 sm:p-6 rounded-xl border border-slate-200/80 dark:border-white/[0.08] flex flex-col justify-between space-y-3">
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                        Infrastructure
-                      </span>
-                      <div className="p-2 rounded-lg bg-slate-100 dark:bg-white/[0.05] text-slate-700 dark:text-slate-300">
-                        <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                      </div>
-                    </div>
-                    <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                      Technical SEO & Speed Signals
+                    <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06]">
+                      STEP 03
+                    </span>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                      Export Roadmap &amp; Briefs
                     </h3>
                     <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                      Measure real server response latency (TTFB ms), HTML payload bytes, DOM depth, SSL encryption, canonical declarations, and Core Web Vitals signals.
+                      Review N-gram keyword gaps, prioritize quick-win content fixes, and export an unbranded executive Markdown brief or White-Label client PDF report.
                     </p>
                   </div>
-                  <div className="pt-2 flex items-center gap-2 text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    <span>Transient DOM inspection</span>
-                  </div>
-                </div>
-
-                {/* Feature Card 4: Action Roadmap & Briefs (Spans 7 cols) */}
-                <div className="md:col-span-7 glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/10 space-y-3 flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                        Deliverables
-                      </span>
-                      <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                        <Sparkles className="w-4 h-4" />
-                      </div>
-                    </div>
-                    <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                      Action Matrix & White-Label Client Reports
-                    </h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                      Translate competitive gaps into a prioritized Impact × Effort roadmap, structured markdown content brief, or branded 3-page executive client PDF report with custom agency logo and colors.
-                    </p>
-                  </div>
-                  <div className="pt-2 flex items-center gap-2 text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    <span>1-Click Markdown & Vector PDF export</span>
+                  <div className="pt-2 flex items-center gap-1.5 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Client-ready deliverables</span>
                   </div>
                 </div>
               </div>
-            </div>
+            </section>
 
-            <SEOContentSection
-              toolName="Competitor SEO Audit Suite"
-              title="Why Use a Competitor SEO Analysis Tool?"
-              description="The pages ranking above you often reveal what Google expects for a topic. Analyze their titles, headings, keyword usage, readability, links, images, and technical SEO signals to find practical ways to improve your own page."
-              steps={[
-                {
-                  title: 'Enter Your Competitor Pages',
-                  description:
-                    'Paste up to 5 URLs from competing pages, blog posts, landing pages, or Google search results.',
-                },
-                {
-                  title: 'Analyze On-Page SEO Signals',
-                  description:
-                    'Analyze title tags, meta descriptions, headings, word count, keyword usage, readability, links, images, and page speed signals.',
-                },
-                {
-                  title: 'Find SEO Gaps and Build Better Content',
-                  description:
-                    'Compare competitor pages side by side, find missing keywords and content opportunities, then export a content brief or SEO report.',
-                },
-              ]}
-              importanceTitle="How Competitor Analysis Helps Your Rankings"
-              importanceContent={`A competitor SEO analysis tool helps you understand how top-ranking pages are structured. Instead of guessing what to add to your content, you can compare real pages side by side and identify missing keywords, weak headings, thin sections, technical issues, and content gaps.
+            {/* 2. Interactive Before vs After SERP Simulator */}
+            <SerpComparisonToggle />
 
-AnalyzeSERP gives you a fast way to review multiple competitor URLs at once. You can inspect title tags, meta descriptions, heading structure, word count, keyword density, readability, image alt text, internal and external links, and technical health signals from one dashboard.`}
-              faqs={[
-                {
-                  question: 'What is a competitor SEO analysis tool?',
-                  answer:
-                    'A competitor SEO analysis tool compares your page with competing pages to show differences in keywords, headings, metadata, readability, links, images, and technical SEO signals.',
-                },
-                {
-                  question: 'How does AnalyzeSERP help improve SEO?',
-                  answer:
-                    'AnalyzeSERP helps you see what top-ranking pages include, what your page may be missing, and which on-page SEO updates could improve your content.',
-                },
-                {
-                  question: 'Can I compare multiple competitor URLs?',
-                  answer:
-                    'Yes. You can enter up to 5 URLs and compare their on-page SEO metrics side by side.',
-                },
-                {
-                  question: 'What does the keyword gap report show?',
-                  answer:
-                    'The keyword gap report shows important words and phrases used by competitors, including terms that may be missing from your own content.',
-                },
-                {
-                  question: 'Is AnalyzeSERP free?',
-                  answer:
-                    'Yes. AnalyzeSERP currently allows free competitor SEO audits with usage limits.',
-                },
-                {
-                  question: 'Do I need an account?',
-                  answer:
-                    'No account is required to run free competitor SEO audits. You can paste URLs and get instant audit results immediately.',
-                },
-              ]}
-            />
+            {/* 3. 4-Pillar Competitor Intelligence Bento Grid (with Magnetic Spotlight) */}
+            <section className="space-y-6">
+              <div className="space-y-2 text-center max-w-2xl mx-auto">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]">
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>COMPETITOR BENCHMARK CRITERIA</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                  The 4 Pillars of Deterministic SERP Analysis
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                  Every metric is measured against authoritative Google Search Central standards and W3C specifications.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Pillar 1: Search Intent & Keyword Gaps */}
+                <SpotlightCard
+                  variant="emerald"
+                  className="h-full"
+                  innerClassName="p-5 sm:p-6 flex flex-col justify-between flex-1"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 transition-transform">
+                          <Key className="w-4 h-4" />
+                        </div>
+                        <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          TOPICAL RELEVANCE
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-bold group-hover:bg-emerald-500/20 transition-colors">
+                        1, 2 &amp; 3-Grams
+                      </span>
+                    </div>
+
+                    <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                      Search Intent &amp; N-Gram Frequency Mining
+                    </h3>
+
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                      Uncover the exact phrase patterns, technical terms, and semantic subtopics top-ranking competitors share. Spotting high-frequency keyword voids allows you to expand topical depth without keyword stuffing.
+                    </p>
+
+                    <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-white/5 text-xs text-slate-600 dark:text-slate-300">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>Multi-word semantic phrase frequency calculation</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>Competitor keyword overlap percentage matrix</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>Missing search intent variations identification</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <a
+                    href="https://developers.google.com/search/docs/fundamentals/creating-helpful-content"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 pt-1"
+                  >
+                    <span>Google Search Central Helpful Content System</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </SpotlightCard>
+
+                {/* Pillar 2: Heading Tree & Outline Architecture */}
+                <SpotlightCard
+                  variant="cyan"
+                  className="h-full"
+                  innerClassName="p-5 sm:p-6 flex flex-col justify-between flex-1"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center border border-cyan-500/20 group-hover:scale-110 transition-transform">
+                          <BookOpen className="w-4 h-4" />
+                        </div>
+                        <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          DOM OUTLINE
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 font-bold group-hover:bg-cyan-500/20 transition-colors">
+                        H1–H6 Depth
+                      </span>
+                    </div>
+
+                    <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                      Heading Outline Mapping &amp; Content Architecture
+                    </h3>
+
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                      Extract complete H1, H2, and H3 structural blueprints. Comparing competitor heading depth uncovers missing sub-themes, schema headings, and structural flaws before you draft or revise content.
+                    </p>
+
+                    <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-white/5 text-xs text-slate-600 dark:text-slate-300">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>Single H1 presence and semantic nesting integrity</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>Question-based heading intent detection</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>Content hierarchy gap analysis across top URLs</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <a
+                    href="https://www.w3.org/WAI/tutorials/page-structure/headings/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 pt-1"
+                  >
+                    <span>W3C Semantic HTML5 Heading Structure</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </SpotlightCard>
+
+                {/* Pillar 3: Visual SERP Snippet & Pixel Budgeting */}
+                <SpotlightCard
+                  variant="emerald"
+                  className="h-full"
+                  innerClassName="p-5 sm:p-6 flex flex-col justify-between flex-1"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 transition-transform">
+                          <Compass className="w-4 h-4" />
+                        </div>
+                        <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          SERP PRESENTATION
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-bold group-hover:bg-emerald-500/20 transition-colors">
+                        600px / 580px Caps
+                      </span>
+                    </div>
+
+                    <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                      Pixel-Exact Title &amp; Description Simulation
+                    </h3>
+
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                      Google truncates title tags exceeding ~600 pixels on desktop and 580 pixels on mobile. Comparing pixel widths against rival snippets prevents truncated brand names and awkward ellipses.
+                    </p>
+
+                    <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-white/5 text-xs text-slate-600 dark:text-slate-300">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>Proportional character width pixel math</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>Description truncation risk &amp; CTR psychology</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>Open Graph 1.91:1 social card alignment</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <a
+                    href="https://developers.google.com/search/docs/appearance/title-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 pt-1"
+                  >
+                    <span>Google Search Snippet Best Practices</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </SpotlightCard>
+
+                {/* Pillar 4: Technical Overhead & Latency Benchmarks */}
+                <SpotlightCard
+                  variant="purple"
+                  className="h-full"
+                  innerClassName="p-5 sm:p-6 flex flex-col justify-between flex-1"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center border border-purple-500/20 group-hover:scale-110 transition-transform">
+                          <Gauge className="w-4 h-4" />
+                        </div>
+                        <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          CORE INFRASTRUCTURE
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20 font-bold group-hover:bg-purple-500/20 transition-colors">
+                        &lt; 500ms TTFB
+                      </span>
+                    </div>
+
+                    <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                      Server Velocity &amp; Technical Hygiene Benchmarks
+                    </h3>
+
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                      Benchmark server response latency (TTFB), HTML document weight, canonical tag hygiene, and redirect counts across all 5 competitor targets to guarantee technical performance parity.
+                    </p>
+
+                    <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-white/5 text-xs text-slate-600 dark:text-slate-300">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>Server Time to First Byte (TTFB) comparison</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>Uncompressed vs compressed HTML payload bytes</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>Canonical declarations &amp; robots indexability</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <a
+                    href="https://web.dev/explore/fast"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 pt-1"
+                  >
+                    <span>Google Search Central Core Web Vitals Guide</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </SpotlightCard>
+              </div>
+            </section>
+
+            {/* 3. Frequently Asked Questions (Accordion) */}
+            <section className="space-y-6 max-w-4xl mx-auto">
+              <div className="space-y-2 text-center">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]">
+                  <HelpCircle className="w-3.5 h-3.5" />
+                  <span>Common Questions</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                  Frequently Asked Questions
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                  Answers to common questions about competitor SEO analysis and multi-URL benchmarks.
+                </p>
+              </div>
+
+              {/* FAQ Schema Script */}
+              <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    '@context': 'https://schema.org',
+                    '@type': 'FAQPage',
+                    mainEntity: [
+                      {
+                        '@type': 'Question',
+                        name: 'What makes AnalyzeSERP faster and more accurate than AI scraper tools?',
+                        acceptedAnswer: {
+                          '@type': 'Answer',
+                          text: 'Generative LLMs take 20 to 45 seconds to summarize pages and frequently hallucinate missing headings, word counts, and meta tags. AnalyzeSERP uses a dedicated server-side Node.js Cheerio DOM parser that inspects the real raw HTML in under 500 milliseconds—returning 100% mathematical facts without guessing.',
+                        },
+                      },
+                      {
+                        '@type': 'Question',
+                        name: 'Can I compare multiple competitor URLs side by side?',
+                        acceptedAnswer: {
+                          '@type': 'Answer',
+                          text: 'Yes. You can paste up to 5 URLs to benchmark title tag pixel widths, heading hierarchy depth, word volume, Flesch reading levels, and Core Web Vitals side by side in a synchronized comparison matrix.',
+                        },
+                      },
+                      {
+                        '@type': 'Question',
+                        name: 'How does the N-gram keyword gap matrix calculate missing phrases?',
+                        acceptedAnswer: {
+                          '@type': 'Answer',
+                          text: 'Our engine tokenizes raw text from all audited URLs and extracts 1-grams, 2-grams, and 3-grams. It calculates frequency across all competitor pages and highlights terms that appear repeatedly across top-ranking rivals but are absent or underutilized on your page.',
+                        },
+                      },
+                      {
+                        '@type': 'Question',
+                        name: 'What are the daily audit limits during the Public Beta?',
+                        acceptedAnswer: {
+                          '@type': 'Answer',
+                          text: 'During our Public Beta, AnalyzeSERP is 100% free! You can run batches of up to 5 URLs at a time with a quick 120-second cooldown reset. There are no paywalls or credit card requirements.',
+                        },
+                      },
+                      {
+                        '@type': 'Question',
+                        name: 'Do I need an account or credit card to run competitor audits?',
+                        acceptedAnswer: {
+                          '@type': 'Answer',
+                          text: 'No account or credit card is required to perform audits. You can immediately paste competitor URLs and generate instant audit reports. Creating a free account enables persistent audit logging.',
+                        },
+                      },
+                      {
+                        '@type': 'Question',
+                        name: 'Can I export the competitor audit results into a client-ready brief?',
+                        acceptedAnswer: {
+                          '@type': 'Answer',
+                          text: 'Yes. You can export a comprehensive Markdown content brief (.md) or generate a 3-page unbranded Executive White-Label Vector PDF report customized with your agency name, client URL, and consultant notes.',
+                        },
+                      },
+                    ],
+                  }),
+                }}
+              />
+
+              <div className="space-y-2.5">
+                {[
+                  {
+                    question: 'What makes AnalyzeSERP faster and more accurate than AI scraper tools?',
+                    answer:
+                      'Generative LLMs (like GPT-4 or Claude web bots) take 20 to 45 seconds to summarize pages and frequently hallucinate missing headings, word counts, and meta tags. AnalyzeSERP uses a dedicated server-side Node.js Cheerio DOM parser that inspects the real raw HTML in under 500 milliseconds—returning 100% mathematical facts without guessing.',
+                  },
+                  {
+                    question: 'Can I compare multiple competitor URLs side by side?',
+                    answer:
+                      'Yes. You can paste up to 5 URLs (your page plus 4 competitors) to benchmark title tag pixel widths, heading hierarchy depth, word volume, Flesch reading levels, and Core Web Vitals side by side in a synchronized comparison matrix.',
+                  },
+                  {
+                    question: 'How does the N-gram keyword gap matrix calculate missing phrases?',
+                    answer:
+                      'Our engine tokenizes raw text from all audited URLs and extracts single words (1-grams), two-word combinations (2-grams), and three-word phrases (3-grams). It calculates the frequency across all competitor pages and highlights terms that appear repeatedly across top-ranking rivals but are absent or underutilized on your page.',
+                  },
+                  {
+                    question: 'What are the daily audit limits during the Public Beta?',
+                    answer:
+                      'During our Public Beta, AnalyzeSERP is 100% free! You can run batches of up to 5 URLs at a time with a quick 120-second cooldown reset. There are no paywalls or credit card requirements.',
+                  },
+                  {
+                    question: 'Do I need an account or credit card to run competitor audits?',
+                    answer:
+                      'No account or credit card is required to perform audits. You can immediately paste competitor URLs and generate instant audit reports. Creating a free account enables persistent audit logging and workspace history.',
+                  },
+                  {
+                    question: 'Can I export the competitor audit results into a client-ready brief?',
+                    answer:
+                      'Yes. You can export a comprehensive Markdown content brief (.md) or generate a 3-page unbranded Executive White-Label Vector PDF report customized with your agency name, client URL, and consultant notes.',
+                  },
+                ].map((faq, index) => {
+                  const isOpen = openFaqIndex === index;
+                  return (
+                    <div
+                      key={index}
+                      className={`rounded-xl border transition-colors duration-150 ${
+                        isOpen
+                          ? 'bg-slate-50/80 dark:bg-white/[0.03] border-slate-300 dark:border-white/15'
+                          : 'bg-white dark:bg-slate-900/40 border-slate-200/80 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/10'
+                      }`}
+                    >
+                      <button
+                        onClick={() => toggleFaq(index)}
+                        aria-controls={`faq-home-answer-${index}`}
+                        aria-expanded={isOpen}
+                        className="w-full px-5 py-3.5 text-left flex items-center justify-between gap-4 font-semibold text-xs sm:text-sm text-slate-800 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+                      >
+                        <span>{faq.question}</span>
+                        <ChevronDown
+                          className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                            isOpen ? 'rotate-180 text-emerald-500' : ''
+                          }`}
+                        />
+                      </button>
+
+                      {isOpen && (
+                        <div
+                          id={`faq-home-answer-${index}`}
+                          role="region"
+                          aria-hidden={!isOpen}
+                          className="px-5 pb-4 pt-1 text-xs text-slate-600 dark:text-slate-300 border-t border-slate-100 dark:border-white/5 leading-relaxed"
+                        >
+                          {faq.answer}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* 4. Standalone Micro-Diagnostics Suite */}
+            <section className="p-6 sm:p-8 rounded-2xl glass-panel border border-slate-200/80 dark:border-white/[0.08] space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-5 border-b border-slate-200/70 dark:border-white/[0.06]">
+                <div className="space-y-1.5 max-w-2xl">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                    <Activity className="w-3 h-3" />
+                    <span>STANDALONE MICRO-AUDIT ENGINES</span>
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                    Zero-Latency Single-Purpose Diagnostic Utilities
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Need an isolated check without executing a full multi-competitor SERP crawl? Launch dedicated micro-engines engineered for immediate, deterministic verification.
+                  </p>
+                </div>
+                <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-slate-500 dark:text-slate-400 shrink-0 bg-slate-100 dark:bg-white/[0.03] px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/[0.06]">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>8 Live Standalone Engines</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                {/* 1. Technical Health */}
+                <Link
+                  href="/technical-health"
+                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-blue-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-500/20 group-hover:scale-105 transition-transform">
+                        <ShieldCheck className="w-4 h-4" />
+                      </div>
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20 font-bold uppercase tracking-wider">
+                        HTTP / DOM / SSL
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        Technical Health
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
+                        DOM depth, SSL cipher validation, status codes, and robots indexation directives.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <span>Launch audit</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+
+                {/* 2. Site Speed */}
+                <Link
+                  href="/site-speed-checker"
+                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-amber-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20 group-hover:scale-105 transition-transform">
+                        <Gauge className="w-4 h-4" />
+                      </div>
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 font-bold uppercase tracking-wider">
+                        TTFB &amp; CWV
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                        Site Speed &amp; TTFB
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
+                        Server response latency, DNS timing breakdown, and Core Web Vitals readiness.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                    <span>Test speed</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+
+                {/* 3. Redirect Tracer */}
+                <Link
+                  href="/redirect-checker"
+                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-sky-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center border border-sky-500/20 group-hover:scale-105 transition-transform">
+                        <GitFork className="w-4 h-4" />
+                      </div>
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-500/20 font-bold uppercase tracking-wider">
+                        301 / 302 Chains
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                        Redirect Chain Tracer
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
+                        Trace multi-hop HTTP redirect pathways and detect infinite redirection loops.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                    <span>Trace chain</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+
+                {/* 4. Contrast Studio */}
+                <Link
+                  href="/contrast-checker"
+                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-105 transition-transform">
+                        <Palette className="w-4 h-4" />
+                      </div>
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wider">
+                        WCAG 2.2 AA / AAA
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        Color Contrast Studio
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
+                        Validate text and UI contrast ratios against official W3C accessibility compliance.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    <span>Check contrast</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+
+                {/* 5. Affiliate Links */}
+                <Link
+                  href="/affiliate-link-checker"
+                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-indigo-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-500/20 group-hover:scale-105 transition-transform">
+                        <Link2 className="w-4 h-4" />
+                      </div>
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20 font-bold uppercase tracking-wider">
+                        rel Tagging
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                        Affiliate Link Validator
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
+                        Audit rel="sponsored" and rel="nofollow" attributes for FTC &amp; search safety.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    <span>Audit tags</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+
+                {/* 6. Readability */}
+                <Link
+                  href="/readability"
+                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-teal-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="w-8 h-8 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center border border-teal-500/20 group-hover:scale-105 transition-transform">
+                        <FileCheck className="w-4 h-4" />
+                      </div>
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-teal-500/10 text-teal-700 dark:text-teal-400 border border-teal-500/20 font-bold uppercase tracking-wider">
+                        Flesch Scale
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                        Readability &amp; Tone
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
+                        Calculate Flesch Reading Ease, grade level complexity, and sentence syllable rhythm.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                    <span>Analyze tone</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+
+                {/* 7. SERP Preview */}
+                <Link
+                  href="/serp-snippet-preview"
+                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-violet-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="w-8 h-8 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center border border-violet-500/20 group-hover:scale-105 transition-transform">
+                        <Eye className="w-4 h-4" />
+                      </div>
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-violet-500/10 text-violet-700 dark:text-violet-400 border border-violet-500/20 font-bold uppercase tracking-wider">
+                        600px Bounds
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+                        SERP Snippet Simulator
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
+                        Preview Google desktop and mobile title &amp; meta snippet truncation boundaries in real-time.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+                    <span>Preview SERP</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+
+                {/* 8. PDF Reports */}
+                <Link
+                  href="/pdf-reports"
+                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-pink-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="w-8 h-8 rounded-lg bg-pink-500/10 text-pink-600 dark:text-pink-400 flex items-center justify-center border border-pink-500/20 group-hover:scale-105 transition-transform">
+                        <Sparkles className="w-4 h-4" />
+                      </div>
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-pink-500/10 text-pink-700 dark:text-pink-400 border border-pink-500/20 font-bold uppercase tracking-wider">
+                        Client Ready
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
+                        White-Label PDF Reports
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
+                        Export unbranded stakeholder audits, executive checklists, and actionable briefs.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
+                    <span>Generate report</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+              </div>
+
+              {/* Bottom Reassurance Ribbon */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200/70 dark:border-white/[0.06] text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-2">
+                  <Check className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Deterministic edge execution &bull; Zero third-party telemetry &bull; 100% Free Public Beta</span>
+                </div>
+                <div className="flex items-center gap-1.5 font-mono text-[11px] text-slate-400 dark:text-slate-500">
+                  <ExternalLink className="w-3 h-3" />
+                  <span>W3C &amp; Google Search Central Compliant</span>
+                </div>
+              </div>
+            </section>
           </div>
         )}
       </main>

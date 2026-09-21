@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { MetaData } from '@/types/seo';
 import { Monitor, Smartphone, Share2, Globe, RotateCcw, Check, AlertTriangle, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { AiRewriteModal } from './AiRewriteModal';
 
 interface SerpSocialSimulatorProps {
   meta?: MetaData;
@@ -19,6 +20,7 @@ export const SerpSocialSimulator: React.FC<SerpSocialSimulatorProps> = ({ meta, 
   const [description, setDescription] = useState(defaultDesc);
   const [url, setUrl] = useState(defaultUrl);
   const [ogImage, setOgImage] = useState(defaultOgImage);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   const [activePlatform, setActivePlatform] = useState<'desktop' | 'mobile' | 'facebook' | 'twitter'>('desktop');
 
@@ -31,6 +33,27 @@ export const SerpSocialSimulator: React.FC<SerpSocialSimulatorProps> = ({ meta, 
       setUrl(initialUrl);
     }
   }, [meta, initialUrl]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem('analyzeserp_pending_ai_modal');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed.type === 'rewrite') {
+        if (parsed.timestamp && Date.now() - parsed.timestamp > 15 * 60 * 1000) {
+          localStorage.removeItem('analyzeserp_pending_ai_modal');
+          return;
+        }
+        localStorage.removeItem('analyzeserp_pending_ai_modal');
+        if (parsed.currentTitle) setTitle(parsed.currentTitle);
+        if (parsed.currentDescription) setDescription(parsed.currentDescription);
+        setIsAiModalOpen(true);
+      }
+    } catch (err) {
+      console.warn('[SerpSocialSimulator] Failed to restore pending AI rewrite modal:', err);
+    }
+  }, []);
 
   const handleReset = () => {
     setTitle(defaultTitle);
@@ -64,13 +87,24 @@ export const SerpSocialSimulator: React.FC<SerpSocialSimulatorProps> = ({ meta, 
           <span className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">Live Search &amp; Social Simulator</span>
         </div>
 
-        <button
-          onClick={handleReset}
-          className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border border-slate-200/80 dark:border-white/10 shadow-xs active:scale-[0.98]"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>Reset Defaults</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsAiModalOpen(true)}
+            className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-[0.98]"
+          >
+            <Sparkles className="w-3.5 h-3.5 fill-slate-950" />
+            <span>AI Rewrite</span>
+          </button>
+
+          <button
+            onClick={handleReset}
+            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border border-slate-200/80 dark:border-white/10 shadow-xs active:scale-[0.98]"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset Defaults</span>
+          </button>
+        </div>
       </div>
 
       {/* Editor Controls Grid */}
@@ -297,6 +331,16 @@ export const SerpSocialSimulator: React.FC<SerpSocialSimulatorProps> = ({ meta, 
           </div>
         </div>
       </div>
+
+      <AiRewriteModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        currentTitle={title}
+        currentDescription={description}
+        pageUrl={url}
+        onApplyTitle={(newT) => setTitle(newT)}
+        onApplyDescription={(newD) => setDescription(newD)}
+      />
     </div>
   );
 };

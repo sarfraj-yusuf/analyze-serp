@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="45 60 230 230" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Slab 1 (Base Midnight Slate) -->
+    <linearGradient id="favS1L" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="favS1R" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+    <linearGradient id="favS1T" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155" />
+      <stop offset="100%" stop-color="#1E293B" />
+    </linearGradient>
+
+    <!-- Slab 2 (Middle Slate Blue) -->
+    <linearGradient id="favS2L" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A5F" />
+      <stop offset="100%" stop-color="#0F2038" />
+    </linearGradient>
+    <linearGradient id="favS2R" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2D5584" />
+      <stop offset="100%" stop-color="#193354" />
+    </linearGradient>
+    <linearGradient id="favS2T" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#41729F" />
+      <stop offset="100%" stop-color="#234974" />
+    </linearGradient>
+
+    <!-- Slab 3 (Top Icy Cyan) -->
+    <linearGradient id="favS3L" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B6E8C" />
+      <stop offset="100%" stop-color="#244A62" />
+    </linearGradient>
+    <linearGradient id="favS3R" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5B93B2" />
+      <stop offset="100%" stop-color="#396884" />
+    </linearGradient>
+    <linearGradient id="favS3T" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#BCE6E2" />
+      <stop offset="50%" stop-color="#6FAFC1" />
+      <stop offset="100%" stop-color="#467B97" />
+    </linearGradient>
+
+    <!-- Crystal Facets -->
+    <linearGradient id="favCTopLeft" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#6EE7B7" />
+      <stop offset="45%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="favCTopRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="60%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#064E3B" />
+    </linearGradient>
+    <linearGradient id="favCBotLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="favCBotRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#022C22" />
+    </linearGradient>
+
+    <radialGradient id="favAuraGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.45" />
+      <stop offset="60%" stop-color="#10B981" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#10B981" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Ambient Ground Shadow -->
+  <ellipse cx="160" cy="274" rx="95" ry="16" fill="#020617" opacity="0.35" />
+
+  <!-- Slab 1: Base Dark Slate -->
+  <g id="fav-slab-1">
+    <polygon points="64,228 160,272 160,296 64,252" fill="url(#favS1L)" />
+    <polygon points="160,272 256,228 256,252 160,296" fill="url(#favS1R)" />
+    <polygon points="160,204 256,228 160,272 64,228" fill="url(#favS1T)" />
+    <polyline points="64,228 160,272 256,228" stroke="#475569" stroke-width="1.2" opacity="0.6" />
+  </g>
+
+  <!-- Slab 2: Mid Slate Blue -->
+  <g id="fav-slab-2" transform="translate(0, -28)">
+    <polygon points="64,228 160,272 160,296 64,252" fill="url(#favS2L)" />
+    <polygon points="160,272 256,228 256,252 160,296" fill="url(#favS2R)" />
+    <polygon points="160,204 256,228 160,272 64,228" fill="url(#favS2T)" />
+    <polyline points="64,228 160,272 256,228" stroke="#60A5FA" stroke-width="1.3" opacity="0.5" />
+  </g>
+
+  <!-- Slab 3: Top Icy Cyan -->
+  <g id="fav-slab-3" transform="translate(0, -56)">
+    <polygon points="64,228 160,272 160,296 64,252" fill="url(#favS3L)" />
+    <polygon points="160,272 256,228 256,252 160,296" fill="url(#favS3R)" />
+    <polygon points="160,204 256,228 160,272 64,228" fill="url(#favS3T)" />
+    <ellipse cx="160" cy="238" rx="42" ry="18" fill="url(#favAuraGlow)" />
+    <polyline points="64,228 160,272 256,228" stroke="#E2F1F8" stroke-width="1.5" opacity="0.75" />
+  </g>
+
+  <!-- The Emerald Apex Crystal -->
+  <g id="fav-crystal">
+    <polygon points="114,136 160,154 160,172 114,136" fill="url(#favCBotLeft)" opacity="0.95" />
+    <polygon points="160,154 206,136 160,172 160,154" fill="url(#favCBotRight)" opacity="0.95" />
+    <polygon points="160,80 114,136 160,154" fill="url(#favCTopLeft)" />
+    <polygon points="160,80 160,154 206,136" fill="url(#favCTopRight)" />
+    <line x1="160" y1="80" x2="160" y2="154" stroke="#F0FDF4" stroke-width="2.2" stroke-linecap="round" />
+    <line x1="160" y1="80" x2="114" y2="136" stroke="#A7F3D0" stroke-width="1.2" opacity="0.7" />
+    <path d="M160,72 L162,78 L168,80 L162,82 L160,88 L158,82 L152,80 L158,78 Z" fill="#FFFFFF" opacity="0.95" />
+    <circle cx="160" cy="80" r="1.8" fill="#FFFFFF" />
+  </g>
+</svg>

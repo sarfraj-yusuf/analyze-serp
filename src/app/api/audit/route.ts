@@ -7,6 +7,8 @@ import { auditRateLimiter } from '@/lib/rate-limiter';
 import { auditCache } from '@/lib/lru-cache';
 import { freemiumLimiter } from '@/lib/freemium-limiter';
 import { logToolUsage } from '@/lib/activity-logger';
+import { auth } from '@/auth';
+import { saveUserAudit } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   try {
@@ -163,6 +165,27 @@ export async function POST(req: NextRequest) {
     });
 
     const results = await Promise.all(auditPromises);
+
+    // If authenticated, persist audit history for user
+    try {
+      const session = await auth();
+      if (session?.user?.email) {
+        for (const r of results) {
+          if (r.status === 'success') {
+            await saveUserAudit({
+              user_email: session.user.email,
+              url: r.url,
+              title: r.meta?.title || 'Audited Webpage',
+              score: r.technicalAudit?.technicalScore ?? null,
+              word_count: r.wordCount,
+              status: r.status,
+            });
+          }
+        }
+      }
+    } catch (auditSaveErr) {
+      console.error('[User Audit History Save Warning]:', auditSaveErr);
+    }
 
     // Consume server-side freemium quota for successfully processed target URLs
     freemiumLimiter.consume(clientIp, targetUrls.length);

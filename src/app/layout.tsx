@@ -37,8 +37,11 @@ export const metadata: Metadata = {
   creator: "AnalyzeSERP",
   publisher: "AnalyzeSERP",
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/logo-icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/logo-icon.svg",
+    apple: "/logo-icon.svg",
   },
   openGraph: {
     title: "Competitor SEO Audit Tool – 100% Free | AnalyzeSERP",
@@ -120,6 +123,7 @@ const jsonLdSchema = [
 ];
 
 import { ClientFeedbackWrapper } from "@/components/ClientFeedbackWrapper";
+import { AuthProvider } from "@/components/AuthProvider";
 
 export default function RootLayout({
   children,
@@ -151,7 +155,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${outfit.variable} antialiased min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors duration-200`}
       >
-        <ClientFeedbackWrapper>{children}</ClientFeedbackWrapper>
+        <AuthProvider>
+          <ClientFeedbackWrapper>{children}</ClientFeedbackWrapper>
+        </AuthProvider>
       </body>
     </html>
   );

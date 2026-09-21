@@ -31,19 +31,20 @@ export interface BlogPost {
 }
 
 /**
- * Automatically extracts H2 (##) and H3 (###) headings for Table of Contents,
+ * Automatically extracts major H2 (##) headings for a clean, curated Table of Contents outline,
  * excluding "Table of Contents" itself and article title.
+ * If a post has no H2s, falls back to H3s.
  */
 export function extractTableOfContents(content: string, postTitle?: string): TOCItem[] {
-  const headingRegex = /^(#{2,3})\s+(.+)$/gm;
-  const toc: TOCItem[] = [];
+  const h2Regex = /^##\s+(.+)$/gm;
+  let toc: TOCItem[] = [];
   let match;
 
   const normalizedTitle = postTitle ? postTitle.toLowerCase().trim() : '';
+  const seenIds = new Map<string, number>();
 
-  while ((match = headingRegex.exec(content)) !== null) {
-    const level = match[1].length;
-    const text = match[2].trim().replace(/[*_~`]/g, '');
+  while ((match = h2Regex.exec(content)) !== null) {
+    const text = match[1].trim().replace(/[*_~`]/g, '');
     const lowerText = text.toLowerCase();
 
     // Ignore "Table of Contents", "Contents", "TOC", or matching post title
@@ -56,12 +57,37 @@ export function extractTableOfContents(content: string, postTitle?: string): TOC
       continue;
     }
 
-    const id = text
+    let id = text
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-');
+      .replace(/\s+/g, '-')
+      .replace(/^-+|-+$/g, '');
 
-    toc.push({ id, text, level });
+    if (!id) continue;
+
+    const count = seenIds.get(id) || 0;
+    seenIds.set(id, count + 1);
+    if (count > 0) {
+      id = `${id}-${count}`;
+    }
+
+    toc.push({ id, text, level: 2 });
+  }
+
+  // Fallback if no H2s found
+  if (toc.length === 0) {
+    const h3Regex = /^###\s+(.+)$/gm;
+    while ((match = h3Regex.exec(content)) !== null) {
+      const text = match[1].trim().replace(/[*_~`]/g, '');
+      let id = text
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+      if (!id) continue;
+      toc.push({ id, text, level: 3 });
+    }
   }
 
   return toc;
@@ -85,6 +111,20 @@ function ensureBlogsDirectory(): void {
   if (!fs.existsSync(blogsDirectory)) {
     fs.mkdirSync(blogsDirectory, { recursive: true });
   }
+}
+
+/**
+ * Normalizes relative or local image paths to absolute public web paths
+ */
+export function normalizeBlogImagePath(rawImage?: string): string {
+  if (!rawImage) return '/blog/images/competitor-analysis-hero-7-steps.webp';
+  let cleaned = rawImage.trim().replace(/^\.\//, '');
+  if (cleaned.startsWith('blog/')) {
+    cleaned = '/' + cleaned;
+  } else if (!cleaned.startsWith('/')) {
+    cleaned = '/' + cleaned;
+  }
+  return cleaned;
 }
 
 /**
@@ -113,7 +153,7 @@ export function getAllBlogPosts(): BlogPostMeta[] {
         authorLinkedin: data.authorLinkedin || 'https://linkedin.com/in/sarfrajyusuf',
         category: data.category || 'General SEO',
         tags: Array.isArray(data.tags) ? data.tags : ['SEO'],
-        image: data.image || '/blog/default-banner.jpg',
+        image: normalizeBlogImagePath(data.image),
         featured: Boolean(data.featured),
         readingTimeMinutes: calculateReadingTime(content),
       };
@@ -176,7 +216,8 @@ export function getBlogPostBySlug(slug: string): BlogPost | null {
       authorLinkedin: data.authorLinkedin || 'https://linkedin.com/in/sarfrajyusuf',
       category: data.category || 'General SEO',
       tags: Array.isArray(data.tags) ? data.tags : ['SEO'],
-      image: data.image || '/blog/default-banner.jpg',
+      image: normalizeBlogImagePath(data.image),
+      featured: Boolean(data.featured),
       readingTimeMinutes: calculateReadingTime(content),
     };
 
