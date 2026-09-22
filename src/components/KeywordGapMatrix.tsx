@@ -1,30 +1,56 @@
 'use client';
 
-import React, { useState } from 'react';
-import { SinglePageAudit } from '@/types/seo';
+import React, { useState, useMemo } from 'react';
+import { SinglePageAudit, KeywordGapItem } from '@/types/seo';
 import { analyzeKeywordGaps } from '@/lib/keyword-gap';
 import {
   Target,
   Copy,
   Check,
   Sparkles,
-  Filter,
   AlertTriangle,
   Layers,
-  HelpCircle,
+  FileSpreadsheet,
+  FileText,
+  Search,
+  X,
+  ExternalLink,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
+import { AiSectionWriterModal } from './AiSectionWriterModal';
 
 interface KeywordGapMatrixProps {
   results: SinglePageAudit[];
+  targetUrl?: string;
 }
 
-export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({ results }) => {
-  const validResults = results.filter((r) => r.status === 'success');
-  const [targetUrl, setTargetUrl] = useState<string>(validResults[0]?.url || '');
-  const [activeTab, setActiveTab] = useState<'yourGaps' | 'allGaps' | 'common' | 'all'>('yourGaps');
-  const [copied, setCopied] = useState(false);
+type GapStatusTab = 'yourGaps' | 'common' | 'allGaps' | 'all';
+type NGramFilter = 'all' | '1-gram' | '2-gram' | '3-gram';
+
+export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
+  results,
+  targetUrl: initialTargetUrl,
+}) => {
+  const validResults = useMemo(
+    () => (results || []).filter((r) => r.status === 'success'),
+    [results]
+  );
+
+  const [targetUrl, setTargetUrl] = useState<string>(
+    initialTargetUrl || validResults[0]?.url || ''
+  );
+  const [activeTab, setActiveTab] = useState<GapStatusTab>('yourGaps');
+  const [activeGram, setActiveGram] = useState<NGramFilter>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [copiedWords, setCopiedWords] = useState(false);
+  const [copiedMarkdown, setCopiedMarkdown] = useState(false);
+
+  // AI Section Writer Modal State
+  const [isAiWriterOpen, setIsAiWriterOpen] = useState(false);
+  const [aiTopic, setAiTopic] = useState('');
+  const [aiTargetKeyword, setAiTargetKeyword] = useState('');
+  const [aiContext, setAiContext] = useState('');
 
   if (validResults.length < 2) return null;
 
@@ -38,258 +64,567 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({ results }) =
     allItems,
   } = gapAnalysis;
 
-  const currentList =
-    activeTab === 'yourGaps'
-      ? yourPageMissingGaps
-      : activeTab === 'common'
-      ? commonCoreKeywords
-      : activeTab === 'allGaps'
-      ? keywordGaps
-      : allItems;
+  // Primary list selection by status
+  const baseList = useMemo(() => {
+    switch (activeTab) {
+      case 'yourGaps':
+        return yourPageMissingGaps;
+      case 'common':
+        return commonCoreKeywords;
+      case 'allGaps':
+        return keywordGaps;
+      case 'all':
+      default:
+        return allItems;
+    }
+  }, [activeTab, yourPageMissingGaps, commonCoreKeywords, keywordGaps, allItems]);
 
-  const filteredList = currentList.filter((item) =>
-    item.phrase.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Secondary filtering by N-Gram length & search term
+  const filteredList = useMemo(() => {
+    return baseList.filter((item) => {
+      if (activeGram !== 'all' && item.nGramType !== activeGram) {
+        return false;
+      }
+      if (
+        searchTerm.trim() &&
+        !item.phrase.toLowerCase().includes(searchTerm.trim().toLowerCase())
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [baseList, activeGram, searchTerm]);
 
-  const handleCopyGaps = () => {
-    const listToCopy = activeTab === 'yourGaps' ? yourPageMissingGaps : keywordGaps;
-    const gapWords = listToCopy.map((item) => item.phrase).join('\n');
-    navigator.clipboard.writeText(gapWords);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  // Copy plain words list
+  const handleCopyWords = () => {
+    const words = filteredList.map((item) => item.phrase).join('\n');
+    navigator.clipboard.writeText(words);
+    setCopiedWords(true);
+    setTimeout(() => setCopiedWords(false), 2000);
   };
 
+  // Copy Markdown Table for Notion/Docs
+  const handleCopyMarkdown = () => {
+    const headers = ['| Keyword Term | Type | Your Target Density | Max Competitor Density | Status |'];
+    const divider = ['| :--- | :--- | :--- | :--- | :--- |'];
+    const rows = filteredList.slice(0, 100).map((item) => {
+      const status = item.isTargetPageMissing
+        ? 'Missing (0%)'
+        : item.isTargetPageUnderOptimized
+        ? 'Low Density'
+        : item.isCommonCore
+        ? 'Common Core Covered'
+        : 'Covered';
+      return `| ${item.phrase} | ${item.nGramType} | ${item.targetPageDensity}% | ${item.maxDensity}% | ${status} |`;
+    });
+
+    const markdown = [
+      `### Keyword Gap Analysis (${filteredList.length} Terms)`,
+      `Target URL: ${currentTargetUrl}`,
+      '',
+      ...headers,
+      ...divider,
+      ...rows,
+    ].join('\n');
+
+    navigator.clipboard.writeText(markdown);
+    setCopiedMarkdown(true);
+    setTimeout(() => setCopiedMarkdown(false), 2000);
+  };
+
+  // Export CSV download
+  const handleExportCsv = () => {
+    const headers = ['Keyword Phrase,N-Gram Type,Your Target Density (%),Max Competitor Density (%),Gap Status'];
+    const rows = filteredList.map((item) => {
+      const status = item.isTargetPageMissing
+        ? 'Missing'
+        : item.isTargetPageUnderOptimized
+        ? 'Low Density'
+        : item.isCommonCore
+        ? 'Common Core'
+        : 'Covered';
+      return `"${item.phrase.replace(/"/g, '""')}",${item.nGramType},${item.targetPageDensity},${item.maxDensity},"${status}"`;
+    });
+
+    const csvContent = '\uFEFF' + [headers, ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `keyword_gaps_${activeTab}_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // AI Draft Section from Missing Keyword Gaps
+  const handleDraftWithAi = (specificPhrase?: string) => {
+    const primaryTerm =
+      specificPhrase ||
+      yourPageMissingGaps[0]?.phrase ||
+      filteredList[0]?.phrase ||
+      'SEO Content Strategy';
+    const topGapsList = yourPageMissingGaps.slice(0, 8).map((g) => g.phrase);
+
+    setAiTargetKeyword(primaryTerm);
+    setAiTopic(`Strategic Guide: ${primaryTerm}`);
+    setAiContext(
+      `High-priority missing competitor keyword gaps to cover in subheadings and body paragraphs: ${topGapsList.join(', ')}`
+    );
+    setIsAiWriterOpen(true);
+  };
+
+  const getHostname = (url: string) => {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return url;
+    }
+  };
+
+  const targetHost = getHostname(currentTargetUrl);
+
   return (
-    <div className="glass-panel rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-sm my-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200/80 dark:border-white/10">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-gray-400 bg-slate-100 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50">
-              Target Page vs Competitors Gap Engine
+    <div className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-xs p-5 sm:p-7 space-y-6">
+      {/* 1. Control & Action Bar */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-200/80 dark:border-white/[0.08]">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
+              Semantic Gap Engine
+            </span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              Anchored to{' '}
+              <strong className="text-emerald-700 dark:text-emerald-400 font-semibold">{targetHost}</strong>{' '}
+              vs {validResults.length - 1} competitors
             </span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
-            <Target className="w-5 h-5 text-emerald-500" />
-            Keyword Gap & Topic Overlap Matrix
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">
-            Comparing{' '}
-            <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-              {new URL(currentTargetUrl).hostname} (Your Page)
-            </span>{' '}
-            against{' '}
-            <span className="text-slate-800 dark:text-slate-100 font-bold">
-              {validResults.length - 1} competitor URLs
-            </span>.
+          <h4 className="text-base sm:text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span>Keyword Gap &amp; Topical Coverage Alignment</span>
+          </h4>
+        </div>
+
+        {/* 1-Click Action Buttons */}
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
+          <button
+            type="button"
+            onClick={() => handleDraftWithAi()}
+            className="px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Draft an article section or outline integrating missing competitor keyword gaps"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+            <span>AI Topic Draft</span>
+          </button>
+
+          <button
+            onClick={handleExportCsv}
+            className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Download CSV of current keyword gaps"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+            <span>Export CSV</span>
+          </button>
+
+          <button
+            onClick={handleCopyMarkdown}
+            className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Copy Markdown table for Notion or Google Docs"
+          >
+            {copiedMarkdown ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span className="text-emerald-700 dark:text-emerald-400 font-bold">Copied Table!</span>
+              </>
+            ) : (
+              <>
+                <FileText className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                <span>Copy Markdown</span>
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={handleCopyWords}
+            className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Copy list of missing keyword phrases to clipboard"
+          >
+            {copiedWords ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span className="text-emerald-700 dark:text-emerald-400 font-bold">Copied Words!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                <span>Copy Phrases</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Semantic Tinted Overview KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Missing Gaps Card */}
+        <div className="p-4 rounded-xl bg-rose-50/80 dark:bg-rose-950/25 border border-rose-200/80 dark:border-rose-900/40 flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-bold text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
+              <span>Gaps Missing on Your Page</span>
+              <SEOExplanationTooltip text="Significant terms used repeatedly by top-ranking competitor URLs where your target page has 0% or inadequate presence." />
+            </div>
+            <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold font-mono text-rose-800 dark:text-rose-300 tabular-nums">
+              {yourPageMissingGaps.length}
+            </span>
+            <span className="text-xs font-semibold text-rose-700 dark:text-rose-400">
+              critical keyword gaps
+            </span>
+          </div>
+          <p className="text-[11px] text-rose-700/90 dark:text-rose-300/80 leading-snug">
+            Immediate semantic opportunities to weave into headings and body paragraphs.
           </p>
         </div>
 
-        <button
-          onClick={handleCopyGaps}
-          aria-label="Copy missing keywords"
-          className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-gray-200 border border-slate-200 dark:border-slate-700/60 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer shrink-0"
-        >
-          {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-slate-500" />}
-          <span>{copied ? 'Copied Gap Keywords!' : 'Copy Missing Keywords'}</span>
-        </button>
-      </div>
-
-      {/* Overview Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/50 flex items-center justify-between">
-          <div>
-            <div className="text-xs text-slate-500 dark:text-gray-400 font-bold flex items-center gap-1">
-              Gaps Missing on Your Page
-              <SEOExplanationTooltip text="Keywords competitors use frequently that your target page has 0% or low density." />
+        {/* Common Core Topics Card */}
+        <div className="p-4 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/25 border border-emerald-200/80 dark:border-emerald-900/40 flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+              <span>Shared Common Core Topics</span>
+              <SEOExplanationTooltip text="Industry baseline vocabulary that both your target page and ranking competitors cover extensively." />
             </div>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400 mt-0.5 tabular-nums">
-              {yourPageMissingGaps.length} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 font-sans">Terms</span>
-            </div>
+            <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
           </div>
-          <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold font-mono text-emerald-800 dark:text-emerald-300 tabular-nums">
+              {commonCoreKeywords.length}
+            </span>
+            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+              common core terms
+            </span>
+          </div>
+          <p className="text-[11px] text-emerald-700/90 dark:text-emerald-300/80 leading-snug">
+            Topical parity maintained — protect these baseline concepts from being pruned.
+          </p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/50 flex items-center justify-between">
-          <div>
-            <div className="text-xs text-slate-500 dark:text-gray-400 font-semibold">
-              Shared Common Core Topics
+        {/* Total Discovered Vocabulary Card */}
+        <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/90 dark:border-white/10 flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <span>Total Discovered Terms</span>
+              <SEOExplanationTooltip text="Complete corpus of 1-gram, 2-gram, and 3-gram search terms discovered across all analyzed competitor URLs." />
             </div>
-            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tabular-nums">
-              {commonCoreKeywords.length} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 font-sans">Terms</span>
-            </div>
+            <Layers className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
           </div>
-          <Sparkles className="w-5 h-5 text-emerald-500 shrink-0" />
-        </div>
-
-        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/50 flex items-center justify-between">
-          <div>
-            <div className="text-xs text-slate-500 dark:text-gray-400 font-semibold">
-              Total Discovered Terms
-            </div>
-            <div className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-0.5 tabular-nums">
-              {totalUniqueKeywords} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 font-sans">Terms</span>
-            </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold font-mono text-slate-800 dark:text-slate-100 tabular-nums">
+              {totalUniqueKeywords}
+            </span>
+            <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+              extracted N-gram phrases
+            </span>
           </div>
-          <Layers className="w-5 h-5 text-slate-400 dark:text-gray-500 shrink-0" />
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+            Indexed vocabulary across 1-gram entities, 2-gram modifiers, and 3-gram long-tail.
+          </p>
         </div>
       </div>
 
-      {/* Segmented Control Filter Tabs & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/50 overflow-x-auto w-full sm:w-auto">
-          <button
-            onClick={() => setActiveTab('yourGaps')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'yourGaps'
-                ? 'bg-white text-slate-800 shadow-xs dark:bg-slate-700 dark:text-slate-100 font-bold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
-            }`}
-          >
-            Missing on Your Page ({yourPageMissingGaps.length})
-          </button>
+      {/* 3. Dual-Axis Filter Controls (Status + N-Gram Length) & Search */}
+      <div className="space-y-3 pt-1">
+        {/* Primary Status Segmented Tabs */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+            <button
+              onClick={() => setActiveTab('yourGaps')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'yourGaps'
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold shadow-xs'
+                  : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+              <span>Missing on Your Page ({yourPageMissingGaps.length})</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('common')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'common'
-                ? 'bg-white text-slate-800 shadow-xs dark:bg-slate-700 dark:text-slate-100 font-bold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
-            }`}
-          >
-            Common Core ({commonCoreKeywords.length})
-          </button>
+            <button
+              onClick={() => setActiveTab('common')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'common'
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold shadow-xs'
+                  : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span>Common Core ({commonCoreKeywords.length})</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('allGaps')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'allGaps'
-                ? 'bg-white text-slate-800 shadow-xs dark:bg-slate-700 dark:text-slate-100 font-bold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
-            }`}
-          >
-            All Competitor Gaps ({keywordGaps.length})
-          </button>
+            <button
+              onClick={() => setActiveTab('allGaps')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'allGaps'
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold shadow-xs'
+                  : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              <span>All Competitor Gaps ({keywordGaps.length})</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'all'
-                ? 'bg-white text-slate-800 shadow-xs dark:bg-slate-700 dark:text-slate-100 font-bold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
-            }`}
-          >
-            All Terms ({allItems.length})
-          </button>
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'all'
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold shadow-xs'
+                  : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              <span>All Terms ({allItems.length})</span>
+            </button>
+          </div>
+
+          {/* Search Input with Result Count Badge */}
+          <div className="relative w-full sm:w-64 shrink-0">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search phrases..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-8 pr-7 py-1.5 rounded-lg text-xs border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                title="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
 
-        <input
-          type="text"
-          placeholder="Filter keywords..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full sm:w-64 px-3.5 py-1.5 rounded-xl text-xs glass-input focus:outline-none shadow-xs"
-        />
+        {/* Secondary N-Gram Length Filter Chips */}
+        <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-200/60 dark:border-white/5 text-xs text-slate-600 dark:text-slate-400">
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-1">
+              Phrase Length:
+            </span>
+            <button
+              onClick={() => setActiveGram('all')}
+              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                activeGram === 'all'
+                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-bold'
+                  : 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20'
+              }`}
+            >
+              All Lengths
+            </button>
+            <button
+              onClick={() => setActiveGram('1-gram')}
+              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                activeGram === '1-gram'
+                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-bold'
+                  : 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20'
+              }`}
+            >
+              1-Word (Entities)
+            </button>
+            <button
+              onClick={() => setActiveGram('2-gram')}
+              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                activeGram === '2-gram'
+                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-bold'
+                  : 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20'
+              }`}
+            >
+              2-Word (Phrases)
+            </button>
+            <button
+              onClick={() => setActiveGram('3-gram')}
+              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                activeGram === '3-gram'
+                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-bold'
+                  : 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20'
+              }`}
+            >
+              3-Word (Long-Tail)
+            </button>
+          </div>
+
+          <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 tabular-nums shrink-0">
+            Showing <strong>{Math.min(filteredList.length, 60)}</strong> of{' '}
+            <strong>{filteredList.length}</strong> terms
+          </div>
+        </div>
       </div>
 
-      {/* Cross-Comparison Matrix Table */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 max-h-96 overflow-y-auto shadow-xs">
+      {/* 4. Ergonomic Cross-Comparison Table with Sticky Column */}
+      <div className="overflow-x-auto rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0c1322] max-h-[520px] overflow-y-auto modal-scroll shadow-xs">
         <table className="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-wider sticky top-0 backdrop-blur-md z-10">
-              <th scope="col" className="py-3 px-4">Keyword Term</th>
-              <th scope="col" className="py-3 px-4 text-center">Type</th>
+          <thead className="sticky top-0 z-20 bg-slate-100 dark:bg-[#0c1322] border-b border-slate-200 dark:border-white/10">
+            <tr>
+              {/* Sticky Left Column Header */}
+              <th
+                scope="col"
+                className="py-3 px-4 w-60 min-w-[220px] shrink-0 sticky left-0 z-30 bg-slate-100 dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]"
+              >
+                <div className="font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider text-[11px]">
+                  Keyword Term
+                </div>
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
+                  Identified Entity / Phrase
+                </div>
+              </th>
+
+              {/* N-Gram Length Tag */}
+              <th scope="col" className="py-3 px-3 text-center w-20 shrink-0 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-[10px] border-r border-slate-200/80 dark:border-white/5">
+                Type
+              </th>
+
+              {/* URL Columns */}
               {validResults.map((r, idx) => {
                 const isTarget = r.url === currentTargetUrl;
-                const hostname = new URL(r.url).hostname;
+                const hostname = getHostname(r.url);
                 return (
                   <th
                     key={idx}
                     scope="col"
-                    className="py-2 px-2 text-center min-w-[130px]"
+                    className={`py-3 px-3 text-center w-44 min-w-[150px] max-w-[180px] border-r border-slate-200/80 dark:border-white/5 ${
+                      isTarget ? 'bg-emerald-50/60 dark:bg-emerald-950/20' : ''
+                    }`}
                   >
                     <button
                       type="button"
                       onClick={() => setTargetUrl(r.url)}
-                      aria-label={`Set ${hostname} as Your Target Page`}
-                      aria-pressed={isTarget}
-                      title={`Click to set ${hostname} as Your Target Page`}
-                      className={`w-full h-full py-1.5 px-2 rounded-lg flex flex-col items-center gap-0.5 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                      aria-label={`Set ${hostname} as Target Page`}
+                      title={`Click to analyze keyword gaps against ${hostname}`}
+                      className={`w-full py-1 px-2 rounded-lg flex flex-col items-center gap-0.5 transition-colors cursor-pointer ${
                         isTarget
                           ? 'bg-emerald-500/10 border border-emerald-500/30'
-                          : 'hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent'
+                          : 'hover:bg-slate-200/60 dark:hover:bg-white/10'
                       }`}
                     >
                       <span
-                        className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                        className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
                           isTarget
-                            ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30'
-                            : 'text-slate-500 dark:text-slate-400'
+                            ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 flex items-center gap-1'
+                            : 'text-slate-600 dark:text-slate-400 bg-slate-200/70 dark:bg-white/10'
                         }`}
                       >
-                        {isTarget ? 'YOUR PAGE' : `COMPETITOR #${idx}`}
+                        {isTarget ? (
+                          <>
+                            <Target className="w-2.5 h-2.5" />
+                            <span>Target (You)</span>
+                          </>
+                        ) : (
+                          `Competitor #${idx}`
+                        )}
                       </span>
-                      <div className="truncate max-w-[120px] text-slate-800 dark:text-slate-100 font-bold text-[11px] mt-0.5">
+                      <div className="truncate max-w-[130px] text-slate-800 dark:text-slate-100 font-bold text-xs mt-0.5">
                         {hostname}
                       </div>
                     </button>
                   </th>
                 );
               })}
-              <th scope="col" className="py-3 px-4 text-center">Your Status</th>
+
+              {/* Status Indicator Header */}
+              <th scope="col" className="py-3 px-4 text-center w-36 shrink-0 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-[10px]">
+                Target Coverage
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200/80 dark:divide-slate-800/80 text-slate-800 dark:text-slate-200 font-mono">
+
+          <tbody className="divide-y divide-slate-200/80 dark:divide-white/5 text-slate-800 dark:text-slate-200">
             {filteredList.length === 0 ? (
               <tr>
                 <td
-                  colSpan={3 + validResults.length}
-                  className="py-8 text-center text-slate-400 dark:text-slate-500 font-sans text-xs"
+                  colSpan={validResults.length + 3}
+                  className="py-12 text-center text-slate-500 dark:text-slate-400 text-xs"
                 >
-                  No matching keywords found for this filter selection.
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Search className="w-6 h-6 text-slate-400" />
+                    <span className="font-semibold">No keyword terms match this filter selection.</span>
+                    <span className="text-[11px] text-slate-400">
+                      Try selecting &quot;All Terms&quot; or clearing your search query.
+                    </span>
+                  </div>
                 </td>
               </tr>
             ) : (
-              filteredList.slice(0, 50).map((item, idx) => (
+              filteredList.slice(0, 80).map((item, idx) => (
                 <tr
                   key={idx}
-                  className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                  className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors"
                 >
-                  <td className="py-2.5 px-4 font-sans font-medium text-slate-800 dark:text-slate-100 max-w-xs truncate">
-                    {item.phrase}
+                  {/* Sticky Left Column: Keyword Term */}
+                  <td className="py-2.5 px-4 font-medium text-slate-800 dark:text-slate-100 max-w-xs sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold truncate" title={item.phrase}>
+                        {item.phrase}
+                      </span>
+                      {item.isTargetPageMissing && (
+                        <button
+                          type="button"
+                          onClick={() => handleDraftWithAi(item.phrase)}
+                          className="p-1 rounded text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-950/60 border border-emerald-300/60 dark:border-emerald-800/60 transition-colors cursor-pointer shrink-0"
+                          title="Draft content section for this missing gap with AI"
+                        >
+                          <Sparkles className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
                   </td>
 
-                  <td className="py-2.5 px-4 text-center text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                  {/* N-Gram Length */}
+                  <td className="py-2.5 px-3 text-center text-[10px] font-mono text-slate-500 dark:text-slate-400 border-r border-slate-200/60 dark:border-white/5">
                     {item.nGramType}
                   </td>
 
+                  {/* Competitor & Target Densities */}
                   {validResults.map((r, rIdx) => {
                     const data = item.presenceMap[r.url];
                     const density = data ? data.density : 0;
+                    const count = data ? data.count : 0;
                     const isTarget = r.url === currentTargetUrl;
 
                     return (
                       <td
                         key={rIdx}
-                        className={`py-2.5 px-4 text-center ${
-                          isTarget ? 'bg-emerald-500/[0.02]' : ''
+                        className={`py-2 px-3 text-center border-r border-slate-200/60 dark:border-white/5 ${
+                          isTarget ? 'bg-emerald-50/30 dark:bg-emerald-950/10' : ''
                         }`}
                       >
                         {density > 0 ? (
-                          <div className="flex flex-col items-center gap-1">
+                          <div className="flex flex-col items-center gap-0.5">
                             <span
-                              className={`font-mono text-xs ${
+                              className={`font-mono text-xs tabular-nums ${
                                 isTarget
-                                  ? 'text-emerald-600 dark:text-emerald-400 font-bold'
-                                  : 'text-slate-700 dark:text-slate-300 font-medium'
+                                  ? 'text-emerald-700 dark:text-emerald-400 font-bold'
+                                  : 'text-slate-800 dark:text-slate-100 font-medium'
                               }`}
                             >
-                              {density}%
+                              {density.toFixed(2)}%{' '}
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
+                                ({count}x)
+                              </span>
                             </span>
-                            <div className="w-12 h-1 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                            <div className="w-14 h-1 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
                               <div
-                                className={`h-full ${isTarget ? 'bg-emerald-500' : 'bg-cyan-500'} rounded-full transition-all duration-300`}
-                                style={{ width: `${Math.min(100, Math.round((density / Math.max(item.maxDensity || 1, 0.1)) * 100))}%` }}
+                                className={`h-full rounded-full transition-all duration-300 ${
+                                  isTarget ? 'bg-emerald-600 dark:bg-emerald-400' : 'bg-cyan-500'
+                                }`}
+                                style={{
+                                  width: `${Math.min(
+                                    100,
+                                    Math.round((density / Math.max(item.maxDensity || 1, 0.1)) * 100)
+                                  )}%`,
+                                }}
                               />
                             </div>
                           </div>
@@ -302,25 +637,26 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({ results }) =
                     );
                   })}
 
-                  <td className="py-2.5 px-4 text-center font-sans">
+                  {/* Target Status Indicator */}
+                  <td className="py-2.5 px-4 text-center">
                     {item.isTargetPageMissing ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 dark:text-red-400">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                        Missing
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+                        <span>Missing (0%)</span>
                       </span>
                     ) : item.isTargetPageUnderOptimized ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                        Low Density
+                        <span>Low Density</span>
                       </span>
                     ) : item.isCommonCore ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                        Covered
+                        <span>Common Core</span>
                       </span>
                     ) : (
-                      <span className="text-xs text-slate-400 dark:text-slate-500">
-                        • OK
+                      <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                        Covered
                       </span>
                     )}
                   </td>
@@ -330,6 +666,16 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({ results }) =
           </tbody>
         </table>
       </div>
+
+      {/* AI Section Writer Modal */}
+      <AiSectionWriterModal
+        isOpen={isAiWriterOpen}
+        onClose={() => setIsAiWriterOpen(false)}
+        topic={aiTopic}
+        targetKeyword={aiTargetKeyword}
+        sectionHeading={aiTopic}
+        context={aiContext}
+      />
     </div>
   );
 };

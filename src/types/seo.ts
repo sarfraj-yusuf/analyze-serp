@@ -134,6 +134,13 @@ export interface SearchIntentData {
   recommendations: string[];
 }
 
+export interface SpaDiagnostic {
+  isClientRenderedSpa: boolean;
+  frameworkDetected?: 'Next.js' | 'React SPA' | 'Vue / Nuxt' | 'Generic SPA';
+  extractionMethod?: 'DOM' | '__NEXT_DATA__' | 'JSON-LD Schema' | 'Meta Fallback';
+  spaWarning?: string;
+}
+
 export interface SinglePageAudit {
   url: string;
   fetchTimeMs: number;
@@ -151,6 +158,7 @@ export interface SinglePageAudit {
   technicalAudit: TechnicalAudit;
   robotsValidation?: RobotsValidationResult;
   searchIntent?: SearchIntentData;
+  spaDiagnostic?: SpaDiagnostic;
 }
 
 export interface KeywordGapItem {

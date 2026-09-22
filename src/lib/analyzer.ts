@@ -89,7 +89,7 @@ function calculateNGrams(
  * Main Analyzer function: processes clean DOM text into comprehensive SEO audit metrics
  */
 export function analyzePage(scrapedData: ScrapedRawDOM): SinglePageAudit {
-  const { url, finalUrl, fetchTimeMs, ttfbMs, html, meta, headings, imageAudit, linkAudit, cleanBodyText, cheerioDom } = scrapedData;
+  const { url, finalUrl, fetchTimeMs, ttfbMs, html, meta, headings, imageAudit, linkAudit, cleanBodyText, cheerioDom, spaDiagnostic } = scrapedData;
 
   // Segment cleanBodyText into sentences first to prevent cross-sentence N-gram bleeding
   const rawSentences = cleanBodyText.split(/[.!?\n\r]+\s*/).filter((s) => s.trim().length > 0);
@@ -154,5 +154,6 @@ export function analyzePage(scrapedData: ScrapedRawDOM): SinglePageAudit {
     readability,
     technicalAudit,
     searchIntent,
+    spaDiagnostic,
   };
 }

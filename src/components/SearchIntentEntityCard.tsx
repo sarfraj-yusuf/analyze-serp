@@ -75,7 +75,7 @@ export const SearchIntentEntityCard: React.FC<SearchIntentEntityCardProps> = ({ 
               </span>
             </div>
             <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 mt-1 flex items-center gap-2">
-              Search Intent & <span className="gradient-text">Topical Entity Analysis</span>
+              <span>Search Intent &amp; Topical Entity Analysis</span>
               <SEOExplanationTooltip text="Classifies search intent (Informational, Commercial, Transactional) and extracts primary topic entities for content optimization." />
             </h3>
             <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">

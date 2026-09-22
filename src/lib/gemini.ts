@@ -61,6 +61,26 @@ export interface ContentSectionResult {
   }>;
 }
 
+export interface ReadabilityRewriteResult {
+  simplifiedText: string;
+  originalGradeEstimate: string;
+  newGradeEstimate: string;
+  keyImprovements: string[];
+}
+
+export interface SnippetBaitResult {
+  suggestedHeading: string;
+  format: 'PARAGRAPH' | 'NUMBERED_LIST' | 'BULLETED_LIST' | 'TABLE';
+  paragraphText?: string;
+  listItems?: string[];
+  tableData?: {
+    headers: string[];
+    rows: string[][];
+  };
+  wordCount: number;
+  rationale: string;
+}
+
 const FALLBACK_MODELS = [
   'gemini-3.6-flash',
   'gemini-3.5-flash',
@@ -351,3 +371,265 @@ Return STRICT valid JSON format with this exact structure:
 
   return parseJsonSafe<ContentSectionResult>(rawJson);
 }
+
+/**
+ * 4. AI Readability & Tone Simplifier
+ */
+export async function generateReadabilityRewrite(params: {
+  text: string;
+  targetGrade?: string;
+}): Promise<ReadabilityRewriteResult> {
+  const prompt = `
+You are an expert plain-English editor, web readability specialist, and UX copywriter.
+Analyze the following text and rewrite it to achieve an optimal 7th to 8th-grade reading level (Flesch Reading Ease 60-70) suitable for web searchers and Google Helpful Content guidelines.
+
+Input Text:
+"""
+${params.text}
+"""
+
+Target Reading Level: ${params.targetGrade || '7th–8th Grade (Plain English, Flesch Ease 60–70)'}
+
+Editorial Rules to Strictly Follow:
+1. Simplify complex, multi-syllable academic jargon into natural, accessible vocabulary.
+2. Break up overly long, run-on sentences into punchy, clear sentences (ideally 12-18 words each).
+3. Convert passive voice into direct, active voice.
+4. Preserve 100% of the original facts, core meaning, and any technical key terms.
+5. Return 3 to 4 specific bulleted explanations of what was improved (e.g., "Shortened average sentence length", "Replaced dense phrasing with direct language").
+
+Return STRICT valid JSON format with this exact structure:
+{
+  "simplifiedText": "The completely rewritten, easy-to-read text...",
+  "originalGradeEstimate": "e.g. 12th Grade (College / Difficult)",
+  "newGradeEstimate": "7th-8th Grade (Standard Plain English)",
+  "keyImprovements": [
+    "Shortened average sentence length from X to Y words",
+    "Converted passive constructions to active voice",
+    "Replaced academic jargon with accessible terminology"
+  ]
+}
+`;
+
+  const rawJson = await callGeminiApi(prompt, {
+    jsonMode: true,
+    temperature: 0.3,
+    systemInstruction: 'You are an expert web readability editor. Return only strictly valid JSON matching the schema.',
+  });
+
+  return parseJsonSafe<ReadabilityRewriteResult>(rawJson);
+}
+
+/**
+ * 5. AI Google Featured Snippet (Position 0) Bait Generator
+ */
+export async function generateSnippetBait(params: {
+  query: string;
+  format?: string;
+  heading?: string;
+  context?: string;
+}): Promise<SnippetBaitResult> {
+  const prompt = `
+You are a senior SERP engineer and Featured Snippet (Position 0) optimization specialist.
+Generate mathematically optimized "Snippet Bait" designed to win Google's Position 0 for the following search query.
+
+Search Query: "${params.query}"
+Desired Format (if specified): ${params.format || 'Auto-detect best fit (PARAGRAPH, NUMBERED_LIST, BULLETED_LIST, or TABLE)'}
+Optional Heading Anchor: ${params.heading || 'None provided (generate the best H2)'}
+Contextual Snippet / Page Info: ${params.context || 'None provided'}
+
+Strict Google Featured Snippet Algorithmic Guidelines:
+1. FORMAT CHOICE:
+   - "What is", "Why", definitions, factual questions ➔ PARAGRAPH
+   - "How to", chronological steps, tutorials, processes ➔ NUMBERED_LIST
+   - "Best", "Top", collections, tips, checklists ➔ BULLETED_LIST
+   - "Vs", comparisons, pricing, specs, rates ➔ TABLE
+
+2. EDITORIAL RULES:
+   - If PARAGRAPH:
+     * Length MUST be strictly between 42 and 52 words.
+     * Sentence 1 MUST be a direct, definitive answer (Inverted Pyramid style: "[Query/Keyword] is/are [direct definition]...").
+     * Sentences 2-3 provide supporting evidence or scope.
+     * ZERO filler clichés (no "in today's world", "in this post", "have you ever wondered", "without further ado").
+     * 7th to 8th-grade readability level.
+   - If NUMBERED_LIST:
+     * Provide exactly 5 to 7 steps.
+     * Each step MUST start with bold action text: "**Step 1: [Action Verb]** - [Crisp description]".
+   - If BULLETED_LIST:
+     * Provide exactly 5 to 7 concise items.
+     * Each item MUST start with bold lead-in: "**[Item Name]**: [Crisp description]".
+   - If TABLE:
+     * Provide 3 to 4 descriptive column headers.
+     * Provide 4 to 5 data rows comparing the entities factually.
+
+Return STRICT valid JSON format with this exact structure:
+{
+  "suggestedHeading": "## [Exact H2 Question, e.g. What is Technical SEO?]",
+  "format": "PARAGRAPH", // One of: "PARAGRAPH", "NUMBERED_LIST", "BULLETED_LIST", "TABLE"
+  "paragraphText": "Technical SEO is the process of optimizing a website's server and code architecture so search engines can crawl, index, and render pages efficiently. It focuses on crawlability, mobile responsiveness, XML sitemaps, Core Web Vitals, and SSL certificates without altering primary marketing content.",
+  "listItems": [
+    "**Step 1: Audit Crawlability** - Inspect robots.txt and server status codes.",
+    "**Step 2: Optimize Web Vitals** - Compress images and defer unused JavaScript."
+  ],
+  "tableData": {
+    "headers": ["Tool", "Starting Price", "Best For", "Free Trial"],
+    "rows": [
+      ["AnalyzeSERP", "Free Beta", "Competitor SERP Audits", "Yes"],
+      ["Ahrefs", "$99/mo", "Backlink Analysis", "No"]
+    ]
+  },
+  "wordCount": 46,
+  "rationale": "Direct answer in sentence 1 within the 40-58 word sweet spot with 0 conversational filler."
+}
+`;
+
+  const rawJson = await callGeminiApi(prompt, {
+    jsonMode: true,
+    temperature: 0.3,
+    systemInstruction: 'You are an organic search snippet specialist. Return only strictly valid JSON matching the schema.',
+  });
+
+  return parseJsonSafe<SnippetBaitResult>(rawJson);
+}
+
+export interface ScratchpadAssistResult {
+  action: 'insert-keywords' | 'improve-intro' | 'simplify-reading';
+  suggestedContent: string;
+  explanation: string;
+  keywordsUsed: string[];
+}
+
+/**
+ * AI Assistant for Live SEO Content Scratchpad
+ * Helps writers naturally incorporate missing gap keywords, craft high-impact SEO intros,
+ * or simplify complex sentences for better readability.
+ */
+export async function assistContentScratchpad(params: {
+  action: 'insert-keywords' | 'improve-intro' | 'simplify-reading';
+  draftText: string;
+  targetKeyword: string;
+  missingKeywords?: string[];
+}): Promise<ScratchpadAssistResult> {
+  const { action, draftText, targetKeyword, missingKeywords = [] } = params;
+
+  let taskInstruction = '';
+  if (action === 'insert-keywords') {
+    taskInstruction = `Weave these missing competitor keywords (${missingKeywords.slice(0, 6).join(', ')}) naturally into 2 to 3 contextual, high-value sentences or a cohesive new paragraph that fits seamlessly into the draft. AVOID keyword stuffing. Each sentence must read like human expert editorial copy.`;
+  } else if (action === 'improve-intro') {
+    taskInstruction = `Rewrite or generate a compelling 80 to 120-word introduction hook that includes the primary keyword "${targetKeyword}" in the first sentence or first 60 words. The intro must hook the reader, establish topical authority, and clearly state what the reader will learn.`;
+  } else {
+    taskInstruction = `Simplify the readability of the provided draft excerpt. Break up long, monolithic sentences (>25 words), replace convoluted jargon with clear plain English, and target an 8th-grade Flesch reading level while preserving all SEO keywords and entities.`;
+  }
+
+  const prompt = `
+You are an expert SEO Content Editor and Copywriting Coach.
+Current Primary Focus Keyword: "${targetKeyword}"
+Missing Keywords to Incorporate: ${missingKeywords.length > 0 ? missingKeywords.slice(0, 8).join(', ') : 'None'}
+Requested Action: ${action}
+
+Task:
+${taskInstruction}
+
+Current Draft Excerpt / Context:
+${draftText.slice(0, 1500) || '(No draft provided yet. Provide a high-converting opening template based on the focus keyword.)'}
+
+Return STRICT valid JSON matching this schema:
+{
+  "action": "${action}",
+  "suggestedContent": "High quality markdown text to insert or replace",
+  "explanation": "Brief 1-sentence note explaining what was optimized",
+  "keywordsUsed": ["keyword1", "keyword2"]
+}
+`;
+
+  const rawJson = await callGeminiApi(prompt, {
+    jsonMode: true,
+    temperature: 0.4,
+    systemInstruction: 'You are an elite SEO copy editor. Return only strictly valid JSON matching the requested schema.',
+  });
+
+  return parseJsonSafe<ScratchpadAssistResult>(rawJson);
+}
+
+export interface TopicClusterLinkRecommendation {
+  anchorText: string;
+  targetPageConcept: string;
+  suggestedUrlPath: string;
+  contextSentence: string;
+  rationale: string;
+}
+
+export interface TopicClusterStrategyResult {
+  clusterRole: 'pillar-hub' | 'spoke-support';
+  pillarTitle: string;
+  recommendedSpokes: string[];
+  recommendedInternalLinks: TopicClusterLinkRecommendation[];
+  topicalAuthorityTip: string;
+}
+
+/**
+ * AI Topic Cluster & Internal Link Architect
+ * Evaluates on-page content headings and keywords to engineer an optimal
+ * Hub-and-Spoke internal linking topology and high-CTR anchor text placements.
+ */
+export async function generateInternalLinkStrategy(params: {
+  pageTitle: string;
+  pageUrl: string;
+  targetKeyword: string;
+  headings: string[];
+  existingLinks?: Array<{ href: string; text: string }>;
+}): Promise<TopicClusterStrategyResult> {
+  const { pageTitle, pageUrl, targetKeyword, headings, existingLinks = [] } = params;
+
+  const prompt = `
+You are a Principal Technical SEO Strategist and Information Architect specializing in Topic Clusters and Internal PageRank Silos.
+
+Target Page Information:
+- Page Title: "${pageTitle}"
+- Page URL: "${pageUrl}"
+- Target Focus Keyword: "${targetKeyword}"
+- Content Headings:
+${headings.slice(0, 10).map((h) => `  - ${h}`).join('\n') || '  - (General SEO Content)'}
+- Existing Internal Anchors Sample:
+${existingLinks.slice(0, 6).map((l) => `  - [${l.text}] -> ${l.href}`).join('\n') || '  - None'}
+
+Task:
+1. Determine if this page functions better as a "pillar-hub" (broad guide) or "spoke-support" (in-depth subtopic).
+2. Recommend 4 to 6 supporting spoke topics that should link to/from this pillar.
+3. Provide 3 to 5 high-converting, natural contextual internal link placements:
+   - Specific descriptive anchor text (avoid over-optimized spam and avoid generic "click here").
+   - Recommended destination page concept and clean URL path (e.g. /tools/technical-audit, /blog/core-web-vitals).
+   - An exact contextual sentence where the anchor naturally fits.
+   - Strategic rationale for search ranking.
+4. One actionable topical authority tip for Google's Helpful Content System.
+
+Return STRICT valid JSON matching this schema:
+{
+  "clusterRole": "pillar-hub", // or "spoke-support"
+  "pillarTitle": "Title of the cluster pillar",
+  "recommendedSpokes": [
+    "Subtopic 1: Deep Dive Guide",
+    "Subtopic 2: Tool or Checklist"
+  ],
+  "recommendedInternalLinks": [
+    {
+      "anchorText": "Descriptive anchor phrase",
+      "targetPageConcept": "Target Page Concept",
+      "suggestedUrlPath": "/clean-path",
+      "contextSentence": "Full sentence containing the anchor text naturally.",
+      "rationale": "Why this internal link passes topical relevance"
+    }
+  ],
+  "topicalAuthorityTip": "Concrete tip for dominating this topic cluster in SERPs"
+}
+`;
+
+  const rawJson = await callGeminiApi(prompt, {
+    jsonMode: true,
+    temperature: 0.3,
+    systemInstruction: 'You are an elite SEO Information Architect. Return strictly valid JSON matching the requested schema.',
+  });
+
+  return parseJsonSafe<TopicClusterStrategyResult>(rawJson);
+}
+
+

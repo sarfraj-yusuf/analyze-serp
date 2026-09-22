@@ -1,4 +1,5 @@
 import { RobotsValidationResult } from '@/types/seo';
+import { validateUrlSafety } from './ssrf-protection';
 
 /**
  * Fetches and validates live robots.txt rules for a target website URL.
@@ -10,6 +11,9 @@ export async function validateRobotsTxt(targetUrl: string): Promise<RobotsValida
     const origin = parsedUrl.origin;
     const path = parsedUrl.pathname + parsedUrl.search;
     const robotsUrl = `${origin}/robots.txt`;
+
+    // Enforce SSRF safety check before issuing network request
+    await validateUrlSafety(robotsUrl);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000); // 4 second timeout

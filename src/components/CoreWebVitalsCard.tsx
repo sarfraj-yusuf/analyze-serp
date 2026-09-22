@@ -97,7 +97,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
           </div>
           <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2.5">
             <Gauge className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-            Google <span className="gradient-text">Core Web Vitals Dashboard</span>
+            <span>Google Core Web Vitals Dashboard</span>
           </h3>
           <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">
             Real-user field performance metrics & Lighthouse score powered by Google PageSpeed API.

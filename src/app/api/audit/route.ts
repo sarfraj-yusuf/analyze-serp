@@ -8,7 +8,7 @@ import { auditCache } from '@/lib/lru-cache';
 import { freemiumLimiter } from '@/lib/freemium-limiter';
 import { logToolUsage } from '@/lib/activity-logger';
 import { auth } from '@/auth';
-import { saveUserAudit } from '@/lib/db';
+import { saveUserAudit, saveUserAuditSnapshot } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   try {
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     // Consume quota
     freemiumLimiter.consume(clientIp, targetUrls.length);
 
-    const auditPromises = targetUrls.map(async (url): Promise<SinglePageAudit> => {
+    const auditPromises = targetUrls.map(async (url, idx): Promise<SinglePageAudit> => {
       const normalizedUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`;
 
       // Check LRU cache first
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
 
       try {
         const [scraped, robotsValidation] = await Promise.all([
-          scrapeURL(normalizedUrl),
+          scrapeURL(normalizedUrl, idx),
           validateRobotsTxt(normalizedUrl),
         ]);
 
@@ -166,7 +166,7 @@ export async function POST(req: NextRequest) {
 
     const results = await Promise.all(auditPromises);
 
-    // If authenticated, persist audit history for user
+    // If authenticated, persist audit history and full snapshot for user
     try {
       const session = await auth();
       if (session?.user?.email) {
@@ -179,6 +179,33 @@ export async function POST(req: NextRequest) {
               score: r.technicalAudit?.technicalScore ?? null,
               word_count: r.wordCount,
               status: r.status,
+            });
+
+            const targetKw = r.keywords?.oneGram?.[0]?.phrase || undefined;
+            const now = Date.now();
+            const dateLabel = new Date(now).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+
+            await saveUserAuditSnapshot({
+              user_email: session.user.email,
+              url: r.url,
+              label: `Crawl (${dateLabel})`,
+              score: r.technicalAudit?.technicalScore ?? 0,
+              target_keyword: targetKw || null,
+              snapshot_json: JSON.stringify({
+                id: `snap-${now}-${Math.random().toString(36).slice(2, 7)}`,
+                url: r.url,
+                label: `Crawl (${dateLabel})`,
+                timestamp: now,
+                score: r.technicalAudit?.technicalScore ?? 0,
+                targetKeyword: targetKw,
+                audit: r,
+                isCloudSynced: true,
+              }),
             });
           }
         }

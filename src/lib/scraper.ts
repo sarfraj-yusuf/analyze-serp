@@ -1,7 +1,8 @@
 import * as cheerio from 'cheerio';
-import { MetaData, HeadingItem, ImageAudit, ImageItem, LinkAudit, LinkItem } from '@/types/seo';
+import { MetaData, HeadingItem, ImageAudit, ImageItem, LinkAudit, LinkItem, SpaDiagnostic } from '@/types/seo';
 import { enhanceLinkAudit } from './link-inspector';
 import { validateUrlSafety } from './ssrf-protection';
+import { performSpaFallbackExtraction } from './spa-extractor';
 
 export interface ScrapedRawDOM {
   url: string;
@@ -15,6 +16,7 @@ export interface ScrapedRawDOM {
   linkAudit: LinkAudit;
   cleanBodyText: string;
   cheerioDom: cheerio.CheerioAPI;
+  spaDiagnostic?: SpaDiagnostic;
 }
 
 /**
@@ -28,63 +30,203 @@ export function normalizeUrl(inputUrl: string): string {
   return url;
 }
 
+export interface BrowserProfile {
+  name: string;
+  headers: Record<string, string>;
+}
+
+export const DESKTOP_BROWSER_PROFILES: BrowserProfile[] = [
+  // 1. Chrome on Windows 11 / 10
+  {
+    name: 'Chrome Windows',
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+      'Sec-Ch-Ua-Mobile': '?0',
+      'Sec-Ch-Ua-Platform': '"Windows"',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'none',
+      'Sec-Fetch-User': '?1',
+      'Upgrade-Insecure-Requests': '1',
+    },
+  },
+  // 2. Chrome on macOS (Apple Silicon / Intel)
+  {
+    name: 'Chrome macOS',
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+      'Sec-Ch-Ua-Mobile': '?0',
+      'Sec-Ch-Ua-Platform': '"macOS"',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'none',
+      'Sec-Fetch-User': '?1',
+      'Upgrade-Insecure-Requests': '1',
+    },
+  },
+  // 3. Microsoft Edge on Windows
+  {
+    name: 'Edge Windows',
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Sec-Ch-Ua': '"Chromium";v="124", "Microsoft Edge";v="124", "Not-A.Brand";v="99"',
+      'Sec-Ch-Ua-Mobile': '?0',
+      'Sec-Ch-Ua-Platform': '"Windows"',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'none',
+      'Sec-Fetch-User': '?1',
+      'Upgrade-Insecure-Requests': '1',
+    },
+  },
+  // 4. Apple Safari on macOS (Sonoma)
+  {
+    name: 'Safari macOS',
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'none',
+      'Upgrade-Insecure-Requests': '1',
+    },
+  },
+  // 5. Mozilla Firefox on Windows
+  {
+    name: 'Firefox Windows',
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.5',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'none',
+      'Sec-Fetch-User': '?1',
+      'Upgrade-Insecure-Requests': '1',
+    },
+  },
+];
+
+let globalRotationCounter = 0;
+
+/**
+ * Returns an authentic desktop browser header profile.
+ * Supports round-robin rotation or explicit profile index.
+ */
+export function getRotatingBrowserHeaders(targetIndex?: number): Record<string, string> {
+  const index =
+    typeof targetIndex === 'number'
+      ? Math.abs(targetIndex) % DESKTOP_BROWSER_PROFILES.length
+      : (globalRotationCounter++) % DESKTOP_BROWSER_PROFILES.length;
+  return { ...DESKTOP_BROWSER_PROFILES[index].headers };
+}
+
 /**
  * High-performance, non-AI server-side web scraper using Cheerio
  */
-export async function scrapePage(targetUrl: string): Promise<ScrapedRawDOM> {
+export async function scrapePage(targetUrl: string, profileIndex?: number): Promise<ScrapedRawDOM> {
   const formattedUrl = normalizeUrl(targetUrl);
 
   // Validate URL safety against SSRF before initiating fetch
   await validateUrlSafety(formattedUrl);
 
   const startTime = Date.now();
+  const browserHeaders = getRotatingBrowserHeaders(profileIndex);
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+  const timeoutId = setTimeout(() => controller.abort(), 8000); // Strict 8-second independent per-URL timeout
 
   const ttfbStart = Date.now();
   let response: Response;
   try {
     response = await fetch(formattedUrl, {
       signal: controller.signal,
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 SEOCompetitorAnalyzer/1.0',
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
+      headers: browserHeaders,
     });
   } catch (fetchErr: any) {
-    // If https failed and user did not explicitly demand https://, try http:// fallback
-    if (formattedUrl.startsWith('https://') && !/^https:\/\//i.test(targetUrl.trim())) {
-      const fallbackUrl = `http://${targetUrl.trim().replace(/^https?:\/\//i, '')}`;
-      await validateUrlSafety(fallbackUrl);
-      response = await fetch(fallbackUrl, {
-        signal: controller.signal,
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 SEOCompetitorAnalyzer/1.0',
-          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.9',
-        },
-      });
-    } else {
-      throw fetchErr;
+      // If the 8-second timer aborted the request, do NOT retry; fail immediately
+      if (fetchErr.name === 'AbortError' || controller.signal.aborted) {
+        throw new Error(`Connection Timeout: Target website at ${formattedUrl} took longer than 8 seconds to respond.`);
+      }
+
+      // If https connection failed (e.g. SSL/TLS handshake error) and user entered bare domain without protocol, try http fallback
+      if (formattedUrl.startsWith('https://') && !/^https:\/\//i.test(targetUrl.trim())) {
+        const fallbackUrl = `http://${targetUrl.trim().replace(/^https?:\/\//i, '')}`;
+        await validateUrlSafety(fallbackUrl);
+        try {
+          response = await fetch(fallbackUrl, {
+            signal: controller.signal,
+            headers: browserHeaders,
+          });
+        } catch (fallbackErr: any) {
+          if (fallbackErr.name === 'AbortError' || controller.signal.aborted) {
+            throw new Error(`Connection Timeout: Target website at ${formattedUrl} took longer than 8 seconds to respond.`);
+          }
+          throw fallbackErr;
+        }
+      } else {
+        throw fetchErr;
+      }
     }
-  }
 
-  const ttfbMs = Date.now() - ttfbStart;
-  clearTimeout(timeoutId);
+    const ttfbMs = Date.now() - ttfbStart;
 
-  if (!response.ok) {
-    throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
-  }
+    if (!response.ok) {
+      const serverHeader = response.headers.get('server') || '';
+      const cfRay = response.headers.get('cf-ray');
+      if (response.status === 403 || response.status === 503) {
+        if (cfRay || serverHeader.toLowerCase().includes('cloudflare')) {
+          throw new Error(
+            `Cloudflare Bot Protection: The website at ${formattedUrl} requires an interactive browser challenge (HTTP ${response.status}). Automated crawling was declined by their security policy.`
+          );
+        }
+        throw new Error(
+          `Access Denied (HTTP ${response.status}): The website at ${formattedUrl} blocked automated crawling requests.`
+        );
+      }
+      if (response.status === 404) {
+        throw new Error(`Page Not Found (HTTP 404): The webpage at ${formattedUrl} does not exist or has been removed.`);
+      }
+      throw new Error(`HTTP Error ${response.status}: ${response.statusText} while fetching ${formattedUrl}`);
+    }
 
-  const finalUrl = response.url || formattedUrl;
+    // Validate Content-Type
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType && !contentType.includes('text/html') && !contentType.includes('application/xhtml+xml')) {
+      throw new Error(
+        `Unsupported Content-Type: Target URL returned "${contentType}". AnalyzeSERP only audits HTML webpages.`
+      );
+    }
 
-  const html = await response.text();
-  const fetchTimeMs = Date.now() - startTime;
-  const $ = cheerio.load(html);
+    // Content Length Guard (Max 5MB)
+    const contentLength = Number(response.headers.get('content-length'));
+    if (contentLength && contentLength > 5 * 1024 * 1024) {
+      throw new Error(
+        `Payload Too Large: Webpage size (${(contentLength / 1024 / 1024).toFixed(1)}MB) exceeds the 5MB crawl limit.`
+      );
+    }
+
+    const finalUrl = response.url || formattedUrl;
+
+    // Body download stream is protected by the same 8-second global timeout
+    const html = await response.text();
+    const fetchTimeMs = Date.now() - startTime;
+    clearTimeout(timeoutId);
+    const $ = cheerio.load(html);
 
   // Clean junk meta tags from DOM inspection
   $('meta[name="next-size-adjust"]').remove();
@@ -221,7 +363,13 @@ export async function scrapePage(targetUrl: string): Promise<ScrapedRawDOM> {
     cleanDom(el).before(' ');
   });
 
-  const cleanBodyText = primaryContainer.text().replace(/\s+/g, ' ').trim();
+  const initialBodyText = primaryContainer.text().replace(/\s+/g, ' ').trim();
+
+  // 6. SPA & Client-Rendered Fallback Cascades (Next.js __NEXT_DATA__, JSON-LD articleBody, Meta)
+  const fallbackResult = performSpaFallbackExtraction(html, $, initialBodyText, headings, meta);
+  const cleanBodyText = fallbackResult.cleanBodyText;
+  const finalHeadings = fallbackResult.headings;
+  const spaDiagnostic = fallbackResult.spaDiagnostic;
 
   return {
     url: formattedUrl,
@@ -230,11 +378,12 @@ export async function scrapePage(targetUrl: string): Promise<ScrapedRawDOM> {
     fetchTimeMs,
     ttfbMs,
     meta,
-    headings,
+    headings: finalHeadings,
     imageAudit,
     linkAudit,
     cleanBodyText,
     cheerioDom: $,
+    spaDiagnostic,
   };
 }
 

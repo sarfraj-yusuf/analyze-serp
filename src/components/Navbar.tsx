@@ -25,6 +25,9 @@ import {
   User,
   LogOut,
   Layers,
+  Award,
+  FileEdit,
+  Network,
 } from 'lucide-react';
 import { AuthModal } from './AuthModal';
 import { Logo } from './Logo';
@@ -71,6 +74,19 @@ const TOOL_CATEGORIES: ToolCategory[] = [
         href: '/pdf-reports',
         description: 'Client-ready executive audit exports with custom branding',
         icon: FileCheck,
+      },
+      {
+        title: 'Featured Snippet Optimizer',
+        href: '/featured-snippet-optimizer',
+        description: 'Position 0 snippet bait studio, intent classifier & SERP simulator',
+        icon: Award,
+        badge: 'NEW',
+      },
+      {
+        title: 'Live SEO Scratchpad',
+        href: '/content-scratchpad',
+        description: 'Real-time lexical scoring & competitor keyword checklist editor',
+        icon: FileEdit,
         badge: 'NEW',
       },
     ],
@@ -102,6 +118,13 @@ const TOOL_CATEGORIES: ToolCategory[] = [
         href: '/contrast-checker',
         description: 'Analyze contrast ratios against WCAG 2.2 accessibility',
         icon: Palette,
+      },
+      {
+        title: 'Internal Link Mapper',
+        href: '/internal-link-mapper',
+        description: 'Topology graph, destination hubs & anchor text distribution',
+        icon: Network,
+        badge: 'NEW',
       },
     ],
   },

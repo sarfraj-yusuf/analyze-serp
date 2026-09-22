@@ -119,6 +119,28 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link
+                  href="/featured-snippet-optimizer"
+                  className="text-slate-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 py-0.5 font-medium"
+                >
+                  <span>Featured Snippet (Pos 0)</span>
+                  <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                    NEW
+                  </span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/content-scratchpad"
+                  className="text-slate-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 py-0.5 font-medium"
+                >
+                  <span>Live SEO Scratchpad</span>
+                  <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                    NEW
+                  </span>
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/affiliate-link-checker"
                   className="text-slate-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-block py-0.5 font-medium"
                 >
@@ -170,6 +192,17 @@ export const Footer: React.FC = () => {
                   className="text-slate-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 py-0.5 font-medium"
                 >
                   <span>WCAG Color Contrast</span>
+                  <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                    NEW
+                  </span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/internal-link-mapper"
+                  className="text-slate-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 py-0.5 font-medium"
+                >
+                  <span>Internal Link Mapper</span>
                   <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                     NEW
                   </span>

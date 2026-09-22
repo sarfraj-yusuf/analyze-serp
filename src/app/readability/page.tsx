@@ -8,6 +8,7 @@ import { ProUpgradeModal } from '@/components/ProUpgradeModal';
 import { calculateReadability } from '@/lib/readability';
 import { ReadabilityMetrics } from '@/types/seo';
 import { CompactToolDock } from '@/components/CompactToolDock';
+import { AiSimplifyModal } from '@/components/AiSimplifyModal';
 import {
   BookOpen,
   Sparkles,
@@ -26,12 +27,18 @@ import Link from 'next/link';
 
 export default function ReadabilityPage() {
   const [isProModalOpen, setIsProModalOpen] = useState(false);
+  const [isSimplifyModalOpen, setIsSimplifyModalOpen] = useState(false);
   const [inputText, setInputText] = useState(
     `On-page SEO is the practice of optimizing web page content for search engines and users. Common on-page SEO practices include optimizing title tags, content, internal links and URLs. Content writers should aim for plain, accessible language to increase user engagement and lower bounce rates.`
   );
 
   const [metrics, setMetrics] = useState<ReadabilityMetrics>(calculateReadability(inputText));
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+  const handleApplySimplifiedText = (simplifiedText: string) => {
+    setInputText(simplifiedText);
+    setMetrics(calculateReadability(simplifiedText));
+  };
 
   const toggleFaq = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
@@ -164,12 +171,24 @@ export default function ReadabilityPage() {
               className="w-full p-4 rounded-xl glass-input text-xs sm:text-sm leading-relaxed focus:outline-none shadow-xs resize-none"
             />
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-white/[0.05] text-[11px] text-slate-500 dark:text-slate-400">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2.5 border-t border-slate-200/60 dark:border-white/[0.05] text-[11px] text-slate-500 dark:text-slate-400">
               <div className="flex items-center gap-1.5 font-mono">
                 <Lock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                 <span>Zero data logging · Client-side analysis</span>
               </div>
-              <span className="font-mono text-[10px] text-slate-400 hidden sm:inline">Target: 60–70 Flesch Ease · 7th–8th Grade</span>
+
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[10px] text-slate-400 hidden sm:inline">Target: 60–70 Flesch Ease · 7th–8th Grade</span>
+                <button
+                  type="button"
+                  onClick={() => setIsSimplifyModalOpen(true)}
+                  className="px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                  title="Rewrite difficult text into plain English using Gemini AI"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+                  <span>AI Simplify Tone</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -524,6 +543,12 @@ export default function ReadabilityPage() {
 
       <Footer />
       <ProUpgradeModal isOpen={isProModalOpen} onClose={() => setIsProModalOpen(false)} />
+      <AiSimplifyModal
+        isOpen={isSimplifyModalOpen}
+        onClose={() => setIsSimplifyModalOpen(false)}
+        text={inputText}
+        onApply={handleApplySimplifiedText}
+      />
     </div>
   );
 }

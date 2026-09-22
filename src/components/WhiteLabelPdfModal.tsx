@@ -59,7 +59,7 @@ export const WhiteLabelPdfModal: React.FC<WhiteLabelPdfModalProps> = ({ isOpen, 
           </div>
 
           <h3 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-            Export <span className="gradient-text">Branded Client PDF</span>
+            Export Branded Client PDF Report
           </h3>
 
           <p className="text-xs text-slate-600 dark:text-gray-400">
@@ -154,7 +154,7 @@ export const WhiteLabelPdfModal: React.FC<WhiteLabelPdfModalProps> = ({ isOpen, 
 
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-black font-extrabold text-xs flex items-center gap-2 hover:opacity-95 transition-all shadow-md shadow-emerald-500/20 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 transition-all shadow-xs cursor-pointer"
             >
               <Download className="w-4 h-4" />
               <span>Download Branded PDF Report</span>

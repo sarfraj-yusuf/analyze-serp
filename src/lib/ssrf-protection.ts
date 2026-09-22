@@ -36,7 +36,9 @@ const BLOCKED_HOSTNAMES = new Set([
   'localhost.localdomain',
   'ip6-localhost',
   'ip6-loopback',
-  // Cloud metadata endpoints
+  // Cloud metadata endpoints & aliases
+  'instance-data',
+  '169.254.169.254',
   'metadata.google.internal',
   'metadata.google',
   'kubernetes.default.svc',

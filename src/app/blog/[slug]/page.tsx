@@ -457,7 +457,7 @@ export default async function SingleBlogPostPage({ params }: SingleBlogPageProps
               </p>
               <Link
                 href="/#hero-audit-dock"
-                className="w-full py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95"
+                className="inline-flex items-center gap-1.5 py-2 px-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs transition-all shadow-xs active:scale-95"
               >
                 <span>Launch Competitor Audit</span>
                 <ArrowUpRight className="size-3.5" />

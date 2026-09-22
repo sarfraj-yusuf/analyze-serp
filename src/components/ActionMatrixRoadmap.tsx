@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { EvidenceRecommendation } from '@/types/seo';
-import { Target, Zap, Clock, CheckCircle2, AlertTriangle, ArrowRight, Filter, Info, TrendingUp, Copy, Check, Sparkles } from 'lucide-react';
+import { Target, Zap, Clock, CheckCircle2, AlertTriangle, ArrowRight, Filter, Info, TrendingUp, Copy, Check, Sparkles, FileCode } from 'lucide-react';
 import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
 import { AiFixModal } from './AiFixModal';
+import { JsonLdSchemaModal } from './JsonLdSchemaModal';
 
 interface ActionMatrixRoadmapProps {
   actions: EvidenceRecommendation[];
@@ -14,6 +15,15 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'DO_FIRST' | 'PLAN_THIS' | 'DO_NEXT'>('ALL');
   const [copied, setCopied] = useState(false);
   const [selectedActionForAi, setSelectedActionForAi] = useState<EvidenceRecommendation | null>(null);
+  const [isSchemaModalOpen, setIsSchemaModalOpen] = useState(false);
+  const listContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleFilterChange = (filter: 'ALL' | 'DO_FIRST' | 'PLAN_THIS' | 'DO_NEXT') => {
+    setActiveFilter(filter);
+    if (listContainerRef.current) {
+      listContainerRef.current.scrollTop = 0;
+    }
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -106,8 +116,8 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200/80 dark:border-white/10">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-gray-400 bg-slate-100 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50">
-              Competitive Opportunities Roadmap
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50">
+              Chapter 02 · Prioritized Action Roadmap
             </span>
           </div>
           <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
@@ -143,7 +153,7 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
       {/* Segmented Control Filter Tabs */}
       <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/50 overflow-x-auto">
         <button
-          onClick={() => setActiveFilter('ALL')}
+          onClick={() => handleFilterChange('ALL')}
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeFilter === 'ALL'
               ? 'bg-white text-slate-800 shadow-xs dark:bg-slate-700 dark:text-slate-100 font-bold'
@@ -154,7 +164,7 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
         </button>
 
         <button
-          onClick={() => setActiveFilter('DO_FIRST')}
+          onClick={() => handleFilterChange('DO_FIRST')}
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
             activeFilter === 'DO_FIRST'
               ? 'bg-white text-slate-800 shadow-xs dark:bg-slate-700 dark:text-slate-100 font-bold'
@@ -166,7 +176,7 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
         </button>
 
         <button
-          onClick={() => setActiveFilter('PLAN_THIS')}
+          onClick={() => handleFilterChange('PLAN_THIS')}
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
             activeFilter === 'PLAN_THIS'
               ? 'bg-white text-slate-800 shadow-xs dark:bg-slate-700 dark:text-slate-100 font-bold'
@@ -178,7 +188,7 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
         </button>
 
         <button
-          onClick={() => setActiveFilter('DO_NEXT')}
+          onClick={() => handleFilterChange('DO_NEXT')}
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
             activeFilter === 'DO_NEXT'
               ? 'bg-white text-slate-800 shadow-xs dark:bg-slate-700 dark:text-slate-100 font-bold'
@@ -190,44 +200,65 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
         </button>
       </div>
 
-      {/* Action Cards List */}
-      <div className="divide-y divide-slate-200/80 dark:divide-slate-800 pt-2">
+      {/* Action Cards List - Fixed Height Inner Scrollable Container */}
+      <div
+        ref={listContainerRef}
+        className="max-h-[540px] overflow-y-auto modal-scroll pr-1.5 space-y-3.5 pt-1 rounded-xl"
+      >
         {filteredActions.map((item, idx) => {
+          let cardColorClass = 'bg-slate-50/80 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/60 border-l-slate-400';
+          let badgeColorClass = 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700';
+          let impactColorClass = 'text-slate-700 dark:text-slate-300';
+
+          if (item.quadrant === 'DO_FIRST') {
+            cardColorClass = 'bg-rose-50/60 dark:bg-rose-950/25 border-rose-200/80 dark:border-rose-900/40 border-l-rose-500';
+            badgeColorClass = 'bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200 border-rose-200/80 dark:border-rose-800/50';
+            impactColorClass = 'text-rose-700 dark:text-rose-400 font-bold';
+          } else if (item.quadrant === 'PLAN_THIS') {
+            cardColorClass = 'bg-amber-50/60 dark:bg-amber-950/25 border-amber-200/80 dark:border-amber-900/40 border-l-amber-500';
+            badgeColorClass = 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 border-amber-200/80 dark:border-amber-800/50';
+            impactColorClass = 'text-amber-700 dark:text-amber-400 font-bold';
+          } else if (item.quadrant === 'DO_NEXT') {
+            cardColorClass = 'bg-emerald-50/60 dark:bg-emerald-950/25 border-emerald-200/80 dark:border-emerald-900/40 border-l-emerald-500';
+            badgeColorClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 border-emerald-200/80 dark:border-emerald-800/50';
+            impactColorClass = 'text-emerald-700 dark:text-emerald-400 font-bold';
+          }
+
           return (
             <div
               key={item.id || idx}
-              className="py-4 space-y-2.5 first:pt-0 last:pb-0"
+              className={`p-4 sm:p-5 rounded-xl border border-l-4 space-y-3 transition-all shadow-xs hover:shadow-sm ${cardColorClass}`}
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/50">
+                  <span className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider border ${badgeColorClass}`}>
                     {item.category}
                   </span>
                   {activeFilter === 'ALL' && (
-                    <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">
-                      • {item.quadrant === 'DO_FIRST' ? 'High Impact' : item.quadrant === 'PLAN_THIS' ? 'High Impact (Plan)' : 'Medium Impact'}
+                    <span className={`text-[10px] font-mono uppercase tracking-wider ${impactColorClass}`}>
+                      • {item.quadrant === 'DO_FIRST' ? 'High Impact Quick Win' : item.quadrant === 'PLAN_THIS' ? 'Strategic Milestone' : 'Operational Next'}
                     </span>
                   )}
                 </div>
 
-                <div className="text-[11px] font-mono font-medium text-slate-600 dark:text-slate-300">
-                  Effort: <strong className="text-slate-800 dark:text-gray-200 uppercase">{item.effort}</strong>
+                <div className="text-[11px] font-mono font-semibold text-slate-700 dark:text-slate-300">
+                  Effort: <strong className="text-slate-900 dark:text-white uppercase font-bold">{item.effort}</strong>
                 </div>
               </div>
 
               {/* Title & Action Step */}
               <div className="space-y-1">
-                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
                   {item.title}
                 </h4>
-                <p className="text-xs text-slate-700 dark:text-gray-200 leading-relaxed">
-                  <strong className="font-semibold text-slate-800 dark:text-slate-100">Recommended Action:</strong> {item.action}
+                <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-normal">
+                  <strong className="font-semibold text-slate-900 dark:text-white">Recommended Action:</strong> {item.action}
                 </p>
               </div>
 
               {/* Plain-English Business Impact Callout */}
               {item.businessImpact && (
-                <div className="flex items-start gap-2 p-2.5 rounded-xl bg-emerald-500/5 dark:bg-emerald-500/[0.04] border border-emerald-500/20 text-[11px] text-slate-700 dark:text-slate-300">
+                <div className="flex items-start gap-2 p-2.5 sm:p-3 rounded-xl bg-white/90 dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 shadow-2xs">
                   <TrendingUp className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                   <span className="leading-relaxed">
                     <strong className="font-semibold text-emerald-700 dark:text-emerald-400">Why this matters:</strong>{' '}
@@ -237,28 +268,49 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
               )}
 
               {/* Empirical SERP Evidence Tag & AI Fix Guide Action */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800/60 mt-1">
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-300">
-                  <Info className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-white/10 mt-1">
+                <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+                  <Info className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>
-                    <strong className="font-semibold text-slate-700 dark:text-gray-300">SERP Evidence Proof:</strong>{' '}
-                    <span className="font-mono">{item.evidence}</span>
+                    <strong className="font-semibold text-slate-900 dark:text-slate-100">SERP Evidence Proof:</strong>{' '}
+                    <span className="font-mono text-slate-800 dark:text-slate-200">{item.evidence}</span>
                   </span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setSelectedActionForAi(item)}
-                  className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto shrink-0 border border-emerald-500/20 active:scale-95"
-                >
-                  <Sparkles className="w-3 h-3 text-emerald-500" />
-                  <span>AI Fix Guide</span>
-                </button>
+                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                  {(item.category === 'SCHEMA' || item.id === 'schema-markup-gap') && (
+                    <button
+                      type="button"
+                      onClick={() => setIsSchemaModalOpen(true)}
+                      className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+                    >
+                      <FileCode className="w-3.5 h-3.5" />
+                      <span>Build Schema</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedActionForAi(item)}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>AI Fix Guide</span>
+                  </button>
+                </div>
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* Inner Scroll Status Footer */}
+      {filteredActions.length > 2 && (
+        <div className="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] font-mono font-medium text-slate-700 dark:text-slate-300 border-t border-slate-200/80 dark:border-white/10">
+          <span>Showing {filteredActions.length} prioritized tasks</span>
+          <span className="text-slate-500 dark:text-slate-400">Scroll inside list to explore all items &darr;</span>
+        </div>
+      )}
 
       {selectedActionForAi && (
         <AiFixModal
@@ -267,6 +319,16 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
           issueTitle={selectedActionForAi.title}
           issueCategory={selectedActionForAi.category}
           issueDescription={`${selectedActionForAi.action}${selectedActionForAi.businessImpact ? ' — ' + selectedActionForAi.businessImpact : ''}`}
+        />
+      )}
+
+      {/* JSON-LD Schema Modal */}
+      {isSchemaModalOpen && (
+        <JsonLdSchemaModal
+          isOpen={isSchemaModalOpen}
+          onClose={() => setIsSchemaModalOpen(false)}
+          initialTitle="Structured Data & FAQPage Schema"
+          initialDescription="Enhance Google search snippet visibility with valid JSON-LD schema markup."
         />
       )}
     </div>

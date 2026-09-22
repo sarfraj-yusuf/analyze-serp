@@ -95,15 +95,28 @@ export interface DbUserAiActivity {
   created_at: string | Date;
 }
 
+export interface DbUserAuditSnapshot {
+  id: number;
+  user_email: string;
+  url: string;
+  label: string;
+  score: number;
+  target_keyword: string | null;
+  snapshot_json: string;
+  created_at: string | Date;
+}
+
 const memoryFeedbackStore: LocalFeedbackItem[] = [];
 const memoryActivityStore: LocalActivityLog[] = [];
 const memoryUserStore = new Map<string, DbUser>();
 const memoryAuditHistory: DbUserAudit[] = [];
 const memoryAiHistory: DbUserAiActivity[] = [];
+const memorySnapshotHistory: DbUserAuditSnapshot[] = [];
 let localFeedbackIdCounter = 1;
 let localActivityIdCounter = 1;
 let localAuditIdCounter = 1;
 let localAiIdCounter = 1;
+let localSnapshotIdCounter = 1;
 
 /**
  * Ensures required DB tables exist on Hostinger MySQL
@@ -183,6 +196,22 @@ export async function initDatabaseTables(): Promise<void> {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           INDEX idx_ai_email (user_email),
           INDEX idx_ai_created (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS user_audit_snapshots (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_email VARCHAR(255) NOT NULL,
+          url VARCHAR(500) NOT NULL,
+          label VARCHAR(255) NOT NULL,
+          score INT NOT NULL,
+          target_keyword VARCHAR(255) NULL,
+          snapshot_json MEDIUMTEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          INDEX idx_snap_email (user_email),
+          INDEX idx_snap_url (url),
+          INDEX idx_snap_created (created_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
     } finally {
@@ -565,6 +594,43 @@ export async function getUserAudits(
 }
 
 /**
+ * Deletes an audit entry by ID for an authenticated user
+ */
+export async function deleteUserAudit(
+  email: string,
+  auditId: number
+): Promise<boolean> {
+  const db = getPool();
+
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        await connection.execute(
+          `DELETE FROM user_audit_history WHERE id = ? AND user_email = ?`,
+          [auditId, email]
+        );
+        return true;
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('[DB Error] Failed to delete user audit from MySQL:', error);
+    }
+  }
+
+  const idx = memoryAuditHistory.findIndex(
+    (a) => a.id === auditId && a.user_email.toLowerCase() === email.toLowerCase()
+  );
+  if (idx !== -1) {
+    memoryAuditHistory.splice(idx, 1);
+    return true;
+  }
+  return false;
+}
+
+/**
  * Saves user AI generation activity
  */
 export async function saveUserAiActivity(data: {
@@ -662,4 +728,176 @@ export async function getUserDashboardStats(email: string): Promise<{
     totalAiGenerations: aiActivities.length,
     avgScore,
   };
+}
+
+/**
+ * Saves an audit snapshot to MySQL or in-memory fallback
+ */
+export async function saveUserAuditSnapshot(data: {
+  user_email: string;
+  url: string;
+  label: string;
+  score: number;
+  target_keyword?: string | null;
+  snapshot_json: string;
+}): Promise<boolean> {
+  const db = getPool();
+
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        await connection.execute(
+          `INSERT INTO user_audit_snapshots (user_email, url, label, score, target_keyword, snapshot_json) VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            data.user_email,
+            data.url,
+            data.label,
+            data.score,
+            data.target_keyword ?? null,
+            data.snapshot_json,
+          ]
+        );
+        return true;
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('[DB Error] Failed to save user audit snapshot to MySQL:', error);
+    }
+  }
+
+  // In-memory fallback
+  memorySnapshotHistory.unshift({
+    id: localSnapshotIdCounter++,
+    user_email: data.user_email,
+    url: data.url,
+    label: data.label,
+    score: data.score,
+    target_keyword: data.target_keyword ?? null,
+    snapshot_json: data.snapshot_json,
+    created_at: new Date().toISOString(),
+  });
+  return true;
+}
+
+/**
+ * Retrieves audit snapshots for a specific user, optionally filtered by URL
+ */
+export async function getUserAuditSnapshots(
+  email: string,
+  url?: string,
+  limit: number = 20
+): Promise<DbUserAuditSnapshot[]> {
+  const db = getPool();
+
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        if (url) {
+          const [rows] = await connection.execute(
+            `SELECT * FROM user_audit_snapshots WHERE user_email = ? AND url = ? ORDER BY created_at DESC LIMIT ?`,
+            [email, url, String(limit)]
+          );
+          return rows as DbUserAuditSnapshot[];
+        } else {
+          const [rows] = await connection.execute(
+            `SELECT * FROM user_audit_snapshots WHERE user_email = ? ORDER BY created_at DESC LIMIT ?`,
+            [email, String(limit)]
+          );
+          return rows as DbUserAuditSnapshot[];
+        }
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('[DB Error] Failed to fetch user audit snapshots from MySQL:', error);
+    }
+  }
+
+  return memorySnapshotHistory
+    .filter(
+      (s) =>
+        s.user_email.toLowerCase() === email.toLowerCase() &&
+        (!url || s.url.toLowerCase() === url.toLowerCase())
+    )
+    .slice(0, limit);
+}
+
+/**
+ * Retrieves a single audit snapshot by ID for an authenticated user
+ */
+export async function getUserAuditSnapshotById(
+  email: string,
+  snapshotId: number
+): Promise<DbUserAuditSnapshot | null> {
+  const db = getPool();
+
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        const [rows] = await connection.execute(
+          `SELECT * FROM user_audit_snapshots WHERE id = ? AND user_email = ? LIMIT 1`,
+          [snapshotId, email]
+        );
+        const snapshots = rows as DbUserAuditSnapshot[];
+        if (snapshots.length > 0) {
+          return snapshots[0];
+        }
+        return null;
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('[DB Error] Failed to fetch user audit snapshot by ID from MySQL:', error);
+    }
+  }
+
+  return (
+    memorySnapshotHistory.find(
+      (s) => s.id === snapshotId && s.user_email.toLowerCase() === email.toLowerCase()
+    ) || null
+  );
+}
+
+/**
+ * Deletes a snapshot by ID for an authenticated user
+ */
+export async function deleteUserAuditSnapshot(
+  email: string,
+  snapshotId: number
+): Promise<boolean> {
+  const db = getPool();
+
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        await connection.execute(
+          `DELETE FROM user_audit_snapshots WHERE id = ? AND user_email = ?`,
+          [snapshotId, email]
+        );
+        return true;
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('[DB Error] Failed to delete user audit snapshot from MySQL:', error);
+    }
+  }
+
+  const idx = memorySnapshotHistory.findIndex(
+    (s) => s.id === snapshotId && s.user_email.toLowerCase() === email.toLowerCase()
+  );
+  if (idx !== -1) {
+    memorySnapshotHistory.splice(idx, 1);
+    return true;
+  }
+  return false;
 }

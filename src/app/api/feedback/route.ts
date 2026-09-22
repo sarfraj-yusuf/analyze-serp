@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { saveUserFeedback, getAllFeedback } from '@/lib/db';
 import { getClientIp } from '@/lib/activity-logger';
 
@@ -86,6 +87,27 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
+    const adminKey = process.env.ADMIN_SECRET_KEY;
+    if (!adminKey) {
+      return NextResponse.json({ error: 'Feedback list is restricted' }, { status: 403 });
+    }
+
+    const providedKey = req.headers.get('x-admin-key');
+    if (!providedKey) {
+      return NextResponse.json({ error: 'Unauthorized. Admin authorization required.' }, { status: 401 });
+    }
+
+    const providedBuf = Buffer.from(providedKey);
+    const adminBuf = Buffer.from(adminKey);
+
+    const isMatch =
+      providedBuf.length === adminBuf.length &&
+      crypto.timingSafeEqual(providedBuf, adminBuf);
+
+    if (!isMatch) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const feedbackList = await getAllFeedback();
     return NextResponse.json({ success: true, feedback: feedbackList });
   } catch (error: any) {

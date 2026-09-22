@@ -106,3 +106,6 @@ class RateLimiter {
 
 // Global rate limiter instance: max 10 audit requests per IP per 1 minute
 export const auditRateLimiter = new RateLimiter(60 * 1000, 10);
+
+// AI generation rate limiter: max 10 requests per IP per 1 minute
+export const aiRateLimiter = new RateLimiter(60 * 1000, 10);

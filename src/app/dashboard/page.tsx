@@ -34,7 +34,21 @@ import {
   Palette,
   Share2,
   Link2,
+  Eye,
+  Trash2,
+  History,
+  GitCompare,
+  Camera,
 } from 'lucide-react';
+
+interface DashboardSnapshotItem {
+  id: number;
+  url: string;
+  label: string;
+  score: number;
+  target_keyword?: string | null;
+  created_at: string | Date;
+}
 
 interface DashboardHistoryData {
   user: {
@@ -44,6 +58,7 @@ interface DashboardHistoryData {
   };
   credits: UserCreditsInfo;
   audits: DbUserAudit[];
+  snapshots?: DashboardSnapshotItem[];
   aiActivities: DbUserAiActivity[];
   stats: {
     totalAudits: number;
@@ -56,13 +71,15 @@ export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [data, setData] = useState<DashboardHistoryData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'audits' | 'ai' | 'tools'>('audits');
+  const [activeTab, setActiveTab] = useState<'audits' | 'snapshots' | 'ai' | 'tools'>('audits');
   const [searchQuery, setSearchQuery] = useState('');
   const [scoreFilter, setScoreFilter] = useState<'ALL' | 'HIGH' | 'LOW'>('ALL');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
   const [selectedAuditForAi, setSelectedAuditForAi] = useState<{ url: string; title: string } | null>(null);
   const [copiedId, setCopiedId] = useState<string | number | null>(null);
+  const [deletingAuditId, setDeletingAuditId] = useState<number | null>(null);
+  const [deletingSnapshotId, setDeletingSnapshotId] = useState<number | null>(null);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -112,6 +129,81 @@ export default function DashboardPage() {
 
     return true;
   });
+
+  // Filtered snapshots by search and score
+  const filteredSnapshots = (data?.snapshots || []).filter((item) => {
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const match =
+        item.url.toLowerCase().includes(query) ||
+        item.label.toLowerCase().includes(query) ||
+        (item.target_keyword && item.target_keyword.toLowerCase().includes(query));
+      if (!match) return false;
+    }
+    if (scoreFilter === 'HIGH') {
+      return typeof item.score === 'number' && item.score >= 80;
+    }
+    if (scoreFilter === 'LOW') {
+      return typeof item.score === 'number' && item.score < 80;
+    }
+    return true;
+  });
+
+  // Delete an audit history record
+  const handleDeleteAudit = async (id: number) => {
+    if (!window.confirm('Are you sure you want to remove this audit from your history?')) return;
+    setDeletingAuditId(id);
+    try {
+      const res = await fetch(`/api/user/history?id=${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      const json = await res.json();
+      if (json.success) {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            audits: prev.audits.filter((a) => a.id !== id),
+            stats: {
+              ...prev.stats,
+              totalAudits: Math.max(0, prev.stats.totalAudits - 1),
+            },
+          };
+        });
+      }
+    } catch (err) {
+      console.error('Failed to delete audit:', err);
+    } finally {
+      setDeletingAuditId(null);
+    }
+  };
+
+  // Delete a saved snapshot record
+  const handleDeleteSnapshot = async (id: number) => {
+    if (!window.confirm('Are you sure you want to delete this saved snapshot?')) return;
+    setDeletingSnapshotId(id);
+    try {
+      const res = await fetch(`/api/audit/snapshots?id=${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      const json = await res.json();
+      if (json.success) {
+        setData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            snapshots: (prev.snapshots || []).filter((s) => s.id !== id),
+          };
+        });
+      }
+    } catch (err) {
+      console.error('Failed to delete snapshot:', err);
+    } finally {
+      setDeletingSnapshotId(null);
+    }
+  };
 
   const credits = data?.credits || {
     remainingCredits: 5,
@@ -402,6 +494,19 @@ export default function DashboardPage() {
 
                   <button
                     type="button"
+                    onClick={() => setActiveTab('snapshots')}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                      activeTab === 'snapshots'
+                        ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-800 dark:text-white font-bold'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <History className="w-3.5 h-3.5 text-teal-500" />
+                    <span>Saved Snapshots ({data?.snapshots?.length || 0})</span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => setActiveTab('ai')}
                     className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
                       activeTab === 'ai'
@@ -427,8 +532,8 @@ export default function DashboardPage() {
                   </button>
                 </div>
 
-                {/* Search & Score Filters (Shown on Audits Tab) */}
-                {activeTab === 'audits' && (
+                {/* Search & Score Filters (Shown on Audits & Snapshots Tabs) */}
+                {(activeTab === 'audits' || activeTab === 'snapshots') && (
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
                     {/* Score Filter Pills */}
                     <div className="flex items-center gap-1 text-[11px] font-semibold bg-slate-100 dark:bg-white/5 p-1 rounded-xl border border-slate-200/80 dark:border-white/5">
@@ -441,7 +546,7 @@ export default function DashboardPage() {
                             : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
                         }`}
                       >
-                        All ({data?.audits?.length || 0})
+                        All ({activeTab === 'snapshots' ? (data?.snapshots?.length || 0) : (data?.audits?.length || 0)})
                       </button>
                       <button
                         type="button"
@@ -472,7 +577,7 @@ export default function DashboardPage() {
                       <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
-                        placeholder="Search audited URLs..."
+                        placeholder={activeTab === 'snapshots' ? "Search snapshots by URL or label..." : "Search audited URLs..."}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-9 pr-3.5 py-1.5 rounded-xl glass-input text-xs focus:outline-none"
@@ -515,6 +620,8 @@ export default function DashboardPage() {
                           year: 'numeric',
                         });
 
+                        const matchingSnapshot = (data?.snapshots || []).find((s) => s.url === item.url);
+
                         return (
                           <div
                             key={item.id}
@@ -542,7 +649,7 @@ export default function DashboardPage() {
                             </div>
 
                             {/* Score Badge & Quick Actions */}
-                            <div className="flex items-center gap-2.5 shrink-0">
+                            <div className="flex items-center gap-2 shrink-0">
                               {item.score !== null && (
                                 <div
                                   className={`px-3 py-1 rounded-xl text-xs font-mono font-bold border ${
@@ -557,13 +664,24 @@ export default function DashboardPage() {
                                 </div>
                               )}
 
+                              {/* View Saved Full Report */}
+                              <Link
+                                href={matchingSnapshot ? `/audit?snapshotId=${matchingSnapshot.id}` : `/audit?urls=${encodeURIComponent(item.url)}`}
+                                className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs"
+                                title={matchingSnapshot ? "View full saved report (0s latency, no credits used)" : "Open in competitor workspace"}
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>View Report</span>
+                              </Link>
+
                               {/* Re-run Audit Action */}
                               <Link
                                 href={`/?url=${encodeURIComponent(item.url)}`}
                                 className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200/80 dark:border-white/10"
+                                title="Re-run live audit"
                               >
                                 <RotateCcw className="w-3.5 h-3.5" />
-                                <span>Re-run</span>
+                                <span className="hidden sm:inline">Re-run</span>
                               </Link>
 
                               {/* Open AI Rewrite Action */}
@@ -573,7 +691,7 @@ export default function DashboardPage() {
                                 className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-1.5 transition-all border border-emerald-500/20 cursor-pointer"
                               >
                                 <Sparkles className="w-3.5 h-3.5" />
-                                <span>AI Rewrite</span>
+                                <span className="hidden sm:inline">AI Rewrite</span>
                               </button>
 
                               {/* Copy URL */}
@@ -588,6 +706,146 @@ export default function DashboardPage() {
                                 ) : (
                                   <Copy className="w-4 h-4" />
                                 )}
+                              </button>
+
+                              {/* Delete Audit History Row */}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteAudit(item.id)}
+                                disabled={deletingAuditId === item.id}
+                                aria-label="Delete audit"
+                                className="p-1.5 rounded-xl bg-slate-100 hover:bg-red-500/10 text-slate-400 hover:text-red-500 dark:bg-white/5 dark:hover:bg-red-500/20 transition-all cursor-pointer disabled:opacity-40"
+                                title="Remove from history"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab 2: Saved Snapshots & Version History */}
+              {activeTab === 'snapshots' && (
+                <div className="space-y-3">
+                  {filteredSnapshots.length === 0 ? (
+                    <div className="py-12 text-center space-y-3">
+                      <History className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
+                      <h4 className="text-base font-bold text-slate-800 dark:text-slate-200">
+                        {searchQuery ? 'No matching snapshots found' : 'No saved snapshots yet'}
+                      </h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                        {searchQuery
+                          ? 'Try searching with a different URL or snapshot label.'
+                          : 'Every full audit you perform is automatically saved as a versioned cloud snapshot so you can restore and diff it anytime.'}
+                      </p>
+                      {!searchQuery && (
+                        <Link
+                          href="/"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold transition-all shadow-xs"
+                        >
+                          <Search className="w-3.5 h-3.5" />
+                          <span>Run an Audit to Create Baseline</span>
+                        </Link>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100 dark:divide-white/5">
+                      {filteredSnapshots.map((item) => {
+                        const dateStr = new Date(item.created_at).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        });
+
+                        return (
+                          <div
+                            key={item.id}
+                            className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 first:pt-0 last:pb-0"
+                          >
+                            <div className="space-y-1.5 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-teal-500/10 text-teal-700 dark:text-teal-400 border border-teal-500/20">
+                                  <History className="w-3 h-3" />
+                                  <span>{item.label || 'Saved Snapshot'}</span>
+                                </span>
+                                {item.target_keyword && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-600 dark:text-slate-300">
+                                    <Target className="w-3 h-3 text-emerald-500" />
+                                    <span>Query: "{item.target_keyword}"</span>
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={item.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors truncate flex items-center gap-1.5"
+                                >
+                                  <span>{item.url}</span>
+                                  <ExternalLink className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                </a>
+                              </div>
+
+                              <div className="flex items-center gap-3 text-[11px] text-slate-400 font-mono">
+                                <span>Saved on {dateStr}</span>
+                                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">• Cloud Synced</span>
+                              </div>
+                            </div>
+
+                            {/* Score & Snapshot Actions */}
+                            <div className="flex items-center gap-2 shrink-0">
+                              {item.score !== null && (
+                                <div
+                                  className={`px-3 py-1 rounded-xl text-xs font-mono font-bold border ${
+                                    item.score >= 80
+                                      ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                                      : item.score >= 50
+                                      ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                                      : 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20'
+                                  }`}
+                                >
+                                  {item.score}/100
+                                </div>
+                              )}
+
+                              {/* Restore Full Audit Report (0s latency) */}
+                              <Link
+                                href={`/audit?snapshotId=${item.id}`}
+                                className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs"
+                                title="Open full snapshot report with zero latency"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>Open Report</span>
+                              </Link>
+
+                              {/* Compare Diff */}
+                              <Link
+                                href={`/audit?snapshotId=${item.id}&openDiff=true`}
+                                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200/80 dark:border-white/10"
+                                title="Compare against live or other snapshots"
+                              >
+                                <GitCompare className="w-3.5 h-3.5 text-slate-400" />
+                                <span className="hidden sm:inline">Compare Diff</span>
+                              </Link>
+
+                              {/* Delete Snapshot */}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSnapshot(item.id)}
+                                disabled={deletingSnapshotId === item.id}
+                                aria-label="Delete snapshot"
+                                className="p-1.5 rounded-xl bg-slate-100 hover:bg-red-500/10 text-slate-400 hover:text-red-500 dark:bg-white/5 dark:hover:bg-red-500/20 transition-all cursor-pointer disabled:opacity-40"
+                                title="Delete saved snapshot"
+                              >
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
                           </div>

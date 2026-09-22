@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { BatchAuditResponse, SinglePageAudit, KeywordGapAnalysis } from '@/types/seo';
-import { analyzeKeywordGaps } from '@/lib/keyword-gap';
 import {
   Search,
   Plus,
@@ -38,54 +37,12 @@ import {
   Link2,
   GitFork,
   RotateCcw,
+  Network,
+  FileEdit,
 } from 'lucide-react';
-import { triggerToolExecutionFeedback } from '@/lib/feedback-trigger';
-import { AuditSkeleton } from '@/components/AuditSkeleton';
-import { KeywordGapSkeleton, ContentBriefSkeleton, ComparisonMatrixSkeleton } from '@/components/SkeletonComponents';
 import { CookieConsentBanner } from '@/components/CookieConsentBanner';
 import { SpotlightCard } from '@/components/SpotlightCard';
 import { SerpComparisonToggle } from '@/components/SerpComparisonToggle';
-
-// Lazy-loaded heavy result & modal components (reduces initial JS payload by ~209 KiB)
-const SerpDecisionCenter = dynamic(
-  () => import('@/components/SerpDecisionCenter').then((mod) => mod.SerpDecisionCenter),
-  {
-    loading: () => <AuditSkeleton />,
-    ssr: false,
-  }
-);
-
-const KeywordGapMatrix = dynamic(
-  () => import('@/components/KeywordGapMatrix').then((mod) => mod.KeywordGapMatrix),
-  {
-    loading: () => <KeywordGapSkeleton />,
-    ssr: false,
-  }
-);
-
-const ContentBriefGenerator = dynamic(
-  () => import('@/components/ContentBriefGenerator').then((mod) => mod.ContentBriefGenerator),
-  {
-    loading: () => <ContentBriefSkeleton />,
-    ssr: false,
-  }
-);
-
-const ComparisonMatrix = dynamic(
-  () => import('@/components/ComparisonMatrix').then((mod) => mod.ComparisonMatrix),
-  {
-    loading: () => <ComparisonMatrixSkeleton />,
-    ssr: false,
-  }
-);
-
-const SingleAuditCard = dynamic(
-  () => import('@/components/SingleAuditCard').then((mod) => mod.SingleAuditCard),
-  {
-    loading: () => <AuditSkeleton />,
-    ssr: false,
-  }
-);
 
 const ProUpgradeModal = dynamic(
   () => import('@/components/ProUpgradeModal').then((mod) => mod.ProUpgradeModal),
@@ -100,19 +57,15 @@ const ACTIVE_AUDIT_STORAGE_KEY = 'analyzeserp_active_audit_session';
 interface PersistedAuditSession {
   urls: string[];
   targetKeyword: string;
-  auditResponse: BatchAuditResponse;
-  keywordGapAnalysis: KeywordGapAnalysis | null;
   savedAt: number;
 }
 
 export default function Home() {
+  const router = useRouter();
   const [urls, setUrls] = useState<string[]>(['']);
   const [targetKeyword, setTargetKeyword] = useState<string>('');
-  const [isKeywordExpanded, setIsKeywordExpanded] = useState<boolean>(false);
-  const [showDeepDiveData, setShowDeepDiveData] = useState<boolean>(false);
-  const [isAuditing, setIsAuditing] = useState(false);
-  const [auditResponse, setAuditResponse] = useState<BatchAuditResponse | null>(null);
-  const [keywordGapAnalysis, setKeywordGapAnalysis] = useState<KeywordGapAnalysis | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasActiveAudit, setHasActiveAudit] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [dailyAuditCount, setDailyAuditCount] = useState<number>(0);
   const [isProModalOpen, setIsProModalOpen] = useState(false);
@@ -157,46 +110,23 @@ export default function Home() {
       setIsQuotaBarDismissed(true);
     }
 
-    // Auto-hydrate saved audit session (survives OAuth login, page reloads, tab closure within 24h)
+    // Check if an active audit session exists in localStorage for quick navigation
     try {
       const storedAudit = localStorage.getItem(ACTIVE_AUDIT_STORAGE_KEY);
       if (storedAudit) {
-        const parsed: PersistedAuditSession = JSON.parse(storedAudit);
+        const parsed = JSON.parse(storedAudit);
         const isFresh = Date.now() - (parsed.savedAt || 0) < 24 * 60 * 60 * 1000;
-        if (isFresh && parsed.auditResponse && parsed.auditResponse.results?.length > 0) {
-          setUrls(parsed.urls && parsed.urls.length > 0 ? parsed.urls : ['']);
-          setTargetKeyword(parsed.targetKeyword || '');
-          setAuditResponse(parsed.auditResponse);
-          setKeywordGapAnalysis(parsed.keywordGapAnalysis || null);
-
-          // If returning from an auth login or URL requested results anchor
-          const shouldScroll =
-            typeof window !== 'undefined' &&
-            (window.location.hash === '#audit-results-container' ||
-              localStorage.getItem('analyzeserp_just_logged_in') === 'true' ||
-              window.location.search.includes('callbackUrl'));
-
-          if (shouldScroll) {
-            try {
-              localStorage.removeItem('analyzeserp_just_logged_in');
-            } catch (e) {}
-            setTimeout(() => {
-              const el = document.getElementById('audit-results-container');
-              if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
-            }, 350);
-          }
+        if (isFresh && parsed.urls && parsed.urls.length > 0) {
+          setHasActiveAudit(true);
         }
       }
     } catch (auditRestoreErr) {
-      console.warn('[Storage] Failed to restore active audit session:', auditRestoreErr);
+      console.warn('[Storage] Failed to check active audit session:', auditRestoreErr);
     }
   }, []);
 
   const handleClearAudit = () => {
-    setAuditResponse(null);
-    setKeywordGapAnalysis(null);
+    setHasActiveAudit(false);
     setUrls(['']);
     setTargetKeyword('');
     setErrorMsg(null);
@@ -236,9 +166,9 @@ export default function Home() {
   };
 
   const handleTrySample = () => {
-    setTargetKeyword('seo competitor analysis tool');
-    setUrls(['https://analyzeserp.com', 'https://vercel.com']);
-    setErrorMsg(null);
+    const sampleUrls = ['https://analyzeserp.com', 'https://vercel.com'];
+    const sampleKw = 'seo competitor analysis tool';
+    router.push(`/audit?urls=${encodeURIComponent(sampleUrls.join(','))}&keyword=${encodeURIComponent(sampleKw)}`);
   };
 
   const handleAuditSubmit = async (e: React.FormEvent) => {
@@ -261,58 +191,13 @@ export default function Home() {
       return;
     }
 
-    setIsAuditing(true);
-    setAuditResponse(null);
-    setKeywordGapAnalysis(null);
-
-    try {
-      const res = await fetch('/api/audit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ urls: validUrls }),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        if (errData.isQuotaExceeded || res.status === 403) {
-          const seconds = errData.cooldownSeconds || 120;
-          setCooldownSeconds(seconds);
-          setIsCooldownActive(true);
-        }
-        throw new Error(errData.error || 'Server error running competitor audit.');
-      }
-
-      const data: BatchAuditResponse = await res.json();
-      setAuditResponse(data);
-
-      const successfulAudits = data.results.filter((r) => r.status === 'success');
-      let gapAnalysis: KeywordGapAnalysis | null = null;
-      if (successfulAudits.length >= 2) {
-        gapAnalysis = analyzeKeywordGaps(successfulAudits);
-        setKeywordGapAnalysis(gapAnalysis);
-      }
-
-      // Persist active audit to localStorage so OAuth login / refresh never wipes audit data
-      try {
-        const sessionPayload: PersistedAuditSession = {
-          urls: validUrls,
-          targetKeyword,
-          auditResponse: data,
-          keywordGapAnalysis: gapAnalysis,
-          savedAt: Date.now(),
-        };
-        localStorage.setItem(ACTIVE_AUDIT_STORAGE_KEY, JSON.stringify(sessionPayload));
-      } catch (saveErr) {
-        console.warn('[Storage] Failed to persist active audit session:', saveErr);
-      }
-
-      incrementDailyQuota(validUrls.length);
-      triggerToolExecutionFeedback();
-    } catch (err: any) {
-      setErrorMsg(err.message || 'An unexpected error occurred while fetching audit data.');
-    } finally {
-      setIsAuditing(false);
+    setIsSubmitting(true);
+    const queryParams = new URLSearchParams();
+    queryParams.set('urls', validUrls.join(','));
+    if (targetKeyword.trim()) {
+      queryParams.set('keyword', targetKeyword.trim());
     }
+    router.push(`/audit?${queryParams.toString()}`);
   };
 
   const softwareSchema = {
@@ -527,28 +412,37 @@ export default function Home() {
                 </div>
               )}
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-                <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={addUrlInput}
                     disabled={urls.length >= 5}
-                    className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all border border-slate-200 dark:border-white/10 disabled:opacity-50 cursor-pointer active:scale-[0.98]"
+                    className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200 dark:border-white/10 disabled:opacity-50 cursor-pointer active:scale-[0.98]"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Competitor URL</span>
                   </button>
 
-                  {auditResponse && (
-                    <button
-                      type="button"
-                      onClick={handleClearAudit}
-                      className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all border border-slate-200 dark:border-white/10 cursor-pointer active:scale-[0.98]"
-                      title="Clear current audit and start a fresh benchmark"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      <span>Start New Audit</span>
-                    </button>
+                  {hasActiveAudit && (
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href="/audit"
+                        className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold flex items-center gap-1.5 transition-all border border-emerald-500/20 cursor-pointer active:scale-[0.98]"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>View Active Audit</span>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={handleClearAudit}
+                        className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200 dark:border-white/10 cursor-pointer active:scale-[0.98]"
+                        title="Clear current audit and start a fresh benchmark"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>Clear Audit</span>
+                      </button>
+                    </div>
                   )}
 
                   <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 tabular-nums">
@@ -556,109 +450,32 @@ export default function Home() {
                   </span>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={isAuditing}
-                  className="w-full sm:w-auto px-7 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-sm shadow-emerald-600/20 active:scale-[0.98] cursor-pointer disabled:opacity-50"
-                >
-                  {isAuditing ? (
-                    <>
-                      <Zap className="w-4 h-4 animate-spin" />
-                      <span>Running SEO Audit...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-4 h-4" />
-                      <span>Analyze Competitor SEO</span>
-                    </>
-                  )}
-                </button>
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-4.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-2 transition-all shadow-sm shadow-emerald-600/20 active:scale-[0.98] cursor-pointer disabled:opacity-50 ml-auto sm:ml-0"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Zap className="w-3.5 h-3.5 animate-spin" />
+                        <span>Opening Audit...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-3.5 h-3.5" />
+                        <span>Analyze Competitor SEO</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
         </div>
 
-        {/* Audit Results Dashboard */}
-        {isAuditing ? (
-          <AuditSkeleton />
-        ) : auditResponse && auditResponse.results.length > 0 ? (
-          <div id="audit-results-container" className="space-y-12 animate-in fade-in duration-300">
-            {/* 1. SERP Consensus & Master Priority Action Center */}
-            <SerpDecisionCenter
-              results={auditResponse.results}
-              targetUrl={urls.map((u) => u.trim()).filter(Boolean)[0]}
-              targetKeyword={targetKeyword.trim() || undefined}
-            />
-
-            {/* 2. Side-by-Side Keyword Gap Matrix */}
-            {auditResponse.results.filter((r) => r.status === 'success').length >= 2 && (
-              <div id="keyword-gap-section" className="space-y-4 pt-4">
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 pb-2 border-b border-slate-200/80 dark:border-white/[0.08]">
-                  <div>
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 mb-1.5">
-                      <Target className="w-3 h-3" />
-                      <span>Stage 02 · Editorial &amp; Semantic Strategy</span>
-                    </div>
-                    <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                      Competitor Keyword Gaps &amp; Topic Matrix
-                    </h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                      Cross-compare search terminology between your target page and ranking competitors to eliminate topic gaps.
-                    </p>
-                  </div>
-                </div>
-                <KeywordGapMatrix results={auditResponse.results.filter((r) => r.status === 'success')} />
-              </div>
-            )}
-
-            {/* 3. Architected Strategic Content Brief Generator Export */}
-            {auditResponse.results.filter((r) => r.status === 'success').length > 0 && (
-              <div id="content-brief-section">
-                <ContentBriefGenerator results={auditResponse.results.filter((r) => r.status === 'success')} />
-              </div>
-            )}
-
-            {/* 4. Deep-Dive Raw Matrix & Single Page Inspector (Collapsible) */}
-            <div id="deep-dive-section" className="pt-6 border-t border-slate-200 dark:border-white/10 space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                    <Layers className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                    Deep-Dive Technical Data & Benchmark Inspector
-                  </h3>
-                  <p className="text-xs text-slate-700 dark:text-gray-200 mt-0.5">
-                    Raw tabular comparison data, N-gram keyword frequency tables, and individual DOM audit cards.
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setShowDeepDiveData(!showDeepDiveData)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 text-xs font-bold flex items-center gap-1.5 transition-all border border-slate-200 dark:border-white/10 cursor-pointer"
-                >
-                  <span>{showDeepDiveData ? 'Hide Raw Technical Metrics' : 'Show Deep-Dive Technical Inspector'}</span>
-                  {showDeepDiveData ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </button>
-              </div>
-
-              {showDeepDiveData && (
-                <div className="space-y-8 animate-in fade-in duration-300">
-                  <ComparisonMatrix results={auditResponse.results} />
-
-                  <div className="space-y-6 pt-2">
-                    <h4 className="text-base font-bold text-slate-800 dark:text-slate-100">
-                      Single Page DOM Inspector ({auditResponse.results.length} URLs)
-                    </h4>
-                    {auditResponse.results.map((audit, idx) => (
-                      <SingleAuditCard key={idx} audit={audit} />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="max-w-5xl mx-auto space-y-16 pt-12 border-t border-slate-200/80 dark:border-white/[0.08]">
+        {/* Competitor SERP Intelligence Landing Content */}
+        <div className="max-w-5xl mx-auto space-y-16 pt-12 border-t border-slate-200/80 dark:border-white/[0.08]">
             {/* 1. How It Works & Target Personas */}
             <section className="space-y-6">
               <div className="space-y-2 text-center max-w-2xl mx-auto">
@@ -1165,7 +982,7 @@ export default function Home() {
                 </div>
                 <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-slate-500 dark:text-slate-400 shrink-0 bg-slate-100 dark:bg-white/[0.03] px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/[0.06]">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>8 Live Standalone Engines</span>
+                  <span>11 Live Standalone Engines</span>
                 </div>
               </div>
 
@@ -1401,6 +1218,93 @@ export default function Home() {
                     <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </Link>
+
+                {/* 9. Featured Snippet (Pos 0) Optimizer */}
+                <Link
+                  href="/featured-snippet-optimizer"
+                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-cyan-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center border border-cyan-500/20 group-hover:scale-105 transition-transform">
+                        <Target className="w-4 h-4" />
+                      </div>
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 font-bold uppercase tracking-wider">
+                        Position 0 Bait
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                        Snippet Optimizer
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
+                        Format definition bait, comparison tables, and ordered step lists to win Google Position 0.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                    <span>Optimize snippets</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+
+                {/* 10. Live SEO Content Scratchpad */}
+                <Link
+                  href="/content-scratchpad"
+                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-105 transition-transform">
+                        <FileEdit className="w-4 h-4" />
+                      </div>
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wider">
+                        Lexical Scorer
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        Content Scratchpad
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
+                        Real-time drafting canvas with live keyword density, heading distribution, and word metrics.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    <span>Draft content</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+
+                {/* 11. Internal Link Topology Mapper */}
+                <Link
+                  href="/internal-link-mapper"
+                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-purple-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center border border-purple-500/20 group-hover:scale-105 transition-transform">
+                        <Network className="w-4 h-4" />
+                      </div>
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20 font-bold uppercase tracking-wider">
+                        Topology &amp; Anchors
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                        Internal Link Mapper
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
+                        Map crawl depth, detect orphaned URLs, and audit internal PageRank anchor text distribution.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                    <span>Map topology</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
               </div>
 
               {/* Bottom Reassurance Ribbon */}
@@ -1416,7 +1320,6 @@ export default function Home() {
               </div>
             </section>
           </div>
-        )}
       </main>
 
       <Footer />

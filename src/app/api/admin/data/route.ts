@@ -1,13 +1,33 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { getAllFeedback, getActivityLogs } from '@/lib/db';
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const authKey = req.headers.get('x-admin-key') || searchParams.get('key');
-    const secretKey = process.env.ADMIN_SECRET_KEY || 'analyzeserp-admin-2026';
+    const secretKey = process.env.ADMIN_SECRET_KEY;
+    if (!secretKey) {
+      return NextResponse.json(
+        { error: 'Admin API disabled. ADMIN_SECRET_KEY is not configured on this server.' },
+        { status: 503 }
+      );
+    }
 
-    if (authKey !== secretKey) {
+    const authKey = req.headers.get('x-admin-key');
+    if (!authKey) {
+      return NextResponse.json(
+        { error: 'Unauthorized Admin Access. Missing x-admin-key header.' },
+        { status: 401 }
+      );
+    }
+
+    const authKeyBuf = Buffer.from(authKey);
+    const secretKeyBuf = Buffer.from(secretKey);
+
+    const isMatch =
+      authKeyBuf.length === secretKeyBuf.length &&
+      crypto.timingSafeEqual(authKeyBuf, secretKeyBuf);
+
+    if (!isMatch) {
       return NextResponse.json({ error: 'Unauthorized Admin Access. Invalid Key.' }, { status: 401 });
     }
 

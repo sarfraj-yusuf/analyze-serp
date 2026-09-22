@@ -1,3 +1,5 @@
+import { validateUrlSafety } from './ssrf-protection';
+
 export interface RedirectHop {
   hopNumber: number;
   url: string;
@@ -42,6 +44,9 @@ export function normalizeUrlInput(rawUrl: string): string {
  */
 export async function traceRedirectChain(rawUrl: string): Promise<RedirectChainReportData> {
   const initialUrl = normalizeUrlInput(rawUrl);
+  // Enforce SSRF validation on the initial entry URL
+  await validateUrlSafety(initialUrl);
+
   const hops: RedirectHop[] = [];
   const visitedUrls = new Set<string>();
 
@@ -58,6 +63,25 @@ export async function traceRedirectChain(rawUrl: string): Promise<RedirectChainR
     }
     visitedUrls.add(currentUrl);
 
+    // Validate current URL safety before issuing outbound network request
+    try {
+      await validateUrlSafety(currentUrl);
+    } catch (ssrfErr: any) {
+      hops.push({
+        hopNumber: hopIndex,
+        url: currentUrl,
+        statusCode: 0,
+        statusText: `Blocked: ${ssrfErr.message || 'SSRF / Private IP Prohibited'}`,
+        destinationUrl: null,
+        responseTimeMs: 0,
+        server: 'Security Firewall',
+        isHttps: currentUrl.startsWith('https://'),
+        isPermanent: false,
+        isTemporary: false,
+      });
+      break;
+    }
+
     const startTime = Date.now();
     let response: Response;
 
@@ -68,8 +92,9 @@ export async function traceRedirectChain(rawUrl: string): Promise<RedirectChainR
         signal: AbortSignal.timeout(5000), // Enforce 5-second per-hop timeout safeguard
         headers: {
           'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 AnalyzeSERP-RedirectInspector/1.0',
-          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
         },
       });
     } catch (err: any) {
@@ -131,7 +156,25 @@ export async function traceRedirectChain(rawUrl: string): Promise<RedirectChainR
 
     // Check if redirect continues
     if ((statusCode >= 300 && statusCode < 400) && resolvedDestination) {
-      currentUrl = resolvedDestination;
+      // Validate destination URL before setting it as the next hop
+      try {
+        await validateUrlSafety(resolvedDestination);
+        currentUrl = resolvedDestination;
+      } catch (hopSsrfErr: any) {
+        hops.push({
+          hopNumber: hopIndex + 1,
+          url: resolvedDestination,
+          statusCode: 0,
+          statusText: `Blocked: Redirected to private/internal IP (${hopSsrfErr.message || 'SSRF Prohibited'})`,
+          destinationUrl: null,
+          responseTimeMs: 0,
+          server: 'Security Firewall',
+          isHttps: resolvedDestination.startsWith('https://'),
+          isPermanent: false,
+          isTemporary: false,
+        });
+        break;
+      }
     } else {
       // Reached final destination (200, 404, 500, etc.)
       break;

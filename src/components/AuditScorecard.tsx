@@ -1,41 +1,72 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SinglePageAudit } from '@/types/seo';
-import { CheckCircle2, AlertTriangle, XCircle, Check } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, Check, Sparkles } from 'lucide-react';
 import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
+import { AiRewriteModal } from './AiRewriteModal';
+import { AiFixModal } from './AiFixModal';
 
 interface AuditScorecardProps {
   audit: SinglePageAudit;
 }
 
+interface ChecklistItem {
+  id: string;
+  title: string;
+  desc: string;
+  status: 'pass' | 'warn' | 'fail';
+  aiAction?: {
+    label: string;
+    type: 'rewrite-title' | 'rewrite-desc' | 'fix-headings' | 'fix-images' | 'fix-content';
+  };
+}
+
 export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
+  const [isRewriteModalOpen, setIsRewriteModalOpen] = useState(false);
+  const [fixModalData, setFixModalData] = useState<{
+    issueTitle: string;
+    issueCategory: string;
+    issueDescription: string;
+  } | null>(null);
+
   if (audit.status === 'error') return null;
 
   const { meta, wordCount, headings, imageAudit, keywords } = audit;
 
   // 1. Calculate On-Page SEO Basics Score (0 - 100)
   let score = 0;
-  const checklist: { title: string; desc: string; status: 'pass' | 'warn' | 'fail' }[] = [];
+  const checklist: ChecklistItem[] = [];
 
   // Check 1: Title Tag (Max 15 pts)
   if (meta.titleLength > 0 && !meta.titleTruncated) {
     score += 15;
     checklist.push({
+      id: 'title',
       title: 'Title Tag Length Optimal',
       desc: `Title tag is ${meta.titleLength} characters (~${meta.titlePixelEstimate}px). It will display cleanly on search engine result pages.`,
       status: 'pass',
     });
   } else if (meta.titleLength === 0) {
     checklist.push({
+      id: 'title',
       title: 'Missing Title Tag',
       desc: 'No <title> tag was found. Add a descriptive title tag containing your primary keyword.',
       status: 'fail',
+      aiAction: {
+        label: 'AI Rewrite Title',
+        type: 'rewrite-title',
+      },
     });
   } else {
     score += 8;
     checklist.push({
+      id: 'title',
       title: 'Title Tag May Truncate',
       desc: `Title tag is ${meta.titleLength} characters (~${meta.titlePixelEstimate}px). Consider trimming under 60 characters to avoid SERP truncation.`,
       status: 'warn',
+      aiAction: {
+        label: 'AI Rewrite Title',
+        type: 'rewrite-title',
+      },
     });
   }
 
@@ -43,22 +74,33 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
   if (meta.descriptionLength > 0 && !meta.descriptionTruncated) {
     score += 15;
     checklist.push({
+      id: 'description',
       title: 'Meta Description Optimal',
       desc: `Meta description is ${meta.descriptionLength} characters. Great length for driving organic search click-through rates.`,
       status: 'pass',
     });
   } else if (meta.descriptionLength === 0) {
     checklist.push({
+      id: 'description',
       title: 'Missing Meta Description',
       desc: 'No meta description detected. Add a compelling 120-155 character description to boost CTR.',
       status: 'fail',
+      aiAction: {
+        label: 'AI Write Description',
+        type: 'rewrite-desc',
+      },
     });
   } else {
     score += 8;
     checklist.push({
+      id: 'description',
       title: 'Meta Description Too Long',
       desc: `Meta description is ${meta.descriptionLength} characters. Trim to under 160 characters to prevent snippet truncation.`,
       status: 'warn',
+      aiAction: {
+        label: 'AI Shorten Description',
+        type: 'rewrite-desc',
+      },
     });
   }
 
@@ -69,29 +111,45 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
   if (h1Count === 1 && h2Count > 0) {
     score += 20;
     checklist.push({
+      id: 'headings',
       title: 'Heading Hierarchy Well-Structured',
       desc: `Page contains exactly 1 H1 tag and ${h2Count} sub-topic H2 headings for clean content organization.`,
       status: 'pass',
     });
   } else if (h1Count === 0) {
     checklist.push({
+      id: 'headings',
       title: 'Missing H1 Heading',
       desc: 'No H1 tag found. Ensure your page includes a clear single H1 main title.',
       status: 'fail',
+      aiAction: {
+        label: 'AI Fix Guide',
+        type: 'fix-headings',
+      },
     });
   } else if (h1Count > 1) {
     score += 10;
     checklist.push({
+      id: 'headings',
       title: 'Multiple H1 Headings Detected',
       desc: `Detected ${h1Count} H1 tags. Best practice is to use a single H1 tag and structure sub-topics with H2/H3 tags.`,
       status: 'warn',
+      aiAction: {
+        label: 'AI Fix Guide',
+        type: 'fix-headings',
+      },
     });
   } else {
     score += 10;
     checklist.push({
+      id: 'headings',
       title: 'Limited Sub-Headings',
       desc: 'Few H2 headings detected. Break up your article with H2 and H3 headings to improve readability.',
       status: 'warn',
+      aiAction: {
+        label: 'AI Fix Guide',
+        type: 'fix-headings',
+      },
     });
   }
 
@@ -99,6 +157,7 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
   if (wordCount >= 800) {
     score += 20;
     checklist.push({
+      id: 'wordCount',
       title: 'Comprehensive Word Volume',
       desc: `Content body contains ${wordCount.toLocaleString()} words. Provides sufficient topical depth for search engine evaluation.`,
       status: 'pass',
@@ -106,6 +165,7 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
   } else if (wordCount >= 450) {
     score += 14;
     checklist.push({
+      id: 'wordCount',
       title: 'Moderate Content Volume',
       desc: `Content contains ${wordCount} words. Consider adding sub-sections or FAQ topics to expand coverage.`,
       status: 'pass',
@@ -113,16 +173,26 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
   } else if (wordCount >= 250) {
     score += 8;
     checklist.push({
+      id: 'wordCount',
       title: 'Short Content Volume',
       desc: `Content contains ${wordCount} words. Suitable for short pages, but may lack depth for competitive topics.`,
       status: 'warn',
+      aiAction: {
+        label: 'AI Fix Guide',
+        type: 'fix-content',
+      },
     });
   } else {
     score += 4;
     checklist.push({
+      id: 'wordCount',
       title: 'Thin Content Volume',
       desc: `Content body contains only ${wordCount} words. Expand your article to compete effectively on SERPs.`,
       status: 'fail',
+      aiAction: {
+        label: 'AI Fix Guide',
+        type: 'fix-content',
+      },
     });
   }
 
@@ -130,6 +200,7 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
   if (imageAudit.totalImages > 0 && imageAudit.missingAltCount === 0) {
     score += 15;
     checklist.push({
+      id: 'imageAlt',
       title: 'Image Alt Attributes Optimal',
       desc: `All ${imageAudit.totalImages} images contain descriptive ALT text for search engines and accessibility.`,
       status: 'pass',
@@ -137,6 +208,7 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
   } else if (imageAudit.totalImages === 0) {
     score += 10;
     checklist.push({
+      id: 'imageAlt',
       title: 'Text-Only Page (No Images)',
       desc: 'No images detected on page. HTML markup is clean, though adding visual diagrams can improve user engagement.',
       status: 'pass',
@@ -145,9 +217,14 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
     const pts = Math.max(0, Math.round(12 - imageAudit.missingAltCount * 2.5));
     score += pts;
     checklist.push({
+      id: 'imageAlt',
       title: `${imageAudit.missingAltCount} Images Missing Alt Text`,
       desc: `Found ${imageAudit.missingAltCount} image(s) lacking alt attributes. Add descriptive alt text for accessibility & image search SEO.`,
       status: imageAudit.missingAltCount > 3 ? 'fail' : 'warn',
+      aiAction: {
+        label: 'AI Fix Guide',
+        type: 'fix-images',
+      },
     });
   }
 
@@ -160,6 +237,7 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
   if (!hasStuffing) {
     score += 15;
     checklist.push({
+      id: 'keywords',
       title: 'Keyword Density Within Safe Limits',
       desc: 'No keyword stuffing or phrase overuse detected. Keyword distribution appears natural.',
       status: 'pass',
@@ -173,9 +251,14 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
       'keyword';
 
     checklist.push({
+      id: 'keywords',
       title: 'High Keyword Density Warning',
       desc: `Keyword phrase "${overusedPhrase}" shows high density. Reduce frequency to ensure natural reading flow.`,
       status: 'warn',
+      aiAction: {
+        label: 'AI Fix Guide',
+        type: 'fix-content',
+      },
     });
   }
 
@@ -193,6 +276,23 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
       : score >= 65
       ? 'Good (Minor Tweaks Needed)'
       : 'Needs On-Page Optimization';
+
+  const handleTriggerAiAction = (action: NonNullable<ChecklistItem['aiAction']>, item: ChecklistItem) => {
+    if (action.type === 'rewrite-title' || action.type === 'rewrite-desc') {
+      setIsRewriteModalOpen(true);
+    } else {
+      setFixModalData({
+        issueTitle: item.title,
+        issueCategory:
+          action.type === 'fix-images'
+            ? 'Image SEO & Accessibility'
+            : action.type === 'fix-content'
+            ? 'Topical Content Depth'
+            : 'Heading Hierarchy',
+        issueDescription: item.desc,
+      });
+    }
+  };
 
   return (
     <div className="p-6 sm:p-8 rounded-2xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-6 my-6">
@@ -267,18 +367,51 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
                 </div>
               )}
 
-              <div className="space-y-0.5">
+              <div className="space-y-1.5 flex-1 min-w-0">
                 <div className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                   <span>{item.title}</span>
                 </div>
                 <p className="text-[11px] text-slate-600 dark:text-gray-400 leading-relaxed">
                   {item.desc}
                 </p>
+                {item.aiAction && (
+                  <button
+                    type="button"
+                    onClick={() => handleTriggerAiAction(item.aiAction!, item)}
+                    className="mt-1 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-[11px] font-medium flex items-center gap-1.5 transition-colors cursor-pointer self-start"
+                  >
+                    <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                    <span>{item.aiAction.label}</span>
+                  </button>
+                )}
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Contextual AI Modals */}
+      {isRewriteModalOpen && (
+        <AiRewriteModal
+          isOpen={isRewriteModalOpen}
+          onClose={() => setIsRewriteModalOpen(false)}
+          currentTitle={meta.title}
+          currentDescription={meta.description}
+          pageUrl={audit.url}
+          targetKeyword={keywords.oneGram?.[0]?.phrase || ''}
+        />
+      )}
+
+      {fixModalData && (
+        <AiFixModal
+          isOpen={!!fixModalData}
+          onClose={() => setFixModalData(null)}
+          issueTitle={fixModalData.issueTitle}
+          issueCategory={fixModalData.issueCategory}
+          issueDescription={fixModalData.issueDescription}
+          pageUrl={audit.url}
+        />
+      )}
     </div>
   );
 };
