@@ -11,6 +11,7 @@ import {
   logSecurityIncident,
   getSiteConfigurations,
 } from '@/lib/db';
+import { getDetectedSuspiciousBots } from '@/lib/rate-limiter';
 
 export async function GET(req: Request) {
   try {
@@ -231,6 +232,42 @@ export async function GET(req: Request) {
       userTable: userTableData,
       feedbackTable: feedbackList,
       siteConfig,
+      suspiciousBots: (() => {
+        const liveBots = getDetectedSuspiciousBots();
+        const bannedIpSet = new Set(bannedIps.map((b) => b.ip_address));
+        const suspiciousBotsMap = new Map<string, any>();
+
+        // Include DB-logged suspicious bot flood incidents
+        securityIncidents
+          .filter((inc) => inc.incident_type === 'SUSPICIOUS_BOT_FLOOD')
+          .forEach((inc) => {
+            const isBanned = bannedIpSet.has(inc.ip_address);
+            suspiciousBotsMap.set(inc.ip_address, {
+              ip: inc.ip_address,
+              callsLastMinute: 50,
+              peakCount: 50,
+              severity: inc.severity || 'high',
+              details: inc.details || 'Automated Tool Scraping Flood (50+ calls/min)',
+              detectedAt: inc.created_at,
+              lastSeenAt: inc.created_at,
+              isBanned,
+              status: isBanned ? 'banned' : 'quarantined',
+            });
+          });
+
+        // Overlay with live real-time bot engine tracking
+        liveBots.forEach((bot) => {
+          suspiciousBotsMap.set(bot.ip, {
+            ...bot,
+            isBanned: bannedIpSet.has(bot.ip),
+            status: bannedIpSet.has(bot.ip) ? 'banned' : bot.status,
+          });
+        });
+
+        return Array.from(suspiciousBotsMap.values()).sort(
+          (a, b) => b.callsLastMinute - a.callsLastMinute
+        );
+      })(),
     });
   } catch (error: any) {
     console.error('[Admin Data API Error]', error);

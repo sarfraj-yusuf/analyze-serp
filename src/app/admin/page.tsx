@@ -51,6 +51,8 @@ import {
   EyeOff,
   Settings2,
   Wrench,
+  Bot,
+  Flame,
 } from 'lucide-react';
 
 interface DbUser {
@@ -222,6 +224,19 @@ interface AdminData {
   userTable: UserUsageRow[];
   feedbackTable: FeedbackRow[];
   siteConfig?: SiteConfigurations;
+  suspiciousBots?: SuspiciousBotInfo[];
+}
+
+export interface SuspiciousBotInfo {
+  ip: string;
+  callsLastMinute: number;
+  peakCount: number;
+  severity: 'high' | 'critical';
+  details: string;
+  detectedAt: string | Date;
+  lastSeenAt: string | Date;
+  isBanned: boolean;
+  status: 'active_flood' | 'quarantined' | 'banned';
 }
 
 export default function AdminPage() {
@@ -493,6 +508,18 @@ export default function AdminPage() {
     );
   }, [adminData?.bannedIps, searchQuery]);
 
+  // Filter Suspicious Bots
+  const filteredSuspiciousBots = useMemo(() => {
+    if (!adminData?.suspiciousBots) return [];
+    if (!searchQuery) return adminData.suspiciousBots;
+    const q = searchQuery.toLowerCase();
+    return adminData.suspiciousBots.filter((b) =>
+      b.ip.toLowerCase().includes(q) ||
+      b.details.toLowerCase().includes(q) ||
+      b.severity.toLowerCase().includes(q)
+    );
+  }, [adminData?.suspiciousBots, searchQuery]);
+
   // Execute Ban IP
   const handleBanIp = async (ipToBan: string, reasonToBan: string) => {
     if (!ipToBan || !ipToBan.trim()) return;
@@ -516,7 +543,17 @@ export default function AdminPage() {
       setNewBanIp('');
       setNewBanReason('');
       if (adminData && data.bannedIps) {
-        setAdminData((prev) => (prev ? { ...prev, bannedIps: data.bannedIps } : null));
+        setAdminData((prev) => {
+          if (!prev) return null;
+          const updatedBots = prev.suspiciousBots?.map((bot) =>
+            bot.ip === ipToBan.trim() ? { ...bot, isBanned: true, status: 'banned' as const } : bot
+          );
+          return {
+            ...prev,
+            bannedIps: data.bannedIps,
+            suspiciousBots: updatedBots,
+          };
+        });
       }
     } catch (err: any) {
       alert(`Error: ${err.message}`);
@@ -544,7 +581,17 @@ export default function AdminPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to unban IP');
       showToast(data.message || `IP ${ipToUnban} unbanned.`);
       if (adminData && data.bannedIps) {
-        setAdminData((prev) => (prev ? { ...prev, bannedIps: data.bannedIps } : null));
+        setAdminData((prev) => {
+          if (!prev) return null;
+          const updatedBots = prev.suspiciousBots?.map((bot) =>
+            bot.ip === ipToUnban ? { ...bot, isBanned: false, status: 'quarantined' as const } : bot
+          );
+          return {
+            ...prev,
+            bannedIps: data.bannedIps,
+            suspiciousBots: updatedBots,
+          };
+        });
       }
     } catch (err: any) {
       alert(`Error: ${err.message}`);
@@ -1703,7 +1750,13 @@ export default function AdminPage() {
                         {adminData.systemHealth?.incidents24hCount ?? 0}
                       </div>
                       <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5">
-                        <span>Rate limits, SSRF &amp; auth alerts</span>
+                        {adminData.suspiciousBots && adminData.suspiciousBots.length > 0 ? (
+                          <span className="text-rose-500 font-bold flex items-center gap-1">
+                            <Bot className="size-3" /> {adminData.suspiciousBots.length} bot flood{adminData.suspiciousBots.length > 1 ? 's' : ''} detected
+                          </span>
+                        ) : (
+                          <span>Rate limits, SSRF &amp; bot radar</span>
+                        )}
                       </div>
                     </div>
 
@@ -1828,6 +1881,134 @@ export default function AdminPage() {
                           Locked &amp; Enforced
                         </div>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Section: Suspicious Bot & Automated Scraper Threat Radar (50+ Calls/Min) */}
+                  <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 overflow-hidden shadow-sm space-y-4">
+                    <div className="p-4 sm:px-6 sm:py-4 border-b border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                          <Bot className="size-4 text-rose-500" />
+                          <span>Suspicious Bot &amp; Automated Scraper Radar</span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                            Threshold: 50+ calls/min
+                          </span>
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          Real-time velocity detector for bots and scrapers attempting to drain server bandwidth and crawling quotas
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {adminData.suspiciousBots && adminData.suspiciousBots.length > 0 ? (
+                          <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1.5">
+                            <span className="size-1.5 rounded-full bg-rose-500 animate-ping" />
+                            {adminData.suspiciousBots.length} High-Burst Threat{adminData.suspiciousBots.length > 1 ? 's' : ''} Detected
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+                            <span className="size-1.5 rounded-full bg-emerald-500" />
+                            0 Active Bot Threats (Clean)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Threat List Table or Clean State */}
+                    <div className="overflow-x-auto">
+                      {filteredSuspiciousBots.length > 0 ? (
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-100 dark:bg-white/5 uppercase text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 tracking-wider">
+                            <tr>
+                              <th className="px-6 py-3">Offending IP</th>
+                              <th className="px-6 py-3">Burst Velocity</th>
+                              <th className="px-6 py-3">Threat Classification</th>
+                              <th className="px-6 py-3">Severity</th>
+                              <th className="px-6 py-3">Status</th>
+                              <th className="px-6 py-3">Detected At</th>
+                              <th className="px-6 py-3 text-right">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200/80 dark:divide-white/5 font-mono">
+                            {filteredSuspiciousBots.map((bot) => {
+                              const isBanned = adminData.bannedIps?.some((b) => b.ip_address === bot.ip) || bot.isBanned;
+                              return (
+                                <tr key={bot.ip} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                                  <td className="px-6 py-4 font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
+                                    <Bot className="size-3.5 shrink-0" />
+                                    <span>{bot.ip}</span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
+                                      <Flame className="size-3 text-rose-500" />
+                                      {bot.peakCount || bot.callsLastMinute} calls / min
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4 font-sans text-slate-700 dark:text-slate-300">
+                                    {bot.details || 'Automated Tool Scraping Flood'}
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
+                                      bot.severity === 'critical'
+                                        ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/40'
+                                        : 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40'
+                                    }`}>
+                                      {bot.severity}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    {isBanned ? (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                                        <Ban className="size-3" /> Blacklisted
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                        <ShieldAlert className="size-3" /> Quarantined
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="px-6 py-4 text-[11px] text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                    {new Date(bot.detectedAt).toLocaleString()}
+                                  </td>
+                                  <td className="px-6 py-4 text-right font-sans">
+                                    {isBanned ? (
+                                      <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
+                                        Mitigated
+                                      </span>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setNewBanIp(bot.ip);
+                                          setNewBanReason(`Automated Bot Flood (${bot.peakCount || bot.callsLastMinute} calls/min)`);
+                                          handleBanIp(bot.ip, `Automated Bot Flood (${bot.peakCount || bot.callsLastMinute} calls/min)`);
+                                        }}
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-bold shadow-xs transition-all cursor-pointer"
+                                      >
+                                        <Ban className="size-3" />
+                                        <span>Blacklist Bot</span>
+                                      </button>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <div className="p-8 text-center space-y-2">
+                          <div className="inline-flex p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            <ShieldCheck className="size-6" />
+                          </div>
+                          <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                            Zero High-Velocity Scrapers Detected
+                          </p>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                            No IP has exceeded the 50+ tool calls/minute flood threshold in the active window. Normal rate limiters and crawler protections are actively monitoring all requests.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -2013,7 +2194,14 @@ export default function AdminPage() {
 
                                   {/* Incident Type */}
                                   <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200">
-                                    {inc.incident_type}
+                                    {inc.incident_type === 'SUSPICIOUS_BOT_FLOOD' ? (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30">
+                                        <Bot className="size-3 text-rose-500" />
+                                        <span>BOT FLOOD (50+/min)</span>
+                                      </span>
+                                    ) : (
+                                      inc.incident_type
+                                    )}
                                   </td>
 
                                   {/* Offending IP */}
