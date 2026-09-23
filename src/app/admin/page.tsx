@@ -53,6 +53,9 @@ import {
   Wrench,
   Bot,
   Flame,
+  Menu,
+  X,
+  LogOut,
 } from 'lucide-react';
 
 interface DbUser {
@@ -239,6 +242,8 @@ export interface SuspiciousBotInfo {
   status: 'active_flood' | 'quarantined' | 'banned';
 }
 
+export type AdminTab = 'overview' | 'users' | 'market' | 'security' | 'controls' | 'usage' | 'feedback';
+
 export default function AdminPage() {
   const [adminKey, setAdminKey] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -247,7 +252,8 @@ export default function AdminPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [adminData, setAdminData] = useState<AdminData | null>(null);
-  const [activeTab, setActiveTab] = useState<'users' | 'market' | 'security' | 'usage' | 'feedback' | 'controls'>('users');
+  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'pro' | 'free' | 'suspended'>('all');
   const [selectedToolFilter, setSelectedToolFilter] = useState('All');
@@ -636,7 +642,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Admin Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-white/10 pb-6">
           <div>
@@ -729,9 +735,213 @@ export default function AdminPage() {
           </div>
         ) : (
           adminData && (
-            <div className="space-y-8 animate-in fade-in duration-300">
-              {/* Executive Summary Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="flex flex-col md:flex-row items-start gap-6 animate-in fade-in duration-300">
+              {/* === LEFT SIDEBAR NAVIGATION === */}
+              <aside
+                className={`
+                  fixed inset-y-0 left-0 z-40 w-64 glass-panel border-r border-slate-200/80 dark:border-white/10 p-4 flex flex-col justify-between transition-transform duration-200 ease-in-out md:static md:translate-x-0 md:rounded-2xl md:border md:w-60 md:shrink-0
+                  ${isMobileSidebarOpen ? 'translate-x-0 shadow-2xl bg-white dark:bg-slate-950' : '-translate-x-full md:translate-x-0'}
+                `}
+              >
+                <div>
+                  {/* Mobile Drawer Header */}
+                  <div className="flex items-center justify-between pb-3 md:hidden border-b border-slate-200/80 dark:border-white/10 mb-3">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider font-mono">Console Menu</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsMobileSidebarOpen(false)}
+                      className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                      aria-label="Close menu"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
+
+                  {/* Sidebar Navigation Links */}
+                  <div className="space-y-1">
+                    <div className="px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                      Console Navigation
+                    </div>
+
+                    {[
+                      { id: 'overview' as const, label: 'Overview', icon: BarChart3, badge: null, badgeVariant: 'normal' },
+                      { id: 'users' as const, label: 'Users', icon: Users, badge: adminData.summary.totalRegisteredUsers, badgeVariant: 'normal' },
+                      { id: 'market' as const, label: 'Market Trends', icon: Globe, badge: adminData.marketIntelligence?.topDomains?.length || 0, badgeVariant: 'normal' },
+                      {
+                        id: 'security' as const,
+                        label: 'Security & Bots',
+                        icon: ShieldAlert,
+                        badge: (adminData.suspiciousBots?.length || 0) > 0 ? `${adminData.suspiciousBots?.length} Alert` : adminData.bannedIps?.length || null,
+                        badgeVariant: (adminData.suspiciousBots?.length || 0) > 0 ? 'alert' : 'normal',
+                      },
+                      { id: 'controls' as const, label: 'Site Controls', icon: Settings2, badge: null, badgeVariant: 'normal' },
+                      { id: 'usage' as const, label: 'Tool Logs', icon: Activity, badge: adminData.userTable?.length || 0, badgeVariant: 'normal' },
+                      { id: 'feedback' as const, label: 'Reviews', icon: MessageSquare, badge: adminData.feedbackTable?.length || 0, badgeVariant: 'normal' },
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeTab === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setActiveTab(item.id);
+                            setIsMobileSidebarOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
+                              : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 truncate">
+                            <Icon className="size-4 shrink-0" />
+                            <span className="truncate">{item.label}</span>
+                          </div>
+                          {item.badge !== null && item.badge !== undefined && (
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                                isActive
+                                  ? 'bg-white/20 text-white'
+                                  : item.badgeVariant === 'alert'
+                                  ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                                  : 'bg-slate-200/80 dark:bg-white/10 text-slate-600 dark:text-slate-400'
+                              }`}
+                            >
+                              {item.badge}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Sidebar Footer System Health */}
+                <div className="pt-4 border-t border-slate-200/80 dark:border-white/10 mt-6 space-y-3">
+                  <div className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 text-[11px] space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 dark:text-slate-400">Database</span>
+                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                        {adminData.systemHealth?.dbPingMs ?? -1} ms
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 dark:text-slate-400">Status</span>
+                      <span className="font-mono text-slate-700 dark:text-slate-300">
+                        {adminData.systemHealth?.status === 'healthy' ? 'Operational' : 'Degraded'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full py-2 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <LogOut className="size-3.5" />
+                    <span>Lock Panel</span>
+                  </button>
+                </div>
+              </aside>
+
+              {/* Mobile Drawer Backdrop */}
+              {isMobileSidebarOpen && (
+                <div
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  className="fixed inset-0 z-30 bg-black/40 backdrop-blur-xs md:hidden"
+                />
+              )}
+
+              {/* === RIGHT MAIN CONTENT AREA === */}
+              <div className="flex-1 min-w-0 space-y-6 w-full">
+                {/* Content Header & Universal Search */}
+                <div className="glass-panel p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => setIsMobileSidebarOpen(true)}
+                      className="p-2 rounded-xl border border-slate-200/80 dark:border-white/10 md:hidden hover:bg-slate-100 dark:hover:bg-white/5"
+                      aria-label="Open navigation sidebar"
+                    >
+                      <Menu className="size-4 text-slate-600 dark:text-slate-300" />
+                    </button>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        {activeTab === 'overview' && 'Executive Analytics & Engine Breakdown'}
+                        {activeTab === 'users' && `Registered Users Directory (${adminData.usersList?.length || 0})`}
+                        {activeTab === 'market' && `Competitor Intelligence & Search Trends (${adminData.marketIntelligence?.topDomains?.length || 0})`}
+                        {activeTab === 'security' && `System Health & Threat Radar (${adminData.securityIncidents?.length || 0})`}
+                        {activeTab === 'controls' && 'Live Site Controls & Announcements'}
+                        {activeTab === 'usage' && `Tool Activity & Session Logs (${adminData.userTable?.length || 0})`}
+                        {activeTab === 'feedback' && `Community Reviews & Suggestions (${adminData.feedbackTable?.length || 0})`}
+                      </h2>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        {activeTab === 'overview' && 'Real-time performance metrics, tool breakdown, and tier distribution'}
+                        {activeTab === 'users' && 'Manage user permissions, daily AI quotas, and account status'}
+                        {activeTab === 'market' && 'Domain analysis trends, top keywords, and recent audit snapshots'}
+                        {activeTab === 'security' && 'Infrastructure diagnostics, suspicious bot radar, and IP blacklist'}
+                        {activeTab === 'controls' && 'Live maintenance alert, top banner, and default credits controller'}
+                        {activeTab === 'usage' && 'Audit sessions, client IPs, and tool invocation history'}
+                        {activeTab === 'feedback' && 'Community ratings, feedback submissions, and bug reports'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    {/* Search Input */}
+                    {activeTab !== 'controls' && (
+                      <div className="relative w-full sm:w-64">
+                        <Search className="size-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder="Search IP, name, email, URL..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full pl-9 pr-7 py-1.5 rounded-xl glass-input text-xs focus:outline-none font-mono"
+                        />
+                        {searchQuery && (
+                          <button
+                            type="button"
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {activeTab === 'users' && (
+                      <button
+                        type="button"
+                        onClick={exportUsersToCsv}
+                        className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                        title="Export registered users to CSV"
+                      >
+                        <Download className="size-3.5 text-slate-500" />
+                        <span className="hidden sm:inline">Export CSV</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => fetchAdminData(adminKey)}
+                      disabled={isLoading}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
+                      title="Refresh live data"
+                    >
+                      <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                      <span className="hidden sm:inline">Refresh</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* TAB 0: OVERVIEW (KPIs + Charts + Health Ring) */}
+                {activeTab === 'overview' && (
+                  <div className="space-y-6">
+                    {/* Executive Summary Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Metric 1: Registered Accounts */}
                 <div className="glass-panel p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-3 relative overflow-hidden">
                   <div className="flex items-center justify-between text-slate-400">
@@ -975,105 +1185,11 @@ export default function AdminPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* Navigation Tabs Bar */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glass-panel p-3 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs">
-                {/* Tabs */}
-                <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('users')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-                      activeTab === 'users'
-                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
-                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
-                    }`}
-                  >
-                    <Users className="size-3.5" />
-                    <span>Registered Users ({adminData.usersList?.length || 0})</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('market')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-                      activeTab === 'market'
-                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
-                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
-                    }`}
-                  >
-                    <Globe className="size-3.5" />
-                    <span>Market Trends &amp; Competitors ({adminData.marketIntelligence?.topDomains?.length || 0})</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('security')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-                      activeTab === 'security'
-                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
-                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
-                    }`}
-                  >
-                    <ShieldAlert className="size-3.5" />
-                    <span>System Health &amp; Security ({adminData.securityIncidents?.length || 0})</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('usage')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-                      activeTab === 'usage'
-                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
-                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
-                    }`}
-                  >
-                    <Activity className="size-3.5" />
-                    <span>Tool Activity Logs ({adminData.userTable?.length || 0})</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('feedback')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-                      activeTab === 'feedback'
-                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
-                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
-                    }`}
-                  >
-                    <MessageSquare className="size-3.5" />
-                    <span>Community Reviews ({adminData.feedbackTable?.length || 0})</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('controls')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-                      activeTab === 'controls'
-                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
-                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
-                    }`}
-                  >
-                    <Settings2 className="size-3.5" />
-                    <span>Live Site Controls</span>
-                  </button>
-                </div>
-
-                {/* Universal Search Input */}
-                <div className="relative w-full sm:w-72">
-                  <Search className="size-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Search name, email, IP, or URL..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-3 py-1.5 rounded-xl glass-input text-xs focus:outline-none font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* TAB 1: REGISTERED USERS & CREDITS CONTROL (FOCAL TAB) */}
-              {activeTab === 'users' && (
+          {/* TAB 1: REGISTERED USERS & CREDITS CONTROL (FOCAL TAB) */}
+          {activeTab === 'users' && (
                 <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 overflow-hidden shadow-sm space-y-4">
                   {/* Table Header & Role Filter Chips */}
                   <div className="p-4 sm:px-6 sm:py-4 border-b border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2808,6 +2924,7 @@ export default function AdminPage() {
                   </div>
                 </div>
               )}
+              </div>
             </div>
           )
         )}
