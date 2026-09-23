@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { isIpBannedFast, logSecurityIncident } from '@/lib/db';
 
 interface RateLimitRecord {
   timestamps: number[];
@@ -47,9 +48,20 @@ class RateLimiter {
   }
 
   /**
-   * Check if an IP address has exceeded the rate limit
+   * Check if an IP address has exceeded the rate limit or is banned
    */
-  public check(ip: string): { success: boolean; limit: number; remaining: number; resetMs: number } {
+  public check(ip: string): { success: boolean; limit: number; remaining: number; resetMs: number; banned?: boolean } {
+    // 1. Instant check for blacklisted IPs
+    if (isIpBannedFast(ip)) {
+      return {
+        success: false,
+        limit: 0,
+        remaining: 0,
+        resetMs: 86400000,
+        banned: true,
+      };
+    }
+
     const now = Date.now();
     const windowStart = now - this.windowMs;
 
@@ -70,6 +82,14 @@ class RateLimiter {
     if (record.timestamps.length >= this.maxRequests) {
       const oldestInWindow = record.timestamps[0];
       const resetMs = oldestInWindow + this.windowMs - now;
+
+      // Log security incident asynchronously
+      logSecurityIncident({
+        incident_type: 'RATE_LIMIT_429',
+        severity: 'medium',
+        ip_address: ip,
+        details: `Exceeded request limit (${this.maxRequests} req / ${Math.round(this.windowMs / 1000)}s)`,
+      }).catch(() => {});
 
       return {
         success: false,

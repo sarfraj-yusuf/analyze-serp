@@ -1,4 +1,15 @@
 import { promises as dns } from 'dns';
+import { logSecurityIncident } from '@/lib/db';
+
+function recordSsrfIncident(url: string, reason: string) {
+  logSecurityIncident({
+    incident_type: 'SSRF_BLOCKED',
+    severity: 'high',
+    ip_address: 'inbound',
+    target_endpoint: url,
+    details: reason,
+  }).catch(() => {});
+}
 
 /**
  * SSRF (Server-Side Request Forgery) Protection Module
@@ -138,7 +149,9 @@ export async function validateUrlSafety(url: string): Promise<void> {
 
   // Block known dangerous hostnames
   if (BLOCKED_HOSTNAMES.has(hostname.toLowerCase())) {
-    throw new Error(`Blocked request to internal hostname "${hostname}".`);
+    const msg = `Blocked request to internal hostname "${hostname}".`;
+    recordSsrfIncident(url, msg);
+    throw new Error(msg);
   }
 
   // Check if hostname is a raw IP address (IPv4 or IPv6)
@@ -148,7 +161,9 @@ export async function validateUrlSafety(url: string): Promise<void> {
 
   if (isRawIPv4) {
     if (isBlockedIPv4(hostname)) {
-      throw new Error(`Blocked request to private/reserved IPv4 address "${hostname}".`);
+      const msg = `Blocked request to private/reserved IPv4 address "${hostname}".`;
+      recordSsrfIncident(url, msg);
+      throw new Error(msg);
     }
     return; // Raw IP, no DNS needed
   }
@@ -156,7 +171,9 @@ export async function validateUrlSafety(url: string): Promise<void> {
   if (isRawIPv6) {
     const cleanIPv6 = hostname.replace(/^\[|\]$/g, '');
     if (isBlockedIPv6(cleanIPv6)) {
-      throw new Error(`Blocked request to private/reserved IPv6 address "${hostname}".`);
+      const msg = `Blocked request to private/reserved IPv6 address "${hostname}".`;
+      recordSsrfIncident(url, msg);
+      throw new Error(msg);
     }
     return; // Raw IP, no DNS needed
   }
@@ -167,7 +184,9 @@ export async function validateUrlSafety(url: string): Promise<void> {
 
     for (const ip of addresses) {
       if (isBlockedIPv4(ip)) {
-        throw new Error(`Blocked: "${hostname}" resolves to private/reserved IP ${ip}.`);
+        const msg = `Blocked: "${hostname}" resolves to private/reserved IP ${ip}.`;
+        recordSsrfIncident(url, msg);
+        throw new Error(msg);
       }
     }
   } catch (err: any) {
@@ -184,7 +203,9 @@ export async function validateUrlSafety(url: string): Promise<void> {
 
     for (const ip of v6Addresses) {
       if (isBlockedIPv6(ip)) {
-        throw new Error(`Blocked: "${hostname}" resolves to private/reserved IPv6 address ${ip}.`);
+        const msg = `Blocked: "${hostname}" resolves to private/reserved IPv6 address ${ip}.`;
+        recordSsrfIncident(url, msg);
+        throw new Error(msg);
       }
     }
   } catch {

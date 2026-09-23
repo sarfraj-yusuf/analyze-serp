@@ -36,6 +36,13 @@ import {
   Target,
   Layers,
   ArrowUpRight,
+  ShieldAlert,
+  Server,
+  Cpu,
+  Ban,
+  AlertTriangle,
+  Radio,
+  Clock,
 } from 'lucide-react';
 
 interface DbUser {
@@ -109,6 +116,44 @@ export interface MarketIntelligenceData {
   platformAvgScore: number;
 }
 
+export interface DbSecurityIncident {
+  id: number;
+  incident_type: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  ip_address: string;
+  target_endpoint: string | null;
+  details: string | null;
+  created_at: string | Date;
+}
+
+export interface DbBannedIp {
+  id: number;
+  ip_address: string;
+  reason: string;
+  banned_by: string;
+  created_at: string | Date;
+}
+
+export interface SystemHealthData {
+  status: 'healthy' | 'degraded';
+  dbConnected: boolean;
+  dbPingMs: number;
+  uptimeSeconds: number;
+  memory: {
+    heapUsedMB: number;
+    heapTotalMB: number;
+    rssMB: number;
+  };
+  services: {
+    geminiConfigured: boolean;
+    pagespeedConfigured: boolean;
+    authConfigured: boolean;
+    adminKeyConfigured: boolean;
+  };
+  bannedIpsCount: number;
+  incidents24hCount: number;
+}
+
 interface AdminData {
   summary: {
     totalVisitors: number;
@@ -133,6 +178,9 @@ interface AdminData {
     recentActivityTimeline: ChartTimelineItem[];
   };
   marketIntelligence?: MarketIntelligenceData;
+  systemHealth?: SystemHealthData;
+  securityIncidents?: DbSecurityIncident[];
+  bannedIps?: DbBannedIp[];
   usersList: DbUser[];
   userTable: UserUsageRow[];
   feedbackTable: FeedbackRow[];
@@ -146,11 +194,17 @@ export default function AdminPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [adminData, setAdminData] = useState<AdminData | null>(null);
-  const [activeTab, setActiveTab] = useState<'users' | 'market' | 'usage' | 'feedback'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'market' | 'security' | 'usage' | 'feedback'>('users');
   const [searchQuery, setSearchQuery] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'pro' | 'free' | 'suspended'>('all');
   const [selectedToolFilter, setSelectedToolFilter] = useState('All');
   const [actionInProgressEmail, setActionInProgressEmail] = useState<string | null>(null);
+
+  // Security & Blacklist Form State
+  const [newBanIp, setNewBanIp] = useState('');
+  const [newBanReason, setNewBanReason] = useState('');
+  const [isBanningIp, setIsBanningIp] = useState(false);
+  const [selectedSeverityFilter, setSelectedSeverityFilter] = useState<'all' | 'critical' | 'high' | 'medium' | 'low'>('all');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -335,6 +389,94 @@ export default function AdminPage() {
       (s.user_email && s.user_email.toLowerCase().includes(q))
     );
   }, [adminData?.marketIntelligence?.recentSnapshots, searchQuery]);
+
+  // Filter Security Incidents
+  const filteredSecurityIncidents = useMemo(() => {
+    if (!adminData?.securityIncidents) return [];
+    return adminData.securityIncidents.filter((inc) => {
+      if (selectedSeverityFilter !== 'all' && inc.severity !== selectedSeverityFilter) {
+        return false;
+      }
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        inc.ip_address.toLowerCase().includes(q) ||
+        inc.incident_type.toLowerCase().includes(q) ||
+        (inc.target_endpoint && inc.target_endpoint.toLowerCase().includes(q)) ||
+        (inc.details && inc.details.toLowerCase().includes(q))
+      );
+    });
+  }, [adminData?.securityIncidents, selectedSeverityFilter, searchQuery]);
+
+  // Filter Banned IPs
+  const filteredBannedIps = useMemo(() => {
+    if (!adminData?.bannedIps) return [];
+    if (!searchQuery) return adminData.bannedIps;
+    const q = searchQuery.toLowerCase();
+    return adminData.bannedIps.filter((b) =>
+      b.ip_address.toLowerCase().includes(q) ||
+      b.reason.toLowerCase().includes(q) ||
+      b.banned_by.toLowerCase().includes(q)
+    );
+  }, [adminData?.bannedIps, searchQuery]);
+
+  // Execute Ban IP
+  const handleBanIp = async (ipToBan: string, reasonToBan: string) => {
+    if (!ipToBan || !ipToBan.trim()) return;
+    setIsBanningIp(true);
+    try {
+      const res = await fetch('/api/admin/users/action', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-key': adminKey,
+        },
+        body: JSON.stringify({
+          action: 'BAN_IP',
+          ip: ipToBan.trim(),
+          reason: reasonToBan.trim() || 'Manual Admin Ban',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to ban IP');
+      showToast(data.message || `IP ${ipToBan} has been added to blacklist.`);
+      setNewBanIp('');
+      setNewBanReason('');
+      if (adminData && data.bannedIps) {
+        setAdminData((prev) => (prev ? { ...prev, bannedIps: data.bannedIps } : null));
+      }
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setIsBanningIp(false);
+    }
+  };
+
+  // Execute Unban IP
+  const handleUnbanIp = async (ipToUnban: string) => {
+    if (!confirm(`Are you sure you want to lift the blacklist ban on ${ipToUnban}?`)) return;
+    try {
+      const res = await fetch('/api/admin/users/action', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-key': adminKey,
+        },
+        body: JSON.stringify({
+          action: 'UNBAN_IP',
+          ip: ipToUnban,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to unban IP');
+      showToast(data.message || `IP ${ipToUnban} unbanned.`);
+      if (adminData && data.bannedIps) {
+        setAdminData((prev) => (prev ? { ...prev, bannedIps: data.bannedIps } : null));
+      }
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    }
+  };
 
   // Quick Export to CSV
   const exportUsersToCsv = () => {
@@ -742,6 +884,19 @@ export default function AdminPage() {
                   >
                     <Globe className="size-3.5" />
                     <span>Market Trends &amp; Competitors ({adminData.marketIntelligence?.topDomains?.length || 0})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('security')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                      activeTab === 'security'
+                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    <ShieldAlert className="size-3.5" />
+                    <span>System Health &amp; Security ({adminData.securityIncidents?.length || 0})</span>
                   </button>
 
                   <button
@@ -1395,6 +1550,434 @@ export default function AdminPage() {
                             <tr>
                               <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
                                 No audit snapshots found.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: SYSTEM HEALTH & SECURITY TELEMETRY */}
+              {activeTab === 'security' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  {/* Security & Health Overview 4-KPI Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* KPI 1: Operational Status */}
+                    <div className="glass-panel p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-2">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          System Status
+                        </span>
+                        <Radio className="size-4 text-emerald-500 animate-pulse" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`size-2.5 rounded-full ${
+                            adminData.systemHealth?.status === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500'
+                          }`}
+                        />
+                        <span className="text-xl font-black text-slate-800 dark:text-slate-100 font-mono uppercase">
+                          {adminData.systemHealth?.status === 'healthy' ? 'Healthy' : 'Degraded'}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5">
+                        <span>Database &amp; APIs responding</span>
+                      </div>
+                    </div>
+
+                    {/* KPI 2: Active IP Blacklists */}
+                    <div className="glass-panel p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-2">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          Active IP Bans
+                        </span>
+                        <Ban className="size-4 text-rose-500" />
+                      </div>
+                      <div className="text-3xl font-black text-slate-800 dark:text-slate-100 font-mono">
+                        {adminData.bannedIps?.length ?? 0}
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5">
+                        <span className="size-1.5 rounded-full bg-rose-500" />
+                        <span>Blocked from crawler &amp; API</span>
+                      </div>
+                    </div>
+
+                    {/* KPI 3: 24h Security Incidents */}
+                    <div className="glass-panel p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-2">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          24h Security Events
+                        </span>
+                        <ShieldAlert className="size-4 text-amber-500" />
+                      </div>
+                      <div className="text-3xl font-black text-slate-800 dark:text-slate-100 font-mono">
+                        {adminData.systemHealth?.incidents24hCount ?? 0}
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5">
+                        <span>Rate limits, SSRF &amp; auth alerts</span>
+                      </div>
+                    </div>
+
+                    {/* KPI 4: Server Runtime & Memory */}
+                    <div className="glass-panel p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-2">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          Server Uptime &amp; Heap
+                        </span>
+                        <Cpu className="size-4 text-cyan-500" />
+                      </div>
+                      <div className="text-xl font-black text-slate-800 dark:text-slate-100 font-mono">
+                        {(() => {
+                          const s = adminData.systemHealth?.uptimeSeconds || 0;
+                          const h = Math.floor(s / 3600);
+                          const m = Math.floor((s % 3600) / 60);
+                          return `${h}h ${m}m uptime`;
+                        })()}
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5 font-mono">
+                        <span>Heap: {adminData.systemHealth?.memory.heapUsedMB || 0} MB / {adminData.systemHealth?.memory.heapTotalMB || 0} MB</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Service Connectivity & Environment Health Matrix */}
+                  <div className="glass-panel p-6 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-5">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <Server className="size-4 text-emerald-500" />
+                        <span>Core Service Connectivity &amp; Infrastructure Matrix</span>
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Live connectivity status, latency benchmarks, and cloud credentials audit
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+                      {/* Service 1: MySQL Database */}
+                      <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">MySQL Database</span>
+                          <span
+                            className={`size-2 rounded-full ${
+                              adminData.systemHealth?.dbConnected ? 'bg-emerald-500' : 'bg-rose-500'
+                            }`}
+                          />
+                        </div>
+                        <div className="text-xs font-mono text-slate-600 dark:text-slate-400">
+                          {adminData.systemHealth?.dbConnected ? 'Pool Connected' : 'Memory Fallback'}
+                        </div>
+                        <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
+                          Ping: {adminData.systemHealth?.dbPingMs ?? -1} ms
+                        </div>
+                      </div>
+
+                      {/* Service 2: Gemini 2.5 Flash */}
+                      <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Gemini 2.5 Flash</span>
+                          <span
+                            className={`size-2 rounded-full ${
+                              adminData.systemHealth?.services.geminiConfigured ? 'bg-emerald-500' : 'bg-amber-500'
+                            }`}
+                          />
+                        </div>
+                        <div className="text-xs font-mono text-slate-600 dark:text-slate-400">
+                          AI Diagnostics Engine
+                        </div>
+                        <div
+                          className={`text-[11px] font-mono font-bold ${
+                            adminData.systemHealth?.services.geminiConfigured
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-amber-600 dark:text-amber-400'
+                          }`}
+                        >
+                          {adminData.systemHealth?.services.geminiConfigured ? 'API Key Active' : 'Key Unset'}
+                        </div>
+                      </div>
+
+                      {/* Service 3: PageSpeed Insights */}
+                      <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">PageSpeed Insights</span>
+                          <span
+                            className={`size-2 rounded-full ${
+                              adminData.systemHealth?.services.pagespeedConfigured ? 'bg-emerald-500' : 'bg-slate-400'
+                            }`}
+                          />
+                        </div>
+                        <div className="text-xs font-mono text-slate-600 dark:text-slate-400">
+                          CWV &amp; Performance Audit
+                        </div>
+                        <div
+                          className={`text-[11px] font-mono font-bold ${
+                            adminData.systemHealth?.services.pagespeedConfigured
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-slate-500'
+                          }`}
+                        >
+                          {adminData.systemHealth?.services.pagespeedConfigured ? 'Configured' : 'Optional (Free Tier)'}
+                        </div>
+                      </div>
+
+                      {/* Service 4: Auth & Admin Guard */}
+                      <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Auth &amp; Secrets</span>
+                          <span
+                            className={`size-2 rounded-full ${
+                              adminData.systemHealth?.services.authConfigured &&
+                              adminData.systemHealth?.services.adminKeyConfigured
+                                ? 'bg-emerald-500'
+                                : 'bg-rose-500'
+                            }`}
+                          />
+                        </div>
+                        <div className="text-xs font-mono text-slate-600 dark:text-slate-400">
+                          OAuth &amp; Timing-Safe Passkey
+                        </div>
+                        <div className="text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                          Locked &amp; Enforced
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section: IP Blacklist & Threat Defense Manager */}
+                  <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 overflow-hidden shadow-sm space-y-4">
+                    <div className="p-4 sm:px-6 sm:py-4 border-b border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                          <Ban className="size-4 text-rose-500" />
+                          <span>Active IP Blacklist &amp; Threat Defense</span>
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          Ban abusive client IPs from all crawler execution endpoints and API routes
+                        </p>
+                      </div>
+
+                      <div className="text-xs font-mono font-bold text-rose-600 dark:text-rose-400">
+                        {adminData.bannedIps?.length || 0} Active Bans
+                      </div>
+                    </div>
+
+                    {/* Inline Quick-Ban Form */}
+                    <div className="p-4 sm:px-6 bg-slate-50/50 dark:bg-white/[0.01] border-b border-slate-200/80 dark:border-white/10">
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          handleBanIp(newBanIp, newBanReason);
+                        }}
+                        className="flex flex-col sm:flex-row items-center gap-3"
+                      >
+                        <input
+                          type="text"
+                          required
+                          placeholder="IP address (e.g. 192.0.2.1)"
+                          value={newBanIp}
+                          onChange={(e) => setNewBanIp(e.target.value)}
+                          className="w-full sm:w-56 px-3 py-1.5 rounded-xl glass-input text-xs font-mono focus:outline-none"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Reason (e.g. Excessive bot scraping flood)"
+                          value={newBanReason}
+                          onChange={(e) => setNewBanReason(e.target.value)}
+                          className="w-full sm:flex-1 px-3 py-1.5 rounded-xl glass-input text-xs focus:outline-none"
+                        />
+                        <button
+                          type="submit"
+                          disabled={isBanningIp || !newBanIp.trim()}
+                          className="w-full sm:w-auto px-4 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                        >
+                          <Ban className="size-3.5" />
+                          <span>{isBanningIp ? 'Banning...' : 'Add IP Ban'}</span>
+                        </button>
+                      </form>
+                    </div>
+
+                    {/* Banned IPs Table */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-100 dark:bg-white/5 uppercase text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 tracking-wider">
+                          <tr>
+                            <th className="px-6 py-3">Banned IP Address</th>
+                            <th className="px-6 py-3">Ban Reason</th>
+                            <th className="px-6 py-3">Banned By</th>
+                            <th className="px-6 py-3">Date Applied</th>
+                            <th className="px-6 py-3 text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200/80 dark:divide-white/5 font-mono">
+                          {filteredBannedIps.length > 0 ? (
+                            filteredBannedIps.map((b) => (
+                              <tr key={b.ip_address} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                                <td className="px-6 py-4 font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
+                                  <Ban className="size-3.5 shrink-0" />
+                                  <span>{b.ip_address}</span>
+                                </td>
+                                <td className="px-6 py-4 text-slate-700 dark:text-slate-300 font-sans max-w-xs truncate">
+                                  {b.reason}
+                                </td>
+                                <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-[11px]">
+                                  {b.banned_by}
+                                </td>
+                                <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-[11px] whitespace-nowrap">
+                                  {new Date(b.created_at).toLocaleString()}
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUnbanIp(b.ip_address)}
+                                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200 dark:border-white/10 text-[11px] font-medium transition-all cursor-pointer font-sans"
+                                  >
+                                    Lift Ban
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-8 text-center text-slate-400 font-sans">
+                                No active IP bans. All client networks are operating normally.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Section: Live Security & Incident Feed */}
+                  <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 overflow-hidden shadow-sm space-y-4">
+                    <div className="p-4 sm:px-6 sm:py-4 border-b border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                          <ShieldAlert className="size-4 text-amber-500" />
+                          <span>Live Security &amp; Incident Telemetry Feed</span>
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          Real-time stream of HTTP 429 rate limit trips, SSRF probing blocks, and auth attempts
+                        </p>
+                      </div>
+
+                      {/* Severity Filters */}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[11px] font-mono text-slate-400 mr-1 flex items-center gap-1">
+                          <Filter className="size-3" /> Severity:
+                        </span>
+                        {(['all', 'critical', 'high', 'medium', 'low'] as const).map((sev) => (
+                          <button
+                            key={sev}
+                            type="button"
+                            onClick={() => setSelectedSeverityFilter(sev)}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold capitalize transition-all cursor-pointer ${
+                              selectedSeverityFilter === sev
+                                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs'
+                                : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                            }`}
+                          >
+                            {sev}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Incidents Table */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-100 dark:bg-white/5 uppercase text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 tracking-wider">
+                          <tr>
+                            <th className="px-6 py-3">Severity</th>
+                            <th className="px-6 py-3">Incident Type</th>
+                            <th className="px-6 py-3">Client IP Address</th>
+                            <th className="px-6 py-3">Target Endpoint</th>
+                            <th className="px-6 py-3">Diagnostic Details</th>
+                            <th className="px-6 py-3">Detected At</th>
+                            <th className="px-6 py-3 text-right">Defense Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200/80 dark:divide-white/5 font-mono">
+                          {filteredSecurityIncidents.length > 0 ? (
+                            filteredSecurityIncidents.map((inc) => {
+                              const isAlreadyBanned = adminData.bannedIps?.some(
+                                (b) => b.ip_address === inc.ip_address
+                              );
+
+                              return (
+                                <tr key={inc.id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                                  {/* Severity Pill */}
+                                  <td className="px-6 py-4">
+                                    <span
+                                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
+                                        inc.severity === 'critical'
+                                          ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                                          : inc.severity === 'high'
+                                          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30'
+                                          : inc.severity === 'medium'
+                                          ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30'
+                                          : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10'
+                                      }`}
+                                    >
+                                      {inc.severity}
+                                    </span>
+                                  </td>
+
+                                  {/* Incident Type */}
+                                  <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200">
+                                    {inc.incident_type}
+                                  </td>
+
+                                  {/* Offending IP */}
+                                  <td className="px-6 py-4 font-bold text-emerald-600 dark:text-emerald-400">
+                                    {inc.ip_address}
+                                  </td>
+
+                                  {/* Target Endpoint */}
+                                  <td className="px-6 py-4 text-slate-600 dark:text-slate-400 max-w-xs truncate">
+                                    {inc.target_endpoint || '—'}
+                                  </td>
+
+                                  {/* Details */}
+                                  <td className="px-6 py-4 text-slate-700 dark:text-slate-300 font-sans max-w-sm truncate">
+                                    {inc.details || 'No diagnostic message'}
+                                  </td>
+
+                                  {/* Detected At */}
+                                  <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-[11px] whitespace-nowrap">
+                                    {new Date(inc.created_at).toLocaleString()}
+                                  </td>
+
+                                  {/* Action */}
+                                  <td className="px-6 py-4 text-right font-sans">
+                                    {isAlreadyBanned ? (
+                                      <span className="text-[10px] font-mono text-rose-500 font-bold uppercase">
+                                        Banned
+                                      </span>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setNewBanIp(inc.ip_address);
+                                          setNewBanReason(`Banned from incident ${inc.incident_type}`);
+                                          handleBanIp(inc.ip_address, `Triggered by ${inc.incident_type}`);
+                                        }}
+                                        className="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-[11px] font-bold transition-all cursor-pointer"
+                                        title={`Ban IP ${inc.ip_address}`}
+                                      >
+                                        Ban IP
+                                      </button>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          ) : (
+                            <tr>
+                              <td colSpan={7} className="px-6 py-8 text-center text-slate-400 font-sans">
+                                No security incidents logged for current filter criteria.
                               </td>
                             </tr>
                           )}

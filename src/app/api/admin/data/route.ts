@@ -1,9 +1,23 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { getAllFeedback, getActivityLogs, getAllUsers, getCompetitorMarketIntelligence } from '@/lib/db';
+import {
+  getAllFeedback,
+  getActivityLogs,
+  getAllUsers,
+  getCompetitorMarketIntelligence,
+  getSystemHealthTelemetry,
+  getSecurityIncidents,
+  getBannedIps,
+  logSecurityIncident,
+} from '@/lib/db';
 
 export async function GET(req: Request) {
   try {
+    const forwarded = req.headers.get('x-forwarded-for');
+    const clientIp = forwarded
+      ? forwarded.split(',')[0].trim()
+      : req.headers.get('x-real-ip') || '127.0.0.1';
+
     const secretKey = process.env.ADMIN_SECRET_KEY;
     if (!secretKey) {
       return NextResponse.json(
@@ -28,14 +42,33 @@ export async function GET(req: Request) {
       crypto.timingSafeEqual(authKeyBuf, secretKeyBuf);
 
     if (!isMatch) {
+      logSecurityIncident({
+        incident_type: 'UNAUTHORIZED_ADMIN_ATTEMPT',
+        severity: 'high',
+        ip_address: clientIp,
+        target_endpoint: '/api/admin/data',
+        details: 'Unauthorized admin dashboard access attempt with invalid passkey',
+      }).catch(() => {});
+
       return NextResponse.json({ error: 'Unauthorized Admin Access. Invalid Key.' }, { status: 401 });
     }
 
-    const [feedbackList, activityLogs, usersList, marketIntelligence] = await Promise.all([
+    const [
+      feedbackList,
+      activityLogs,
+      usersList,
+      marketIntelligence,
+      systemHealth,
+      securityIncidents,
+      bannedIps,
+    ] = await Promise.all([
       getAllFeedback(),
       getActivityLogs(),
       getAllUsers(),
       getCompetitorMarketIntelligence(),
+      getSystemHealthTelemetry(),
+      getSecurityIncidents(50),
+      getBannedIps(),
     ]);
 
     // 1. Calculate Summary Metrics
@@ -188,6 +221,9 @@ export async function GET(req: Request) {
         recentActivityTimeline,
       },
       marketIntelligence,
+      systemHealth,
+      securityIncidents,
+      bannedIps,
       usersList,
       userTable: userTableData,
       feedbackTable: feedbackList,

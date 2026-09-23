@@ -243,6 +243,32 @@ export async function initDatabaseTables(): Promise<void> {
           INDEX idx_snap_created (created_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
+
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS security_incident_logs (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          incident_type VARCHAR(50) NOT NULL,
+          severity VARCHAR(20) NOT NULL,
+          ip_address VARCHAR(45) NOT NULL,
+          target_endpoint VARCHAR(255) NULL,
+          details TEXT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          INDEX idx_incident_ip (ip_address),
+          INDEX idx_incident_type (incident_type),
+          INDEX idx_incident_created (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS ip_blacklist (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          ip_address VARCHAR(45) UNIQUE NOT NULL,
+          reason VARCHAR(255) NOT NULL,
+          banned_by VARCHAR(100) DEFAULT 'admin',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          INDEX idx_banned_ip (ip_address)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
     } finally {
       connection.release();
     }
@@ -1257,3 +1283,313 @@ export async function getCompetitorMarketIntelligence(): Promise<MarketIntellige
     platformAvgScore: 78,
   };
 }
+
+export interface DbSecurityIncident {
+  id: number;
+  incident_type: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  ip_address: string;
+  target_endpoint: string | null;
+  details: string | null;
+  created_at: string | Date;
+}
+
+export interface DbBannedIp {
+  id: number;
+  ip_address: string;
+  reason: string;
+  banned_by: string;
+  created_at: string | Date;
+}
+
+export interface SystemHealthData {
+  status: 'healthy' | 'degraded';
+  dbConnected: boolean;
+  dbPingMs: number;
+  uptimeSeconds: number;
+  memory: {
+    heapUsedMB: number;
+    heapTotalMB: number;
+    rssMB: number;
+  };
+  services: {
+    geminiConfigured: boolean;
+    pagespeedConfigured: boolean;
+    authConfigured: boolean;
+    adminKeyConfigured: boolean;
+  };
+  bannedIpsCount: number;
+  incidents24hCount: number;
+}
+
+const memoryIncidentLogs: DbSecurityIncident[] = [];
+let localIncidentIdCounter = 1;
+
+const memoryBannedIps: DbBannedIp[] = [];
+let localBannedIpIdCounter = 1;
+
+// Fast in-memory Set cache for instant O(1) sync check
+const bannedIpsFastSet = new Set<string>();
+
+export function isIpBannedFast(ip: string): boolean {
+  if (!ip) return false;
+  return bannedIpsFastSet.has(ip.trim());
+}
+
+export async function isIpBanned(ip: string): Promise<boolean> {
+  if (!ip) return false;
+  const cleanIp = ip.trim();
+  if (bannedIpsFastSet.has(cleanIp)) return true;
+
+  const db = getPool();
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        const [rows] = (await connection.execute(
+          `SELECT id FROM ip_blacklist WHERE ip_address = ? LIMIT 1`,
+          [cleanIp]
+        )) as any;
+        if (rows && rows.length > 0) {
+          bannedIpsFastSet.add(cleanIp);
+          return true;
+        }
+      } finally {
+        connection.release();
+      }
+    } catch (err) {
+      console.error('[DB Error] Failed to check ip_blacklist:', err);
+    }
+  }
+
+  return memoryBannedIps.some((b) => b.ip_address === cleanIp);
+}
+
+export async function banIp(
+  ip: string,
+  reason: string,
+  bannedBy: string = 'admin'
+): Promise<boolean> {
+  if (!ip || !ip.trim()) return false;
+  const cleanIp = ip.trim();
+  bannedIpsFastSet.add(cleanIp);
+
+  const db = getPool();
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        await connection.execute(
+          `INSERT INTO ip_blacklist (ip_address, reason, banned_by) VALUES (?, ?, ?)
+           ON DUPLICATE KEY UPDATE reason = VALUES(reason), banned_by = VALUES(banned_by)`,
+          [cleanIp, reason || 'Manual Admin Ban', bannedBy]
+        );
+        return true;
+      } finally {
+        connection.release();
+      }
+    } catch (err) {
+      console.error('[DB Error] Failed to insert into ip_blacklist:', err);
+    }
+  }
+
+  const existingIdx = memoryBannedIps.findIndex((b) => b.ip_address === cleanIp);
+  if (existingIdx >= 0) {
+    memoryBannedIps[existingIdx].reason = reason;
+  } else {
+    memoryBannedIps.unshift({
+      id: localBannedIpIdCounter++,
+      ip_address: cleanIp,
+      reason: reason || 'Manual Admin Ban',
+      banned_by: bannedBy,
+      created_at: new Date().toISOString(),
+    });
+  }
+  return true;
+}
+
+export async function unbanIp(ip: string): Promise<boolean> {
+  if (!ip || !ip.trim()) return false;
+  const cleanIp = ip.trim();
+  bannedIpsFastSet.delete(cleanIp);
+
+  const db = getPool();
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        await connection.execute(`DELETE FROM ip_blacklist WHERE ip_address = ?`, [cleanIp]);
+        return true;
+      } finally {
+        connection.release();
+      }
+    } catch (err) {
+      console.error('[DB Error] Failed to delete from ip_blacklist:', err);
+    }
+  }
+
+  const idx = memoryBannedIps.findIndex((b) => b.ip_address === cleanIp);
+  if (idx >= 0) {
+    memoryBannedIps.splice(idx, 1);
+  }
+  return true;
+}
+
+export async function getBannedIps(): Promise<DbBannedIp[]> {
+  const db = getPool();
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        const [rows] = (await connection.execute(
+          `SELECT * FROM ip_blacklist ORDER BY created_at DESC LIMIT 100`
+        )) as any;
+        const list = rows as DbBannedIp[];
+        list.forEach((b) => bannedIpsFastSet.add(b.ip_address));
+        return list;
+      } finally {
+        connection.release();
+      }
+    } catch (err) {
+      console.error('[DB Error] Failed to fetch banned IPs:', err);
+    }
+  }
+
+  return memoryBannedIps;
+}
+
+export async function logSecurityIncident(incident: {
+  incident_type: string;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  ip_address: string;
+  target_endpoint?: string | null;
+  details?: string | null;
+}): Promise<boolean> {
+  const severity = incident.severity || 'medium';
+  const cleanIp = (incident.ip_address || '127.0.0.1').trim();
+  const endpoint = incident.target_endpoint || null;
+  const details = incident.details || null;
+
+  const db = getPool();
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        await connection.execute(
+          `INSERT INTO security_incident_logs (incident_type, severity, ip_address, target_endpoint, details) VALUES (?, ?, ?, ?, ?)`,
+          [incident.incident_type, severity, cleanIp, endpoint, details]
+        );
+        return true;
+      } finally {
+        connection.release();
+      }
+    } catch (err) {
+      console.error('[DB Error] Failed to log security incident to MySQL:', err);
+    }
+  }
+
+  memoryIncidentLogs.unshift({
+    id: localIncidentIdCounter++,
+    incident_type: incident.incident_type,
+    severity,
+    ip_address: cleanIp,
+    target_endpoint: endpoint,
+    details,
+    created_at: new Date().toISOString(),
+  });
+  if (memoryIncidentLogs.length > 200) {
+    memoryIncidentLogs.pop();
+  }
+  return true;
+}
+
+export async function getSecurityIncidents(limit: number = 50): Promise<DbSecurityIncident[]> {
+  const db = getPool();
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        const [rows] = (await connection.execute(
+          `SELECT * FROM security_incident_logs ORDER BY created_at DESC LIMIT ?`,
+          [String(limit)]
+        )) as any;
+        return rows as DbSecurityIncident[];
+      } finally {
+        connection.release();
+      }
+    } catch (err) {
+      console.error('[DB Error] Failed to fetch security incidents from MySQL:', err);
+    }
+  }
+
+  return memoryIncidentLogs.slice(0, limit);
+}
+
+export async function getSystemHealthTelemetry(): Promise<SystemHealthData> {
+  let dbConnected = false;
+  let dbPingMs = 0;
+
+  const db = getPool();
+  if (db) {
+    try {
+      const start = Date.now();
+      const conn = await db.getConnection();
+      try {
+        await conn.query('SELECT 1');
+        dbPingMs = Date.now() - start;
+        dbConnected = true;
+      } finally {
+        conn.release();
+      }
+    } catch {
+      dbConnected = false;
+      dbPingMs = -1;
+    }
+  }
+
+  const mem = process.memoryUsage();
+  const uptimeSeconds = Math.floor(process.uptime());
+
+  const bannedIps = await getBannedIps();
+  const incidents = await getSecurityIncidents(100);
+
+  // Count incidents in last 24h
+  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+  const incidents24hCount = incidents.filter(
+    (inc) => new Date(inc.created_at).getTime() > oneDayAgo
+  ).length;
+
+  const services = {
+    geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
+    pagespeedConfigured: Boolean(process.env.PAGESPEED_API_KEY),
+    authConfigured: Boolean(process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET),
+    adminKeyConfigured: Boolean(process.env.ADMIN_SECRET_KEY),
+  };
+
+  const status: 'healthy' | 'degraded' =
+    dbConnected && services.geminiConfigured && services.adminKeyConfigured
+      ? 'healthy'
+      : 'degraded';
+
+  return {
+    status,
+    dbConnected,
+    dbPingMs,
+    uptimeSeconds,
+    memory: {
+      heapUsedMB: Math.round(mem.heapUsed / (1024 * 1024)),
+      heapTotalMB: Math.round(mem.heapTotal / (1024 * 1024)),
+      rssMB: Math.round(mem.rss / (1024 * 1024)),
+    },
+    services,
+    bannedIpsCount: bannedIps.length,
+    incidents24hCount,
+  };
+}
+

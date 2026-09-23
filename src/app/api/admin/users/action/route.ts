@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { getUserByEmail, adminUpdateUser } from '@/lib/db';
+import { getUserByEmail, adminUpdateUser, banIp, unbanIp, getBannedIps } from '@/lib/db';
 
 export async function POST(req: Request) {
   try {
@@ -35,8 +35,36 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { action, email, value } = body;
+    const { action, email, ip, reason, value } = body;
 
+    // 1. IP Blacklist Security Actions
+    if (action === 'BAN_IP') {
+      if (!ip || typeof ip !== 'string') {
+        return NextResponse.json({ error: 'Target IP address is required.' }, { status: 400 });
+      }
+      const ok = await banIp(ip, reason || 'Manual Admin Block', 'admin');
+      const updatedBannedIps = await getBannedIps();
+      return NextResponse.json({
+        success: ok,
+        message: `IP ${ip} has been added to blacklist.`,
+        bannedIps: updatedBannedIps,
+      });
+    }
+
+    if (action === 'UNBAN_IP') {
+      if (!ip || typeof ip !== 'string') {
+        return NextResponse.json({ error: 'Target IP address is required.' }, { status: 400 });
+      }
+      const ok = await unbanIp(ip);
+      const updatedBannedIps = await getBannedIps();
+      return NextResponse.json({
+        success: ok,
+        message: `IP ${ip} has been removed from blacklist.`,
+        bannedIps: updatedBannedIps,
+      });
+    }
+
+    // 2. User Accounts Management Actions
     if (!email) {
       return NextResponse.json(
         { error: 'Target user email is required.' },
