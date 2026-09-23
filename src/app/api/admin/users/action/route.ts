@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { getUserByEmail, adminUpdateUser, banIp, unbanIp, getBannedIps } from '@/lib/db';
+import { getUserByEmail, adminUpdateUser, banIp, unbanIp, getBannedIps, updateSiteConfigurations } from '@/lib/db';
 
 export async function POST(req: Request) {
   try {
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { action, email, ip, reason, value } = body;
+    const { action, email, ip, reason, value, siteConfig, applyToExistingFreeUsers } = body;
 
     // 1. IP Blacklist Security Actions
     if (action === 'BAN_IP') {
@@ -64,7 +64,21 @@ export async function POST(req: Request) {
       });
     }
 
-    // 2. User Accounts Management Actions
+    // 2. Live Site Controls & Announcements
+    if (action === 'UPDATE_SITE_CONFIG') {
+      if (!siteConfig || typeof siteConfig !== 'object') {
+        return NextResponse.json({ error: 'Valid siteConfig object is required.' }, { status: 400 });
+      }
+
+      const updated = await updateSiteConfigurations(siteConfig, Boolean(applyToExistingFreeUsers));
+      return NextResponse.json({
+        success: true,
+        message: 'Live site configuration updated successfully.',
+        siteConfig: updated,
+      });
+    }
+
+    // 3. User Accounts Management Actions
     if (!email) {
       return NextResponse.json(
         { error: 'Target user email is required.' },

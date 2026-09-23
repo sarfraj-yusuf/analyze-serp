@@ -43,6 +43,14 @@ import {
   AlertTriangle,
   Radio,
   Clock,
+  ToggleLeft,
+  ToggleRight,
+  Megaphone,
+  Save,
+  Eye,
+  EyeOff,
+  Settings2,
+  Wrench,
 } from 'lucide-react';
 
 interface DbUser {
@@ -154,6 +162,35 @@ export interface SystemHealthData {
   incidents24hCount: number;
 }
 
+interface MaintenanceConfig {
+  enabled: boolean;
+  title: string;
+  message: string;
+  level: 'banner_only' | 'strict_lock';
+  expectedCompletion: string;
+}
+
+interface AnnouncementBannerConfig {
+  enabled: boolean;
+  badge: string;
+  text: string;
+  linkText: string;
+  linkUrl: string;
+  variant: 'info' | 'promotion' | 'warning' | 'success';
+  dismissable: boolean;
+}
+
+interface CreditLimitsConfig {
+  freeUserDailyCredits: number;
+  proUserDailyCredits: number;
+}
+
+interface SiteConfigurations {
+  maintenance: MaintenanceConfig;
+  announcement: AnnouncementBannerConfig;
+  credits: CreditLimitsConfig;
+}
+
 interface AdminData {
   summary: {
     totalVisitors: number;
@@ -184,6 +221,7 @@ interface AdminData {
   usersList: DbUser[];
   userTable: UserUsageRow[];
   feedbackTable: FeedbackRow[];
+  siteConfig?: SiteConfigurations;
 }
 
 export default function AdminPage() {
@@ -194,7 +232,7 @@ export default function AdminPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [adminData, setAdminData] = useState<AdminData | null>(null);
-  const [activeTab, setActiveTab] = useState<'users' | 'market' | 'security' | 'usage' | 'feedback'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'market' | 'security' | 'usage' | 'feedback' | 'controls'>('users');
   const [searchQuery, setSearchQuery] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'pro' | 'free' | 'suspended'>('all');
   const [selectedToolFilter, setSelectedToolFilter] = useState('All');
@@ -205,6 +243,15 @@ export default function AdminPage() {
   const [newBanReason, setNewBanReason] = useState('');
   const [isBanningIp, setIsBanningIp] = useState(false);
   const [selectedSeverityFilter, setSelectedSeverityFilter] = useState<'all' | 'critical' | 'high' | 'medium' | 'low'>('all');
+
+  // Live Site Controls State
+  const [liveConfig, setLiveConfig] = useState<SiteConfigurations>({
+    maintenance: { enabled: false, title: 'Scheduled Platform Maintenance', message: '', level: 'banner_only', expectedCompletion: '' },
+    announcement: { enabled: true, badge: 'Public Beta', text: '', linkText: 'Start Free Audit', linkUrl: '/audit', variant: 'info', dismissable: true },
+    credits: { freeUserDailyCredits: 5, proUserDailyCredits: 50 },
+  });
+  const [applyToExistingFreeUsers, setApplyToExistingFreeUsers] = useState(false);
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -229,6 +276,9 @@ export default function AdminPage() {
       }
 
       setAdminData(data);
+      if (data.siteConfig) {
+        setLiveConfig(data.siteConfig);
+      }
       setIsAuthenticated(true);
       localStorage.setItem('analyze_admin_key', keyToUse);
     } catch (err: any) {
@@ -236,6 +286,29 @@ export default function AdminPage() {
       setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Save Live Site Config
+  const handleSaveSiteConfig = async () => {
+    setIsSavingConfig(true);
+    try {
+      const res = await fetch('/api/admin/users/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+        body: JSON.stringify({ action: 'UPDATE_SITE_CONFIG', siteConfig: liveConfig, applyToExistingFreeUsers }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save site config.');
+      showToast('Live site configuration saved successfully.');
+      if (data.siteConfig) {
+        setLiveConfig(data.siteConfig);
+        setAdminData((prev) => prev ? { ...prev, siteConfig: data.siteConfig } : null);
+      }
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setIsSavingConfig(false);
     }
   };
 
@@ -923,6 +996,19 @@ export default function AdminPage() {
                   >
                     <MessageSquare className="size-3.5" />
                     <span>Community Reviews ({adminData.feedbackTable?.length || 0})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('controls')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                      activeTab === 'controls'
+                        ? 'bg-violet-600 text-white shadow-sm shadow-violet-600/20'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    <Settings2 className="size-3.5" />
+                    <span>Live Site Controls</span>
                   </button>
                 </div>
 
@@ -2140,6 +2226,397 @@ export default function AdminPage() {
                         )}
                       </tbody>
                     </table>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: LIVE SITE CONTROLS */}
+              {activeTab === 'controls' && (
+                <div className="space-y-5">
+                  {/* Header */}
+                  <div className="glass-panel rounded-2xl border border-violet-200/60 dark:border-violet-500/20 p-5 bg-violet-50/40 dark:bg-violet-950/20">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-xl bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 shrink-0">
+                        <Settings2 className="size-4" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Live Site Controls & Announcements</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          Control site behaviour in real-time — no code redeploy required. Changes take effect instantly for all visitors.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-5 lg:grid-cols-2">
+                    {/* === CARD 1: MAINTENANCE MODE === */}
+                    <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 overflow-hidden shadow-sm">
+                      <div className="px-5 py-4 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <Wrench className="size-4 text-amber-500" />
+                          <div>
+                            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">Maintenance Mode</h4>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Show a banner or lock site during updates</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setLiveConfig(prev => ({ ...prev, maintenance: { ...prev.maintenance, enabled: !prev.maintenance.enabled } }))}
+                          className="shrink-0 transition-colors"
+                          aria-label="Toggle maintenance mode"
+                        >
+                          {liveConfig.maintenance.enabled
+                            ? <ToggleRight className="size-8 text-amber-500" />
+                            : <ToggleLeft className="size-8 text-slate-400 dark:text-slate-600" />}
+                        </button>
+                      </div>
+
+                      <div className={`p-5 space-y-4 transition-opacity duration-200 ${liveConfig.maintenance.enabled ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
+                        {/* Level Selector */}
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 block">Alert Level</label>
+                          <div className="flex gap-2">
+                            {(['banner_only', 'strict_lock'] as const).map((level) => (
+                              <button
+                                key={level}
+                                type="button"
+                                onClick={() => setLiveConfig(prev => ({ ...prev, maintenance: { ...prev.maintenance, level } }))}
+                                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
+                                  liveConfig.maintenance.level === level
+                                    ? level === 'strict_lock'
+                                      ? 'bg-rose-500 text-white border-rose-500'
+                                      : 'bg-amber-500 text-white border-amber-500'
+                                    : 'bg-transparent text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5'
+                                }`}
+                              >
+                                {level === 'banner_only' ? 'Banner Only' : 'Strict Lock'}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
+                            {liveConfig.maintenance.level === 'strict_lock'
+                              ? 'Strict Lock: Blocks tool usage and shows a full-page warning.'
+                              : 'Banner Only: Shows a warning bar, tools remain accessible.'}
+                          </p>
+                        </div>
+
+                        {/* Title */}
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Notice Title</label>
+                          <input
+                            type="text"
+                            value={liveConfig.maintenance.title}
+                            onChange={(e) => setLiveConfig(prev => ({ ...prev, maintenance: { ...prev.maintenance, title: e.target.value } }))}
+                            placeholder="Scheduled Platform Maintenance"
+                            className="w-full px-3 py-2 rounded-xl glass-input text-xs font-medium focus:outline-none"
+                          />
+                        </div>
+
+                        {/* Message */}
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Message Body</label>
+                          <textarea
+                            value={liveConfig.maintenance.message}
+                            onChange={(e) => setLiveConfig(prev => ({ ...prev, maintenance: { ...prev.maintenance, message: e.target.value } }))}
+                            rows={3}
+                            placeholder="We are currently performing routine infrastructure optimization..."
+                            className="w-full px-3 py-2 rounded-xl glass-input text-xs font-medium focus:outline-none resize-none"
+                          />
+                        </div>
+
+                        {/* Expected Completion */}
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Est. Completion Time (optional)</label>
+                          <input
+                            type="text"
+                            value={liveConfig.maintenance.expectedCompletion}
+                            onChange={(e) => setLiveConfig(prev => ({ ...prev, maintenance: { ...prev.maintenance, expectedCompletion: e.target.value } }))}
+                            placeholder="e.g. Today at 3:00 PM UTC"
+                            className="w-full px-3 py-2 rounded-xl glass-input text-xs font-medium focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Live Preview */}
+                      {liveConfig.maintenance.enabled && (
+                        <div className={`mx-5 mb-5 p-3 rounded-xl border text-xs font-medium ${
+                          liveConfig.maintenance.level === 'strict_lock'
+                            ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-300'
+                            : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900/50 text-amber-800 dark:text-amber-300'
+                        }`}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <AlertTriangle className="size-3.5 shrink-0" />
+                            <span className="font-bold uppercase text-[10px] tracking-wider">{liveConfig.maintenance.title || 'Notice'}</span>
+                          </div>
+                          <p className="leading-relaxed">{liveConfig.maintenance.message || '(No message set)'}</p>
+                          {liveConfig.maintenance.expectedCompletion && (
+                            <p className="mt-1 flex items-center gap-1 font-semibold">
+                              <Clock className="size-3" /> Est: {liveConfig.maintenance.expectedCompletion}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* === CARD 2: ANNOUNCEMENT BANNER === */}
+                    <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 overflow-hidden shadow-sm">
+                      <div className="px-5 py-4 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <Megaphone className="size-4 text-sky-500" />
+                          <div>
+                            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">Top Announcement Banner</h4>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Full-site announcement bar above navbar</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setLiveConfig(prev => ({ ...prev, announcement: { ...prev.announcement, enabled: !prev.announcement.enabled } }))}
+                          className="shrink-0 transition-colors"
+                          aria-label="Toggle announcement banner"
+                        >
+                          {liveConfig.announcement.enabled
+                            ? <ToggleRight className="size-8 text-sky-500" />
+                            : <ToggleLeft className="size-8 text-slate-400 dark:text-slate-600" />}
+                        </button>
+                      </div>
+
+                      <div className={`p-5 space-y-4 transition-opacity duration-200 ${liveConfig.announcement.enabled ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
+                        {/* Variant */}
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 block">Color Variant</label>
+                          <div className="flex gap-2 flex-wrap">
+                            {(['info', 'promotion', 'warning', 'success'] as const).map((v) => {
+                              const colors: Record<string, string> = {
+                                info: 'bg-sky-500 text-white border-sky-500',
+                                promotion: 'bg-indigo-500 text-white border-indigo-500',
+                                warning: 'bg-amber-500 text-white border-amber-500',
+                                success: 'bg-emerald-500 text-white border-emerald-500',
+                              };
+                              return (
+                                <button
+                                  key={v}
+                                  type="button"
+                                  onClick={() => setLiveConfig(prev => ({ ...prev, announcement: { ...prev.announcement, variant: v } }))}
+                                  className={`py-1.5 px-3 rounded-lg text-xs font-bold capitalize transition-all border ${
+                                    liveConfig.announcement.variant === v
+                                      ? colors[v]
+                                      : 'bg-transparent text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5'
+                                  }`}
+                                >
+                                  {v}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Badge */}
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Badge Label</label>
+                          <input
+                            type="text"
+                            value={liveConfig.announcement.badge}
+                            onChange={(e) => setLiveConfig(prev => ({ ...prev, announcement: { ...prev.announcement, badge: e.target.value } }))}
+                            placeholder="e.g. Public Beta, New Feature, Launch Offer"
+                            className="w-full px-3 py-2 rounded-xl glass-input text-xs font-medium focus:outline-none"
+                          />
+                        </div>
+
+                        {/* Text */}
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Announcement Text</label>
+                          <input
+                            type="text"
+                            value={liveConfig.announcement.text}
+                            onChange={(e) => setLiveConfig(prev => ({ ...prev, announcement: { ...prev.announcement, text: e.target.value } }))}
+                            placeholder="e.g. Analyze up to 5 competitors simultaneously with live SERP data."
+                            className="w-full px-3 py-2 rounded-xl glass-input text-xs font-medium focus:outline-none"
+                          />
+                        </div>
+
+                        {/* Link */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">CTA Button Text</label>
+                            <input
+                              type="text"
+                              value={liveConfig.announcement.linkText}
+                              onChange={(e) => setLiveConfig(prev => ({ ...prev, announcement: { ...prev.announcement, linkText: e.target.value } }))}
+                              placeholder="Start Free Audit"
+                              className="w-full px-3 py-2 rounded-xl glass-input text-xs font-medium focus:outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">CTA URL</label>
+                            <input
+                              type="text"
+                              value={liveConfig.announcement.linkUrl}
+                              onChange={(e) => setLiveConfig(prev => ({ ...prev, announcement: { ...prev.announcement, linkUrl: e.target.value } }))}
+                              placeholder="/audit"
+                              className="w-full px-3 py-2 rounded-xl glass-input text-xs font-medium focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Dismissable */}
+                        <label className="flex items-center gap-2.5 cursor-pointer">
+                          <button
+                            type="button"
+                            onClick={() => setLiveConfig(prev => ({ ...prev, announcement: { ...prev.announcement, dismissable: !prev.announcement.dismissable } }))}
+                          >
+                            {liveConfig.announcement.dismissable
+                              ? <ToggleRight className="size-6 text-sky-500" />
+                              : <ToggleLeft className="size-6 text-slate-400 dark:text-slate-600" />}
+                          </button>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Dismissable by user</span>
+                        </label>
+                      </div>
+
+                      {/* Live Preview */}
+                      {liveConfig.announcement.enabled && (
+                        <div className={`mx-5 mb-5 p-3 rounded-xl border text-xs font-medium flex items-center gap-3 ${
+                          liveConfig.announcement.variant === 'promotion' ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800/40 text-indigo-800 dark:text-indigo-300' :
+                          liveConfig.announcement.variant === 'warning' ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-300' :
+                          liveConfig.announcement.variant === 'success' ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300' :
+                          'bg-sky-50 dark:bg-sky-950/40 border-sky-200 dark:border-sky-800/40 text-sky-800 dark:text-sky-300'
+                        }`}>
+                          {liveConfig.announcement.badge && (
+                            <span className="px-2 py-0.5 rounded-full border border-current text-[10px] font-bold uppercase tracking-wider bg-white/60 dark:bg-black/30 shrink-0">
+                              {liveConfig.announcement.badge}
+                            </span>
+                          )}
+                          <span className="truncate text-slate-800 dark:text-slate-200 font-medium flex-1">{liveConfig.announcement.text || '(No text set)'}</span>
+                          {liveConfig.announcement.linkText && (
+                            <span className="font-semibold underline shrink-0">{liveConfig.announcement.linkText}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* === CARD 3: DEFAULT DAILY CREDITS === */}
+                  <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 overflow-hidden shadow-sm">
+                    <div className="px-5 py-4 border-b border-slate-200/80 dark:border-white/10 flex items-center gap-2.5">
+                      <Zap className="size-4 text-emerald-500" />
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">Default Daily AI Credit Limits</h4>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Adjust quota for new sign-ups and optionally apply to all existing free users</p>
+                      </div>
+                    </div>
+
+                    <div className="p-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 block">
+                            Free User Daily Limit
+                            <span className="ml-2 text-emerald-600 dark:text-emerald-400 font-bold">{liveConfig.credits.freeUserDailyCredits} credits/day</span>
+                          </label>
+                          <input
+                            type="range"
+                            min={1}
+                            max={100}
+                            step={1}
+                            value={liveConfig.credits.freeUserDailyCredits}
+                            onChange={(e) => setLiveConfig(prev => ({ ...prev, credits: { ...prev.credits, freeUserDailyCredits: Number(e.target.value) } }))}
+                            className="w-full accent-emerald-500"
+                          />
+                          <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                            <span>1</span><span>25</span><span>50</span><span>75</span><span>100</span>
+                          </div>
+                          <div className="flex gap-2 mt-3">
+                            {[5, 10, 20, 50].map((n) => (
+                              <button
+                                key={n}
+                                type="button"
+                                onClick={() => setLiveConfig(prev => ({ ...prev, credits: { ...prev.credits, freeUserDailyCredits: n } }))}
+                                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                                  liveConfig.credits.freeUserDailyCredits === n
+                                    ? 'bg-emerald-600 text-white border-emerald-600'
+                                    : 'bg-transparent text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5'
+                                }`}
+                              >
+                                {n}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 block">
+                            Pro User Daily Limit
+                            <span className="ml-2 text-violet-600 dark:text-violet-400 font-bold">{liveConfig.credits.proUserDailyCredits} credits/day</span>
+                          </label>
+                          <input
+                            type="range"
+                            min={10}
+                            max={500}
+                            step={10}
+                            value={liveConfig.credits.proUserDailyCredits}
+                            onChange={(e) => setLiveConfig(prev => ({ ...prev, credits: { ...prev.credits, proUserDailyCredits: Number(e.target.value) } }))}
+                            className="w-full accent-violet-500"
+                          />
+                          <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                            <span>10</span><span>100</span><span>250</span><span>500</span>
+                          </div>
+                          <div className="flex gap-2 mt-3">
+                            {[50, 100, 200, 500].map((n) => (
+                              <button
+                                key={n}
+                                type="button"
+                                onClick={() => setLiveConfig(prev => ({ ...prev, credits: { ...prev.credits, proUserDailyCredits: n } }))}
+                                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                                  liveConfig.credits.proUserDailyCredits === n
+                                    ? 'bg-violet-600 text-white border-violet-600'
+                                    : 'bg-transparent text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5'
+                                }`}
+                              >
+                                {n}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Apply to existing free users toggle */}
+                      <div className="mt-5 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/30">
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <div className="pt-0.5">
+                            <button
+                              type="button"
+                              onClick={() => setApplyToExistingFreeUsers((prev) => !prev)}
+                            >
+                              {applyToExistingFreeUsers
+                                ? <ToggleRight className="size-6 text-amber-600" />
+                                : <ToggleLeft className="size-6 text-slate-400 dark:text-slate-600" />}
+                            </button>
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-amber-900 dark:text-amber-200">Apply to All Existing Free Users</p>
+                            <p className="text-[11px] text-amber-700/80 dark:text-amber-400/80 mt-0.5">
+                              Also update the daily limit for <strong>{adminData.summary.freeUsersCount || 0}</strong> already-registered free accounts. Without this, only new sign-ups get the updated limit.
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="flex items-center justify-end gap-3 pt-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Changes apply instantly site-wide — no redeployment needed.</p>
+                    <button
+                      type="button"
+                      onClick={handleSaveSiteConfig}
+                      disabled={isSavingConfig}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-60 text-white text-xs font-bold shadow-sm shadow-violet-600/30 transition-all cursor-pointer"
+                    >
+                      {isSavingConfig ? (
+                        <RefreshCw className="size-3.5 animate-spin" />
+                      ) : (
+                        <Save className="size-3.5" />
+                      )}
+                      <span>{isSavingConfig ? 'Saving...' : 'Save All Changes'}</span>
+                    </button>
                   </div>
                 </div>
               )}

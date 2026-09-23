@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { AuthModal } from './AuthModal';
 import { Logo } from './Logo';
+import { LiveAnnouncementBanner } from './LiveAnnouncementBanner';
 
 interface ToolItem {
   title: string;
@@ -253,8 +254,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
   );
 
   return (
-    <header className="sticky top-0 z-50 glass-panel border-b border-slate-200/80 dark:border-white/10 px-4 lg:px-8 py-3 shadow-xs backdrop-blur-md">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+    <div className="sticky top-0 z-50">
+      <LiveAnnouncementBanner />
+      <header className="glass-panel border-b border-slate-200/80 dark:border-white/10 px-4 lg:px-8 py-3 shadow-xs backdrop-blur-md">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* AnalyzeSERP Brand Logo */}
         <Link href="/" aria-label="AnalyzeSERP Home" className="flex items-center shrink-0">
           <Logo size="md" variant="full" />
@@ -789,5 +792,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
       {/* 1-Click Google & GitHub Sign In Modal */}
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </header>
+  </div>
   );
 };

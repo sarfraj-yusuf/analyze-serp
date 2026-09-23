@@ -269,6 +269,14 @@ export async function initDatabaseTables(): Promise<void> {
           INDEX idx_banned_ip (ip_address)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
+
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS site_configurations (
+          config_key VARCHAR(100) PRIMARY KEY,
+          config_value TEXT NOT NULL,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
     } finally {
       connection.release();
     }
@@ -427,6 +435,8 @@ export async function upsertUser(user: {
   provider: string;
   provider_id: string;
 }): Promise<DbUser> {
+  const siteConfig = await getSiteConfigurations();
+  const defaultDailyLimit = siteConfig?.credits?.freeUserDailyCredits || 5;
   const db = getPool();
 
   if (db) {
@@ -436,13 +446,13 @@ export async function upsertUser(user: {
       try {
         await connection.execute(
           `INSERT INTO users (id, name, email, image, provider, provider_id, daily_ai_credits_used, daily_ai_credits_limit, last_credit_reset)
-           VALUES (?, ?, ?, ?, ?, ?, 0, 5, NOW())
+           VALUES (?, ?, ?, ?, ?, ?, 0, ?, NOW())
            ON DUPLICATE KEY UPDATE
              name = COALESCE(VALUES(name), name),
              image = COALESCE(VALUES(image), image),
              provider = VALUES(provider),
              provider_id = VALUES(provider_id)`,
-          [user.id, user.name || null, user.email, user.image || null, user.provider, user.provider_id]
+          [user.id, user.name || null, user.email, user.image || null, user.provider, user.provider_id, defaultDailyLimit]
         );
 
         const [rows] = await connection.execute(
@@ -479,7 +489,7 @@ export async function upsertUser(user: {
     provider: user.provider,
     provider_id: user.provider_id,
     daily_ai_credits_used: 0,
-    daily_ai_credits_limit: 5,
+    daily_ai_credits_limit: defaultDailyLimit,
     role: 'user',
     status: 'active',
     last_credit_reset: new Date(),
@@ -1592,4 +1602,179 @@ export async function getSystemHealthTelemetry(): Promise<SystemHealthData> {
     incidents24hCount,
   };
 }
+
+export interface MaintenanceConfig {
+  enabled: boolean;
+  title: string;
+  message: string;
+  level: 'banner_only' | 'strict_lock';
+  expectedCompletion: string;
+}
+
+export interface AnnouncementBannerConfig {
+  enabled: boolean;
+  badge: string;
+  text: string;
+  linkText: string;
+  linkUrl: string;
+  variant: 'info' | 'promotion' | 'warning' | 'success';
+  dismissable: boolean;
+}
+
+export interface CreditLimitsConfig {
+  freeUserDailyCredits: number;
+  proUserDailyCredits: number;
+}
+
+export interface SiteConfigurations {
+  maintenance: MaintenanceConfig;
+  announcement: AnnouncementBannerConfig;
+  credits: CreditLimitsConfig;
+}
+
+const DEFAULT_SITE_CONFIG: SiteConfigurations = {
+  maintenance: {
+    enabled: false,
+    title: 'Scheduled Platform Maintenance',
+    message: 'We are currently performing routine infrastructure optimization. All diagnostic tools remain available.',
+    level: 'banner_only',
+    expectedCompletion: '',
+  },
+  announcement: {
+    enabled: true,
+    badge: 'Public Beta',
+    text: 'Analyze up to 5 competitors simultaneously with live lexical & SERP parity benchmarks.',
+    linkText: 'Start Free Audit',
+    linkUrl: '/audit',
+    variant: 'info',
+    dismissable: true,
+  },
+  credits: {
+    freeUserDailyCredits: 5,
+    proUserDailyCredits: 50,
+  },
+};
+
+// In-memory cache for O(1) sync access without DB query latency
+let cachedSiteConfig: SiteConfigurations = { ...DEFAULT_SITE_CONFIG };
+let isSiteConfigLoaded = false;
+
+export async function getSiteConfigurations(): Promise<SiteConfigurations> {
+  if (isSiteConfigLoaded) {
+    return cachedSiteConfig;
+  }
+
+  const db = getPool();
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        const [rows] = (await connection.execute(
+          `SELECT config_key, config_value FROM site_configurations`
+        )) as any;
+
+        if (rows && rows.length > 0) {
+          const loadedConfig: SiteConfigurations = {
+            maintenance: { ...DEFAULT_SITE_CONFIG.maintenance },
+            announcement: { ...DEFAULT_SITE_CONFIG.announcement },
+            credits: { ...DEFAULT_SITE_CONFIG.credits },
+          };
+
+          rows.forEach((row: any) => {
+            try {
+              if (row.config_key === 'maintenance') {
+                loadedConfig.maintenance = { ...DEFAULT_SITE_CONFIG.maintenance, ...JSON.parse(row.config_value) };
+              } else if (row.config_key === 'announcement') {
+                loadedConfig.announcement = { ...DEFAULT_SITE_CONFIG.announcement, ...JSON.parse(row.config_value) };
+              } else if (row.config_key === 'credits') {
+                loadedConfig.credits = { ...DEFAULT_SITE_CONFIG.credits, ...JSON.parse(row.config_value) };
+              }
+            } catch (err) {
+              console.error(`[DB Error] Failed to parse site_configurations key ${row.config_key}:`, err);
+            }
+          });
+          cachedSiteConfig = loadedConfig;
+          isSiteConfigLoaded = true;
+          return cachedSiteConfig;
+        }
+      } finally {
+        connection.release();
+      }
+    } catch (err) {
+      console.error('[DB Error] Failed to load site_configurations:', err);
+    }
+  }
+
+  isSiteConfigLoaded = true;
+  return cachedSiteConfig;
+}
+
+export async function updateSiteConfigurations(
+  updates: Partial<SiteConfigurations>,
+  applyToExistingFreeUsers: boolean = false
+): Promise<SiteConfigurations> {
+  const current = await getSiteConfigurations();
+
+  const newConfig: SiteConfigurations = {
+    maintenance: updates.maintenance ? { ...current.maintenance, ...updates.maintenance } : current.maintenance,
+    announcement: updates.announcement ? { ...current.announcement, ...updates.announcement } : current.announcement,
+    credits: updates.credits ? { ...current.credits, ...updates.credits } : current.credits,
+  };
+
+  cachedSiteConfig = newConfig;
+
+  const db = getPool();
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        const queries: Promise<any>[] = [
+          connection.execute(
+            `INSERT INTO site_configurations (config_key, config_value) VALUES ('maintenance', ?)
+             ON DUPLICATE KEY UPDATE config_value = VALUES(config_value)`,
+            [JSON.stringify(newConfig.maintenance)]
+          ),
+          connection.execute(
+            `INSERT INTO site_configurations (config_key, config_value) VALUES ('announcement', ?)
+             ON DUPLICATE KEY UPDATE config_value = VALUES(config_value)`,
+            [JSON.stringify(newConfig.announcement)]
+          ),
+          connection.execute(
+            `INSERT INTO site_configurations (config_key, config_value) VALUES ('credits', ?)
+             ON DUPLICATE KEY UPDATE config_value = VALUES(config_value)`,
+            [JSON.stringify(newConfig.credits)]
+          ),
+        ];
+
+        if (applyToExistingFreeUsers && newConfig.credits?.freeUserDailyCredits) {
+          queries.push(
+            connection.execute(
+              `UPDATE users SET daily_ai_credits_limit = ? WHERE role != 'pro'`,
+              [newConfig.credits.freeUserDailyCredits]
+            )
+          );
+        }
+
+        await Promise.all(queries);
+      } finally {
+        connection.release();
+      }
+    } catch (err) {
+      console.error('[DB Error] Failed to save site_configurations to MySQL:', err);
+    }
+  }
+
+  if (applyToExistingFreeUsers && newConfig.credits?.freeUserDailyCredits) {
+    for (const user of memoryUserStore.values()) {
+      if (user.role !== 'pro') {
+        user.daily_ai_credits_limit = newConfig.credits.freeUserDailyCredits;
+      }
+    }
+  }
+
+  return cachedSiteConfig;
+}
+
 

@@ -9,6 +9,7 @@ import {
   getSecurityIncidents,
   getBannedIps,
   logSecurityIncident,
+  getSiteConfigurations,
 } from '@/lib/db';
 
 export async function GET(req: Request) {
@@ -61,6 +62,7 @@ export async function GET(req: Request) {
       systemHealth,
       securityIncidents,
       bannedIps,
+      siteConfig,
     ] = await Promise.all([
       getAllFeedback(),
       getActivityLogs(),
@@ -69,6 +71,7 @@ export async function GET(req: Request) {
       getSystemHealthTelemetry(),
       getSecurityIncidents(50),
       getBannedIps(),
+      getSiteConfigurations(),
     ]);
 
     // 1. Calculate Summary Metrics
@@ -227,6 +230,7 @@ export async function GET(req: Request) {
       usersList,
       userTable: userTableData,
       feedbackTable: feedbackList,
+      siteConfig,
     });
   } catch (error: any) {
     console.error('[Admin Data API Error]', error);
