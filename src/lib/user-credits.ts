@@ -78,6 +78,15 @@ export async function getUserCredits(email: string): Promise<UserCreditsInfo> {
 export async function consumeUserCredit(
   email: string
 ): Promise<{ success: boolean; remainingCredits: number; error?: string }> {
+  const user = await getUserByEmail(email);
+  if (user?.status === 'suspended') {
+    return {
+      success: false,
+      remainingCredits: 0,
+      error: 'Your account has been suspended by an administrator. Please contact support.',
+    };
+  }
+
   const creditsInfo = await getUserCredits(email);
 
   if (creditsInfo.remainingCredits <= 0) {

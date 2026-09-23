@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { getAllFeedback, getActivityLogs } from '@/lib/db';
+import { getAllFeedback, getActivityLogs, getAllUsers } from '@/lib/db';
 
 export async function GET(req: Request) {
   try {
@@ -31,9 +31,10 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized Admin Access. Invalid Key.' }, { status: 401 });
     }
 
-    const [feedbackList, activityLogs] = await Promise.all([
+    const [feedbackList, activityLogs, usersList] = await Promise.all([
       getAllFeedback(),
       getActivityLogs(),
+      getAllUsers(),
     ]);
 
     // 1. Calculate Summary Metrics
@@ -112,6 +113,55 @@ export async function GET(req: Request) {
       (a, b) => new Date(b.lastUsedAt).getTime() - new Date(a.lastUsedAt).getTime()
     );
 
+    // 3. User Metrics Calculation
+    const totalRegisteredUsers = usersList.length;
+    const proUsersCount = usersList.filter((u) => u.role === 'pro').length;
+    const freeUsersCount = usersList.filter((u) => u.role !== 'pro').length;
+    const activeUsersCount = usersList.filter((u) => u.status !== 'suspended').length;
+    const suspendedUsersCount = usersList.filter((u) => u.status === 'suspended').length;
+
+    // 4. Pre-calculated Visual Charts Data
+    const totalExecutions = Math.max(1, totalActivityCount);
+    const toolBreakdownChart = Object.entries(toolUsageCounts)
+      .map(([tool, count]) => ({
+        tool,
+        count,
+        percentage: Math.round((count / totalExecutions) * 100),
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    const totalUsersCalc = Math.max(1, totalRegisteredUsers);
+    const userTierChart = [
+      { name: 'Free Users', count: freeUsersCount, percentage: Math.round((freeUsersCount / totalUsersCalc) * 100), color: '#38bdf8' },
+      { name: 'Pro Members', count: proUsersCount, percentage: Math.round((proUsersCount / totalUsersCalc) * 100), color: '#10b981' },
+    ];
+
+    const userStatusChart = [
+      { name: 'Active', count: activeUsersCount, percentage: Math.round((activeUsersCount / totalUsersCalc) * 100), color: '#10b981' },
+      { name: 'Suspended', count: suspendedUsersCount, percentage: Math.round((suspendedUsersCount / totalUsersCalc) * 100), color: '#f43f5e' },
+    ];
+
+    // 7-Day Velocity Timeline
+    const last7Days: Record<string, number> = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dayKey = d.toISOString().split('T')[0];
+      last7Days[dayKey] = 0;
+    }
+    activityLogs.forEach((log) => {
+      try {
+        const logDay = new Date(log.used_at).toISOString().split('T')[0];
+        if (last7Days[logDay] !== undefined) {
+          last7Days[logDay] += 1;
+        }
+      } catch {}
+    });
+    const recentActivityTimeline = Object.entries(last7Days).map(([date, count]) => ({
+      date,
+      count,
+    }));
+
     return NextResponse.json({
       success: true,
       summary: {
@@ -121,7 +171,19 @@ export async function GET(req: Request) {
         avgRating,
         totalReviews: totalFeedbackCount,
         toolUsageCounts,
+        totalRegisteredUsers,
+        proUsersCount,
+        freeUsersCount,
+        activeUsersCount,
+        suspendedUsersCount,
       },
+      charts: {
+        toolBreakdownChart,
+        userTierChart,
+        userStatusChart,
+        recentActivityTimeline,
+      },
+      usersList,
       userTable: userTableData,
       feedbackTable: feedbackList,
     });

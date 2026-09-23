@@ -2,6 +2,7 @@ import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import GitHub from 'next-auth/providers/github';
 import { syncUserOnLogin, getUserCredits } from '@/lib/user-credits';
+import { getUserByEmail } from '@/lib/db';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -39,9 +40,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
         if (session.user.email) {
           try {
-            session.user.credits = await getUserCredits(session.user.email);
+            const [credits, dbUser] = await Promise.all([
+              getUserCredits(session.user.email),
+              getUserByEmail(session.user.email),
+            ]);
+            session.user.credits = credits;
+            if (dbUser) {
+              session.user.role = (dbUser.role as any) || 'user';
+              session.user.status = (dbUser.status as any) || 'active';
+            }
           } catch {
             session.user.credits = { remainingCredits: 5, limit: 5, usedCredits: 0, resetInHours: 24 };
+            session.user.role = 'user';
+            session.user.status = 'active';
           }
         }
       }

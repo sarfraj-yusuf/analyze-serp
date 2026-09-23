@@ -71,6 +71,8 @@ export interface DbUser {
   provider_id: string;
   daily_ai_credits_used: number;
   daily_ai_credits_limit: number;
+  role?: 'user' | 'pro' | 'admin';
+  status?: 'active' | 'suspended';
   last_credit_reset: string | Date;
   created_at: string | Date;
 }
@@ -138,11 +140,38 @@ export async function initDatabaseTables(): Promise<void> {
           provider_id VARCHAR(255) NOT NULL,
           daily_ai_credits_used INT DEFAULT 0,
           daily_ai_credits_limit INT DEFAULT 5,
+          role VARCHAR(20) DEFAULT 'user',
+          status VARCHAR(20) DEFAULT 'active',
           last_credit_reset TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           INDEX idx_email (email)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
+
+      // Safe non-destructive column additions for existing production tables
+      try {
+        const [roleCol] = (await connection.query(`
+          SELECT COUNT(*) as cnt FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'role'
+        `)) as any;
+        if (roleCol && roleCol[0] && Number(roleCol[0].cnt) === 0) {
+          await connection.query(`ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'user'`);
+        }
+      } catch (colErr) {
+        console.error('[DB Migration Error] role check:', colErr);
+      }
+
+      try {
+        const [statusCol] = (await connection.query(`
+          SELECT COUNT(*) as cnt FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'status'
+        `)) as any;
+        if (statusCol && statusCol[0] && Number(statusCol[0].cnt) === 0) {
+          await connection.query(`ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active'`);
+        }
+      } catch (colErr) {
+        console.error('[DB Migration Error] status check:', colErr);
+      }
 
       await connection.query(`
         CREATE TABLE IF NOT EXISTS user_feedback (
@@ -425,6 +454,8 @@ export async function upsertUser(user: {
     provider_id: user.provider_id,
     daily_ai_credits_used: 0,
     daily_ai_credits_limit: 5,
+    role: 'user',
+    status: 'active',
     last_credit_reset: new Date(),
     created_at: new Date(),
   };
@@ -506,6 +537,103 @@ export async function updateUserCredits(
     }
     return true;
   }
+  return false;
+}
+
+/**
+ * Fetches all registered users for the Admin Console
+ */
+export async function getAllUsers(): Promise<DbUser[]> {
+  const db = getPool();
+
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        const [rows] = await connection.execute(
+          `SELECT id, name, email, image, provider, provider_id, daily_ai_credits_used, daily_ai_credits_limit, role, status, last_credit_reset, created_at FROM users ORDER BY created_at DESC`
+        );
+        return rows as DbUser[];
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('[DB Error] Failed to fetch all users from MySQL:', error);
+    }
+  }
+
+  // Fallback to in-memory store
+  return Array.from(memoryUserStore.values()).sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
+
+/**
+ * Admin action to adjust user credits, role, or status
+ */
+export async function adminUpdateUser(
+  email: string,
+  updates: {
+    daily_ai_credits_limit?: number;
+    daily_ai_credits_used?: number;
+    role?: 'user' | 'pro' | 'admin';
+    status?: 'active' | 'suspended';
+  }
+): Promise<boolean> {
+  const db = getPool();
+
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        const setClauses: string[] = [];
+        const values: any[] = [];
+
+        if (updates.daily_ai_credits_limit !== undefined) {
+          setClauses.push('daily_ai_credits_limit = ?');
+          values.push(updates.daily_ai_credits_limit);
+        }
+        if (updates.daily_ai_credits_used !== undefined) {
+          setClauses.push('daily_ai_credits_used = ?');
+          values.push(updates.daily_ai_credits_used);
+        }
+        if (updates.role !== undefined) {
+          setClauses.push('role = ?');
+          values.push(updates.role);
+        }
+        if (updates.status !== undefined) {
+          setClauses.push('status = ?');
+          values.push(updates.status);
+        }
+
+        if (setClauses.length > 0) {
+          values.push(email);
+          await connection.execute(
+            `UPDATE users SET ${setClauses.join(', ')} WHERE email = ?`,
+            values
+          );
+        }
+        return true;
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('[DB Error] Failed to adminUpdateUser in MySQL:', error);
+    }
+  }
+
+  // In-memory fallback
+  const user = memoryUserStore.get(email);
+  if (user) {
+    if (updates.daily_ai_credits_limit !== undefined) user.daily_ai_credits_limit = updates.daily_ai_credits_limit;
+    if (updates.daily_ai_credits_used !== undefined) user.daily_ai_credits_used = updates.daily_ai_credits_used;
+    if (updates.role !== undefined) user.role = updates.role;
+    if (updates.status !== undefined) user.status = updates.status;
+    return true;
+  }
+
   return false;
 }
 
