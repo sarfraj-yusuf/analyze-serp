@@ -32,6 +32,10 @@ import {
   Check,
   SlidersHorizontal,
   ChevronRight,
+  Globe,
+  Target,
+  Layers,
+  ArrowUpRight,
 } from 'lucide-react';
 
 interface DbUser {
@@ -87,6 +91,24 @@ interface ChartTimelineItem {
   count: number;
 }
 
+export interface MarketIntelligenceData {
+  topDomains: { domain: string; count: number; percentage: number; lastAuditedAt: string }[];
+  topKeywords: { keyword: string; count: number; avgScore: number; lastUsedAt: string }[];
+  scoreDistribution: { range: string; label: string; count: number; percentage: number; color: string }[];
+  recentSnapshots: {
+    id: number;
+    user_email: string;
+    url: string;
+    label: string | null;
+    score: number;
+    target_keyword: string | null;
+    created_at: string | Date;
+  }[];
+  uniqueDomainsCount: number;
+  uniqueKeywordsCount: number;
+  platformAvgScore: number;
+}
+
 interface AdminData {
   summary: {
     totalVisitors: number;
@@ -100,6 +122,9 @@ interface AdminData {
     freeUsersCount: number;
     activeUsersCount: number;
     suspendedUsersCount: number;
+    uniqueDomainsCount?: number;
+    uniqueKeywordsCount?: number;
+    platformAvgScore?: number;
   };
   charts: {
     toolBreakdownChart: ChartToolItem[];
@@ -107,6 +132,7 @@ interface AdminData {
     userStatusChart: { name: string; count: number; percentage: number; color: string }[];
     recentActivityTimeline: ChartTimelineItem[];
   };
+  marketIntelligence?: MarketIntelligenceData;
   usersList: DbUser[];
   userTable: UserUsageRow[];
   feedbackTable: FeedbackRow[];
@@ -120,7 +146,7 @@ export default function AdminPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [adminData, setAdminData] = useState<AdminData | null>(null);
-  const [activeTab, setActiveTab] = useState<'users' | 'usage' | 'feedback'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'market' | 'usage' | 'feedback'>('users');
   const [searchQuery, setSearchQuery] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'pro' | 'free' | 'suspended'>('all');
   const [selectedToolFilter, setSelectedToolFilter] = useState('All');
@@ -279,6 +305,37 @@ export default function AdminPage() {
     });
   }, [adminData?.feedbackTable, searchQuery]);
 
+  // Filter Market Intelligence (Domains, Keywords, Snapshots)
+  const filteredTopDomains = useMemo(() => {
+    if (!adminData?.marketIntelligence?.topDomains) return [];
+    if (!searchQuery) return adminData.marketIntelligence.topDomains;
+    const q = searchQuery.toLowerCase();
+    return adminData.marketIntelligence.topDomains.filter((d) =>
+      d.domain.toLowerCase().includes(q)
+    );
+  }, [adminData?.marketIntelligence?.topDomains, searchQuery]);
+
+  const filteredTopKeywords = useMemo(() => {
+    if (!adminData?.marketIntelligence?.topKeywords) return [];
+    if (!searchQuery) return adminData.marketIntelligence.topKeywords;
+    const q = searchQuery.toLowerCase();
+    return adminData.marketIntelligence.topKeywords.filter((k) =>
+      k.keyword.toLowerCase().includes(q)
+    );
+  }, [adminData?.marketIntelligence?.topKeywords, searchQuery]);
+
+  const filteredSnapshots = useMemo(() => {
+    if (!adminData?.marketIntelligence?.recentSnapshots) return [];
+    if (!searchQuery) return adminData.marketIntelligence.recentSnapshots;
+    const q = searchQuery.toLowerCase();
+    return adminData.marketIntelligence.recentSnapshots.filter((s) =>
+      s.url.toLowerCase().includes(q) ||
+      (s.label && s.label.toLowerCase().includes(q)) ||
+      (s.target_keyword && s.target_keyword.toLowerCase().includes(q)) ||
+      (s.user_email && s.user_email.toLowerCase().includes(q))
+    );
+  }, [adminData?.marketIntelligence?.recentSnapshots, searchQuery]);
+
   // Quick Export to CSV
   const exportUsersToCsv = () => {
     if (!adminData?.usersList || adminData.usersList.length === 0) return;
@@ -326,7 +383,7 @@ export default function AdminPage() {
               <span>Admin Management Hub • Live Telemetry</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
-              AnalyzeSERP <span className="gradient-text">Command Console</span>
+              AnalyzeSERP <span className="text-emerald-600 dark:text-emerald-400">Command Console</span>
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Real-time user accounts, credit allocation, visual engine metrics, and user feedback.
@@ -401,7 +458,7 @@ export default function AdminPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-extrabold text-xs shadow-md shadow-emerald-500/20 hover:opacity-95 transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isLoading ? 'Verifying Admin Key...' : 'Unlock Management Panel'}
                 </button>
@@ -672,6 +729,19 @@ export default function AdminPage() {
                   >
                     <Users className="size-3.5" />
                     <span>Registered Users ({adminData.usersList?.length || 0})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('market')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                      activeTab === 'market'
+                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    <Globe className="size-3.5" />
+                    <span>Market Trends &amp; Competitors ({adminData.marketIntelligence?.topDomains?.length || 0})</span>
                   </button>
 
                   <button
@@ -952,6 +1022,385 @@ export default function AdminPage() {
                         )}
                       </tbody>
                     </table>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: MARKET TRENDS & COMPETITOR INTELLIGENCE */}
+              {activeTab === 'market' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  {/* Market Overview 4-KPI Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* KPI 1: Unique Rival Domains */}
+                    <div className="glass-panel p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-2">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          Competitor Domains
+                        </span>
+                        <Globe className="size-4 text-emerald-500" />
+                      </div>
+                      <div className="text-3xl font-black text-slate-800 dark:text-slate-100 font-mono">
+                        {adminData.marketIntelligence?.uniqueDomainsCount ?? 0}
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5">
+                        <span className="size-1.5 rounded-full bg-emerald-500" />
+                        <span>Tracked across user audits</span>
+                      </div>
+                    </div>
+
+                    {/* KPI 2: Top Audited Rival */}
+                    <div className="glass-panel p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-2">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          Top Rival Target
+                        </span>
+                        <Target className="size-4 text-cyan-500" />
+                      </div>
+                      <div
+                        className="text-lg font-extrabold text-slate-800 dark:text-slate-100 font-mono truncate"
+                        title={adminData.marketIntelligence?.topDomains?.[0]?.domain || 'N/A'}
+                      >
+                        {adminData.marketIntelligence?.topDomains?.[0]?.domain || 'None yet'}
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5">
+                        <span className="font-semibold text-cyan-600 dark:text-cyan-400">
+                          {adminData.marketIntelligence?.topDomains?.[0]?.count || 0} total audits
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* KPI 3: Unique Keyword Niches */}
+                    <div className="glass-panel p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-2">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          Focus Keywords
+                        </span>
+                        <Layers className="size-4 text-indigo-500" />
+                      </div>
+                      <div className="text-3xl font-black text-slate-800 dark:text-slate-100 font-mono">
+                        {adminData.marketIntelligence?.uniqueKeywordsCount ?? 0}
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5">
+                        <Sparkles className="size-3 text-indigo-500" />
+                        <span>Active target niches</span>
+                      </div>
+                    </div>
+
+                    {/* KPI 4: Platform Average Audit Score */}
+                    <div className="glass-panel p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-2">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          Platform Avg Score
+                        </span>
+                        <TrendingUp className="size-4 text-amber-500" />
+                      </div>
+                      <div className="text-3xl font-black text-slate-800 dark:text-slate-100 font-mono flex items-baseline gap-1">
+                        <span>{adminData.marketIntelligence?.platformAvgScore ?? 0}</span>
+                        <span className="text-xs font-normal text-slate-400">/ 100</span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5">
+                        <span>Based on snapshot benchmarks</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Two Column Visual Charts */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Chart A: Top Audited Competitor Domains Bar Chart */}
+                    <div className="lg:col-span-7 glass-panel p-6 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <Globe className="size-4 text-emerald-500" />
+                            <span>Top Audited Competitor Domains</span>
+                          </h3>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            Most frequently benchmarked rival websites across all audits
+                          </p>
+                        </div>
+                        <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                          Top {filteredTopDomains.length}
+                        </span>
+                      </div>
+
+                      <div className="space-y-3 pt-2">
+                        {filteredTopDomains.map((item, idx) => (
+                          <div key={item.domain} className="space-y-1.5 text-xs">
+                            <div className="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="w-5 text-center font-mono text-[10px] font-bold text-slate-400">
+                                  #{idx + 1}
+                                </span>
+                                <a
+                                  href={`https://${item.domain}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-semibold text-slate-900 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors truncate max-w-[200px] sm:max-w-xs flex items-center gap-1"
+                                >
+                                  <span>{item.domain}</span>
+                                  <ExternalLink className="size-3 text-slate-400 hover:text-emerald-500 shrink-0" />
+                                </a>
+                              </div>
+                              <div className="flex items-center gap-2 font-mono text-[11px] shrink-0">
+                                <span className="font-bold text-slate-900 dark:text-white">{item.count} audits</span>
+                                <span className="text-slate-400 w-10 text-right">({item.percentage}%)</span>
+                              </div>
+                            </div>
+                            <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                                style={{ width: `${Math.max(4, item.percentage)}%` }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+
+                        {filteredTopDomains.length === 0 && (
+                          <p className="text-xs text-slate-400 py-8 text-center">No competitor domains recorded yet.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Chart B: SEO Score Distribution Bracket Chart */}
+                    <div className="lg:col-span-5 glass-panel p-6 rounded-2xl border border-slate-200/80 dark:border-white/10 flex flex-col justify-between space-y-5">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                          <BarChart3 className="size-4 text-cyan-500" />
+                          <span>SEO Score Distribution Brackets</span>
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          Audit benchmark health distribution across snapshots
+                        </p>
+                      </div>
+
+                      <div className="space-y-4 py-2">
+                        {adminData.marketIntelligence?.scoreDistribution?.map((bracket) => (
+                          <div key={bracket.range} className="space-y-1.5 text-xs">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="size-2.5 rounded-full shrink-0"
+                                  style={{ backgroundColor: bracket.color }}
+                                />
+                                <span className="font-bold text-slate-800 dark:text-slate-200">
+                                  {bracket.label}
+                                </span>
+                                <span className="text-[10px] font-mono text-slate-400">
+                                  ({bracket.range})
+                                </span>
+                              </div>
+                              <div className="font-mono text-[11px] flex items-center gap-1.5">
+                                <span className="font-bold text-slate-900 dark:text-white">{bracket.count}</span>
+                                <span className="text-slate-400">({bracket.percentage}%)</span>
+                              </div>
+                            </div>
+                            <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${Math.max(bracket.count > 0 ? 5 : 0, bracket.percentage)}%`,
+                                  backgroundColor: bracket.color,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs flex items-center justify-between">
+                        <span className="text-slate-500 dark:text-slate-400 font-mono text-[11px]">
+                          Platform Benchmark Parity
+                        </span>
+                        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                          {adminData.marketIntelligence?.platformAvgScore || 0} / 100 AVG
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 3: Focus Keywords Matrix */}
+                  <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 overflow-hidden shadow-sm space-y-4">
+                    <div className="p-4 sm:px-6 sm:py-4 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                          <Target className="size-4 text-indigo-500" />
+                          <span>Top Focus Keywords Matrix</span>
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          Keywords targeted by users in audit snapshots with average benchmark scores
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-100 dark:bg-white/5 uppercase text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 tracking-wider">
+                          <tr>
+                            <th className="px-6 py-3">Keyword Query</th>
+                            <th className="px-6 py-3">Audits Run</th>
+                            <th className="px-6 py-3">Avg SEO Score</th>
+                            <th className="px-6 py-3">Last Active</th>
+                            <th className="px-6 py-3 text-right">Quick Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200/80 dark:divide-white/5">
+                          {filteredTopKeywords.length > 0 ? (
+                            filteredTopKeywords.map((item) => (
+                              <tr key={item.keyword} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                                <td className="px-6 py-4 font-bold text-slate-900 dark:text-slate-100 font-mono">
+                                  {item.keyword}
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
+                                    {item.count} audits
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span
+                                    className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold ${
+                                      item.avgScore >= 85
+                                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                        : item.avgScore >= 70
+                                        ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30'
+                                        : item.avgScore >= 50
+                                        ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30'
+                                        : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                                    }`}
+                                  >
+                                    {item.avgScore} / 100
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 text-slate-500 dark:text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                                  {new Date(item.lastUsedAt).toLocaleDateString()}
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                  <Link
+                                    href={`/audit?keyword=${encodeURIComponent(item.keyword)}`}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 text-[11px] font-medium transition-all"
+                                  >
+                                    <span>Audit Keyword</span>
+                                    <ArrowUpRight className="size-3 text-slate-400" />
+                                  </Link>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
+                                No focus keywords found in audit snapshots.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Section 4: Platform-wide Snapshots Live Stream */}
+                  <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 overflow-hidden shadow-sm space-y-4">
+                    <div className="p-4 sm:px-6 sm:py-4 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                          <Activity className="size-4 text-emerald-500" />
+                          <span>Platform-wide Audit Snapshots Live Stream</span>
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          Recent competitive audit snapshots saved across the platform with 1-click `/audit` launcher
+                        </p>
+                      </div>
+                      <span className="text-xs font-mono text-slate-400">
+                        Showing recent {filteredSnapshots.length}
+                      </span>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-100 dark:bg-white/5 uppercase text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 tracking-wider">
+                          <tr>
+                            <th className="px-6 py-3">Snapshot Target</th>
+                            <th className="px-6 py-3">Score</th>
+                            <th className="px-6 py-3">Keyword &amp; Label</th>
+                            <th className="px-6 py-3">Auditor Email</th>
+                            <th className="px-6 py-3">Created</th>
+                            <th className="px-6 py-3 text-right">Inspect Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200/80 dark:divide-white/5">
+                          {filteredSnapshots.length > 0 ? (
+                            filteredSnapshots.map((snap) => (
+                              <tr key={snap.id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                                <td className="px-6 py-4 max-w-xs">
+                                  <div className="font-semibold text-slate-800 dark:text-slate-100 truncate flex items-center gap-1.5">
+                                    <a
+                                      href={snap.url.startsWith('http') ? snap.url : `https://${snap.url}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="hover:underline hover:text-emerald-600 dark:hover:text-emerald-400 truncate flex items-center gap-1"
+                                    >
+                                      <span className="truncate">{snap.url}</span>
+                                      <ExternalLink className="size-3 text-slate-400 shrink-0" />
+                                    </a>
+                                  </div>
+                                </td>
+
+                                <td className="px-6 py-4">
+                                  <span
+                                    className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold ${
+                                      snap.score >= 85
+                                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                        : snap.score >= 70
+                                        ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30'
+                                        : snap.score >= 50
+                                        ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30'
+                                        : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                                    }`}
+                                  >
+                                    {snap.score} / 100
+                                  </span>
+                                </td>
+
+                                <td className="px-6 py-4">
+                                  <div className="space-y-0.5">
+                                    <div className="font-mono text-[11px] text-slate-800 dark:text-slate-200">
+                                      {snap.target_keyword || <span className="text-slate-400 italic">No keyword</span>}
+                                    </div>
+                                    {snap.label && (
+                                      <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[140px]">
+                                        {snap.label}
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+
+                                <td className="px-6 py-4 font-mono text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
+                                  {snap.user_email}
+                                </td>
+
+                                <td className="px-6 py-4 text-slate-500 dark:text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                                  {new Date(snap.created_at).toLocaleDateString()}
+                                </td>
+
+                                <td className="px-6 py-4 text-right">
+                                  <Link
+                                    href={`/audit?snapshotId=${snap.id}`}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 text-xs font-medium transition-all"
+                                  >
+                                    <span>Open in /audit</span>
+                                    <ArrowUpRight className="size-3 text-emerald-500" />
+                                  </Link>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
+                                No audit snapshots found.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               )}

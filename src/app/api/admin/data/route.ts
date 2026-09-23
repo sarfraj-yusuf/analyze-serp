@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { getAllFeedback, getActivityLogs, getAllUsers } from '@/lib/db';
+import { getAllFeedback, getActivityLogs, getAllUsers, getCompetitorMarketIntelligence } from '@/lib/db';
 
 export async function GET(req: Request) {
   try {
@@ -31,10 +31,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized Admin Access. Invalid Key.' }, { status: 401 });
     }
 
-    const [feedbackList, activityLogs, usersList] = await Promise.all([
+    const [feedbackList, activityLogs, usersList, marketIntelligence] = await Promise.all([
       getAllFeedback(),
       getActivityLogs(),
       getAllUsers(),
+      getCompetitorMarketIntelligence(),
     ]);
 
     // 1. Calculate Summary Metrics
@@ -176,6 +177,9 @@ export async function GET(req: Request) {
         freeUsersCount,
         activeUsersCount,
         suspendedUsersCount,
+        uniqueDomainsCount: marketIntelligence.uniqueDomainsCount,
+        uniqueKeywordsCount: marketIntelligence.uniqueKeywordsCount,
+        platformAvgScore: marketIntelligence.platformAvgScore,
       },
       charts: {
         toolBreakdownChart,
@@ -183,6 +187,7 @@ export async function GET(req: Request) {
         userStatusChart,
         recentActivityTimeline,
       },
+      marketIntelligence,
       usersList,
       userTable: userTableData,
       feedbackTable: feedbackList,
