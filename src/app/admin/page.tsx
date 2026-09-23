@@ -1003,7 +1003,7 @@ export default function AdminPage() {
                     onClick={() => setActiveTab('controls')}
                     className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
                       activeTab === 'controls'
-                        ? 'bg-violet-600 text-white shadow-sm shadow-violet-600/20'
+                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
                         : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
                     }`}
                   >
@@ -2234,9 +2234,9 @@ export default function AdminPage() {
               {activeTab === 'controls' && (
                 <div className="space-y-5">
                   {/* Header */}
-                  <div className="glass-panel rounded-2xl border border-violet-200/60 dark:border-violet-500/20 p-5 bg-violet-50/40 dark:bg-violet-950/20">
+                  <div className="glass-panel rounded-2xl border border-emerald-200/60 dark:border-emerald-500/20 p-5 bg-emerald-50/40 dark:bg-emerald-950/20">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-xl bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 shrink-0">
+                      <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 shrink-0">
                         <Settings2 className="size-4" />
                       </div>
                       <div>
@@ -2362,7 +2362,7 @@ export default function AdminPage() {
                     <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 overflow-hidden shadow-sm">
                       <div className="px-5 py-4 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2.5">
-                          <Megaphone className="size-4 text-sky-500" />
+                          <Megaphone className="size-4 text-emerald-500" />
                           <div>
                             <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">Top Announcement Banner</h4>
                             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Full-site announcement bar above navbar</p>
@@ -2375,7 +2375,7 @@ export default function AdminPage() {
                           aria-label="Toggle announcement banner"
                         >
                           {liveConfig.announcement.enabled
-                            ? <ToggleRight className="size-8 text-sky-500" />
+                            ? <ToggleRight className="size-8 text-emerald-500" />
                             : <ToggleLeft className="size-8 text-slate-400 dark:text-slate-600" />}
                         </button>
                       </div>
@@ -2465,7 +2465,7 @@ export default function AdminPage() {
                             onClick={() => setLiveConfig(prev => ({ ...prev, announcement: { ...prev.announcement, dismissable: !prev.announcement.dismissable } }))}
                           >
                             {liveConfig.announcement.dismissable
-                              ? <ToggleRight className="size-6 text-sky-500" />
+                              ? <ToggleRight className="size-6 text-emerald-500" />
                               : <ToggleLeft className="size-6 text-slate-400 dark:text-slate-600" />}
                           </button>
                           <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Dismissable by user</span>
@@ -2544,7 +2544,7 @@ export default function AdminPage() {
                         <div>
                           <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 block">
                             Pro User Daily Limit
-                            <span className="ml-2 text-violet-600 dark:text-violet-400 font-bold">{liveConfig.credits.proUserDailyCredits} credits/day</span>
+                            <span className="ml-2 text-emerald-600 dark:text-emerald-400 font-bold">{liveConfig.credits.proUserDailyCredits} credits/day</span>
                           </label>
                           <input
                             type="range"
@@ -2553,7 +2553,7 @@ export default function AdminPage() {
                             step={10}
                             value={liveConfig.credits.proUserDailyCredits}
                             onChange={(e) => setLiveConfig(prev => ({ ...prev, credits: { ...prev.credits, proUserDailyCredits: Number(e.target.value) } }))}
-                            className="w-full accent-violet-500"
+                            className="w-full accent-emerald-500"
                           />
                           <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
                             <span>10</span><span>100</span><span>250</span><span>500</span>
@@ -2566,7 +2566,7 @@ export default function AdminPage() {
                                 onClick={() => setLiveConfig(prev => ({ ...prev, credits: { ...prev.credits, proUserDailyCredits: n } }))}
                                 className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                                   liveConfig.credits.proUserDailyCredits === n
-                                    ? 'bg-violet-600 text-white border-violet-600'
+                                    ? 'bg-emerald-600 text-white border-emerald-600'
                                     : 'bg-transparent text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5'
                                 }`}
                               >
@@ -2608,7 +2608,7 @@ export default function AdminPage() {
                       type="button"
                       onClick={handleSaveSiteConfig}
                       disabled={isSavingConfig}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-60 text-white text-xs font-bold shadow-sm shadow-violet-600/30 transition-all cursor-pointer"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white text-xs font-bold shadow-sm shadow-emerald-600/30 transition-all cursor-pointer"
                     >
                       {isSavingConfig ? (
                         <RefreshCw className="size-3.5 animate-spin" />
