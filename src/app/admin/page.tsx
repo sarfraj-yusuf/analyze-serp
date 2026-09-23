@@ -32,6 +32,7 @@ import {
   Check,
   SlidersHorizontal,
   ChevronRight,
+  ChevronLeft,
   Globe,
   Target,
   Layers,
@@ -254,6 +255,30 @@ export default function AdminPage() {
   const [adminData, setAdminData] = useState<AdminData | null>(null);
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('analyze_admin_sidebar_collapsed');
+      if (saved !== null) {
+        setIsSidebarCollapsed(saved === 'true');
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
+
+  const toggleSidebarCollapsed = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('analyze_admin_sidebar_collapsed', String(next));
+      } catch {
+        // Ignore localStorage errors
+      }
+      return next;
+    });
+  };
   const [searchQuery, setSearchQuery] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'pro' | 'free' | 'suspended'>('all');
   const [selectedToolFilter, setSelectedToolFilter] = useState('All');
@@ -739,8 +764,9 @@ export default function AdminPage() {
               {/* === LEFT SIDEBAR NAVIGATION === */}
               <aside
                 className={`
-                  fixed inset-y-0 left-0 z-40 w-64 glass-panel border-r border-slate-200/80 dark:border-white/10 p-4 flex flex-col justify-between transition-transform duration-200 ease-in-out md:static md:translate-x-0 md:rounded-2xl md:border md:w-60 md:shrink-0
-                  ${isMobileSidebarOpen ? 'translate-x-0 shadow-2xl bg-white dark:bg-slate-950' : '-translate-x-full md:translate-x-0'}
+                  fixed inset-y-0 left-0 z-40 w-64 glass-panel border-r border-slate-200/80 dark:border-white/10 flex flex-col justify-between transition-all duration-300 ease-in-out md:static md:translate-x-0 md:rounded-2xl md:border md:shrink-0
+                  ${isSidebarCollapsed ? 'md:w-[68px] p-3' : 'md:w-60 p-4'}
+                  ${isMobileSidebarOpen ? 'translate-x-0 shadow-2xl bg-white dark:bg-slate-950 p-4' : '-translate-x-full md:translate-x-0'}
                 `}
               >
                 <div>
@@ -757,11 +783,43 @@ export default function AdminPage() {
                     </button>
                   </div>
 
+                  {/* Desktop Collapse / Expand Header */}
+                  <div className={`hidden md:flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'} pb-3 mb-2 border-b border-slate-200/80 dark:border-white/10`}>
+                    {!isSidebarCollapsed ? (
+                      <>
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                          Console Navigation
+                        </span>
+                        <button
+                          type="button"
+                          onClick={toggleSidebarCollapsed}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                          title="Collapse sidebar"
+                          aria-label="Collapse sidebar"
+                        >
+                          <ChevronLeft className="size-3.5" />
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={toggleSidebarCollapsed}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                        title="Expand sidebar"
+                        aria-label="Expand sidebar"
+                      >
+                        <ChevronRight className="size-4" />
+                      </button>
+                    )}
+                  </div>
+
                   {/* Sidebar Navigation Links */}
                   <div className="space-y-1">
-                    <div className="px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                      Console Navigation
-                    </div>
+                    {!isSidebarCollapsed && (
+                      <div className="md:hidden px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        Console Navigation
+                      </div>
+                    )}
 
                     {[
                       { id: 'overview' as const, label: 'Overview', icon: BarChart3, badge: null, badgeVariant: 'normal' },
@@ -780,6 +838,8 @@ export default function AdminPage() {
                     ].map((item) => {
                       const Icon = item.icon;
                       const isActive = activeTab === item.id;
+                      const tooltipText = `${item.label}${item.badge !== null && item.badge !== undefined ? ` (${item.badge})` : ''}`;
+
                       return (
                         <button
                           key={item.id}
@@ -788,19 +848,28 @@ export default function AdminPage() {
                             setActiveTab(item.id);
                             setIsMobileSidebarOpen(false);
                           }}
-                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          title={isSidebarCollapsed ? tooltipText : undefined}
+                          className={`w-full relative flex items-center ${
+                            isSidebarCollapsed
+                              ? 'justify-between md:justify-center px-3 md:px-0 py-2.5'
+                              : 'justify-between px-3 py-2.5'
+                          } rounded-xl text-xs font-bold transition-all cursor-pointer ${
                             isActive
                               ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
                               : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
                           }`}
                         >
-                          <div className="flex items-center gap-2.5 truncate">
+                          <div className={`flex items-center gap-2.5 ${isSidebarCollapsed ? 'md:justify-center md:gap-0' : ''} truncate`}>
                             <Icon className="size-4 shrink-0" />
-                            <span className="truncate">{item.label}</span>
+                            <span className={`truncate ${isSidebarCollapsed ? 'md:hidden' : 'inline'}`}>
+                              {item.label}
+                            </span>
                           </div>
+
+                          {/* Full Badge pill (visible on mobile or when expanded) */}
                           {item.badge !== null && item.badge !== undefined && (
                             <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                              className={`${isSidebarCollapsed ? 'md:hidden' : 'inline-block'} px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                                 isActive
                                   ? 'bg-white/20 text-white'
                                   : item.badgeVariant === 'alert'
@@ -811,6 +880,11 @@ export default function AdminPage() {
                               {item.badge}
                             </span>
                           )}
+
+                          {/* Collapsed Alert Pip Indicator on desktop */}
+                          {isSidebarCollapsed && item.badgeVariant === 'alert' && (
+                            <span className="hidden md:block absolute top-1.5 right-1.5 size-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900 animate-pulse" />
+                          )}
                         </button>
                       );
                     })}
@@ -819,28 +893,70 @@ export default function AdminPage() {
 
                 {/* Sidebar Footer System Health */}
                 <div className="pt-4 border-t border-slate-200/80 dark:border-white/10 mt-6 space-y-3">
-                  <div className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 text-[11px] space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-500 dark:text-slate-400">Database</span>
-                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                        {adminData.systemHealth?.dbPingMs ?? -1} ms
-                      </span>
+                  {!isSidebarCollapsed ? (
+                    <div className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 text-[11px] space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 dark:text-slate-400">Database</span>
+                        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                          {adminData.systemHealth?.dbPingMs ?? -1} ms
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 dark:text-slate-400">Status</span>
+                        <span className="font-mono text-slate-700 dark:text-slate-300">
+                          {adminData.systemHealth?.status === 'healthy' ? 'Operational' : 'Degraded'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-500 dark:text-slate-400">Status</span>
-                      <span className="font-mono text-slate-700 dark:text-slate-300">
-                        {adminData.systemHealth?.status === 'healthy' ? 'Operational' : 'Degraded'}
-                      </span>
-                    </div>
-                  </div>
+                  ) : (
+                    <>
+                      {/* Desktop Collapsed Status Icon */}
+                      <div
+                        className="hidden md:flex items-center justify-center p-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 cursor-help"
+                        title={`Database: ${adminData.systemHealth?.dbPingMs ?? -1}ms (${adminData.systemHealth?.status === 'healthy' ? 'Operational' : 'Degraded'})`}
+                      >
+                        <span className="relative flex size-2.5">
+                          <span
+                            className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                              adminData.systemHealth?.status === 'healthy' ? 'bg-emerald-400' : 'bg-amber-400'
+                            }`}
+                          />
+                          <span
+                            className={`relative inline-flex rounded-full size-2.5 ${
+                              adminData.systemHealth?.status === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500'
+                            }`}
+                          />
+                        </span>
+                      </div>
+
+                      {/* Mobile Drawer Status (Always Expanded) */}
+                      <div className="md:hidden px-3 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 text-[11px] space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 dark:text-slate-400">Database</span>
+                          <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                            {adminData.systemHealth?.dbPingMs ?? -1} ms
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 dark:text-slate-400">Status</span>
+                          <span className="font-mono text-slate-700 dark:text-slate-300">
+                            {adminData.systemHealth?.status === 'healthy' ? 'Operational' : 'Degraded'}
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="w-full py-2 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    title={isSidebarCollapsed ? 'Lock Panel' : undefined}
+                    className={`w-full py-2 ${
+                      isSidebarCollapsed ? 'md:px-0 md:justify-center' : 'px-3 justify-center'
+                    } rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer`}
                   >
-                    <LogOut className="size-3.5" />
-                    <span>Lock Panel</span>
+                    <LogOut className="size-3.5 shrink-0" />
+                    <span className={isSidebarCollapsed ? 'md:hidden' : 'inline'}>Lock Panel</span>
                   </button>
                 </div>
               </aside>
@@ -858,13 +974,25 @@ export default function AdminPage() {
                 {/* Content Header & Universal Search */}
                 <div className="glass-panel p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
                   <div className="flex items-center gap-3 w-full sm:w-auto">
+                    {/* Mobile Menu Hamburger */}
                     <button
                       type="button"
                       onClick={() => setIsMobileSidebarOpen(true)}
-                      className="p-2 rounded-xl border border-slate-200/80 dark:border-white/10 md:hidden hover:bg-slate-100 dark:hover:bg-white/5"
+                      className="p-2 rounded-xl border border-slate-200/80 dark:border-white/10 md:hidden hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer"
                       aria-label="Open navigation sidebar"
                     >
                       <Menu className="size-4 text-slate-600 dark:text-slate-300" />
+                    </button>
+
+                    {/* Desktop Sidebar Toggle Button */}
+                    <button
+                      type="button"
+                      onClick={toggleSidebarCollapsed}
+                      className="hidden md:flex p-2 rounded-xl border border-slate-200/80 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0"
+                      title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                      aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    >
+                      {isSidebarCollapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
                     </button>
                     <div>
                       <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
