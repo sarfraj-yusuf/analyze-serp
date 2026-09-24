@@ -136,7 +136,7 @@ export const AiSimplifyModal: React.FC<AiSimplifyModalProps> = ({
         onClick={onClose}
       >
         <div
-          className="relative w-full max-w-2xl bg-white dark:bg-[#0c1322] border border-slate-200 dark:border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-7 space-y-5 my-8 max-h-[90vh] overflow-y-auto modal-scroll"
+          className="relative w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-5 sm:p-7 space-y-5 my-8 max-h-[90vh] overflow-y-auto modal-scroll"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header Bar */}

@@ -35,6 +35,7 @@ import {
   ScratchpadKeyword,
 } from '@/lib/scratchpad-scorer';
 import { AuthModal } from './AuthModal';
+import { Tooltip } from './Tooltip';
 
 export interface ContentScratchpadModalProps {
   isOpen: boolean;
@@ -398,23 +399,27 @@ export function ContentScratchpadModal({
               <span className="hidden sm:inline">Download</span>
             </button>
 
-            <button
-              onClick={handleClearDraft}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
-              title="Clear Draft Text"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            <Tooltip content="Clear Draft" side="bottom">
+              <button
+                onClick={handleClearDraft}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                aria-label="Clear Draft"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </Tooltip>
 
             <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-1" />
 
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
-              title="Close Scratchpad (Esc)"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <Tooltip content="Close (Esc)" side="bottom">
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors cursor-pointer"
+                aria-label="Close Scratchpad"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </Tooltip>
           </div>
         </header>
 

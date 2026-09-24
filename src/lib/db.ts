@@ -1324,7 +1324,11 @@ export interface SystemHealthData {
   };
   services: {
     geminiConfigured: boolean;
+    geminiLive?: boolean;
+    geminiPingMs?: number;
     pagespeedConfigured: boolean;
+    pagespeedLive?: boolean;
+    pagespeedPingMs?: number;
     authConfigured: boolean;
     adminKeyConfigured: boolean;
   };
@@ -1541,6 +1545,52 @@ export async function getSecurityIncidents(limit: number = 50): Promise<DbSecuri
   return memoryIncidentLogs.slice(0, limit);
 }
 
+// In-memory 45s health cache to avoid spamming external Google APIs on repeated admin tab clicks
+let cachedLiveHealth: {
+  timestamp: number;
+  gemini: { live: boolean; pingMs: number };
+  pagespeed: { live: boolean; pingMs: number };
+} | null = null;
+
+async function checkLiveGeminiHealth(apiKey: string): Promise<{ live: boolean; pingMs: number }> {
+  try {
+    const start = Date.now();
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash?key=${apiKey}`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(3000),
+    });
+    const pingMs = Math.round(Date.now() - start);
+    return {
+      live: res.ok,
+      pingMs: res.ok ? pingMs : -1,
+    };
+  } catch {
+    return { live: false, pingMs: -1 };
+  }
+}
+
+async function checkLivePageSpeedHealth(apiKey: string): Promise<{ live: boolean; pingMs: number }> {
+  try {
+    const start = Date.now();
+    const url = apiKey
+      ? `https://www.googleapis.com/discovery/v1/apis/pagespeedonline/v5/rest?key=${apiKey}`
+      : `https://www.googleapis.com/discovery/v1/apis/pagespeedonline/v5/rest`;
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(3000),
+    });
+    const pingMs = Math.round(Date.now() - start);
+    return {
+      live: res.ok,
+      pingMs: res.ok ? pingMs : -1,
+    };
+  } catch {
+    return { live: false, pingMs: -1 };
+  }
+}
+
 export async function getSystemHealthTelemetry(): Promise<SystemHealthData> {
   let dbConnected = false;
   let dbPingMs = 0;
@@ -1575,15 +1625,48 @@ export async function getSystemHealthTelemetry(): Promise<SystemHealthData> {
     (inc) => new Date(inc.created_at).getTime() > oneDayAgo
   ).length;
 
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const pagespeedKey = process.env.PAGESPEED_API_KEY;
+
+  const now = Date.now();
+  let geminiHealth = { live: false, pingMs: -1 };
+  let pagespeedHealth = { live: false, pingMs: -1 };
+
+  if (cachedLiveHealth && now - cachedLiveHealth.timestamp < 45000) {
+    geminiHealth = cachedLiveHealth.gemini;
+    pagespeedHealth = cachedLiveHealth.pagespeed;
+  } else {
+    const checks: [Promise<{ live: boolean; pingMs: number }>, Promise<{ live: boolean; pingMs: number }>] = [
+      geminiKey ? checkLiveGeminiHealth(geminiKey) : Promise.resolve({ live: false, pingMs: -1 }),
+      pagespeedKey ? checkLivePageSpeedHealth(pagespeedKey) : Promise.resolve({ live: false, pingMs: -1 }),
+    ];
+
+    const [geminiRes, pagespeedRes] = await Promise.allSettled(checks);
+
+    geminiHealth = geminiRes.status === 'fulfilled' ? geminiRes.value : { live: false, pingMs: -1 };
+    pagespeedHealth = pagespeedRes.status === 'fulfilled' ? pagespeedRes.value : { live: false, pingMs: -1 };
+
+    cachedLiveHealth = {
+      timestamp: now,
+      gemini: geminiHealth,
+      pagespeed: pagespeedHealth,
+    };
+  }
+
   const services = {
-    geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
-    pagespeedConfigured: Boolean(process.env.PAGESPEED_API_KEY),
+    geminiConfigured: Boolean(geminiKey),
+    geminiLive: geminiHealth.live,
+    geminiPingMs: geminiHealth.pingMs,
+    pagespeedConfigured: Boolean(pagespeedKey),
+    pagespeedLive: pagespeedHealth.live,
+    pagespeedPingMs: pagespeedHealth.pingMs,
     authConfigured: Boolean(process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET),
     adminKeyConfigured: Boolean(process.env.ADMIN_SECRET_KEY),
   };
 
+  const isGeminiHealthy = services.geminiConfigured ? services.geminiLive : true;
   const status: 'healthy' | 'degraded' =
-    dbConnected && services.geminiConfigured && services.adminKeyConfigured
+    dbConnected && services.geminiConfigured && isGeminiHealthy && services.adminKeyConfigured
       ? 'healthy'
       : 'degraded';
 

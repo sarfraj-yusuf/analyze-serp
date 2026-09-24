@@ -50,7 +50,7 @@ export const HeadingTree: React.FC<HeadingTreeProps> = ({ headings }) => {
 
       {/* Tree Content */}
       {isExpanded && (
-        <div className="space-y-1.5 p-4 rounded-xl bg-slate-50 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 max-h-96 overflow-y-auto font-mono text-xs shadow-inner">
+        <div className="space-y-1.5 p-4 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 max-h-96 overflow-y-auto font-mono text-xs shadow-inner">
           {headings.map((item, index) => {
             const indentClass =
               item.level === 'h1'

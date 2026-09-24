@@ -19,6 +19,7 @@ import { AuditDiffModal } from './AuditDiffModal';
 import { FeaturedSnippetModal } from './FeaturedSnippetModal';
 import { ContentScratchpadModal } from './ContentScratchpadModal';
 import { InternalLinkTopologyModal } from './InternalLinkTopologyModal';
+import { Tooltip } from './Tooltip';
 import {
   FileText,
   Clock,
@@ -93,8 +94,9 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
   return (
     <div className="rounded-2xl p-5 sm:p-7 border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-xs space-y-6 my-4">
       {/* 1. Title & Top Metadata Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-200/80 dark:border-white/[0.08]">
-        <div className="space-y-1 max-w-3xl">
+      <div className="space-y-4 pb-5 border-b border-slate-200/80 dark:border-white/[0.08]">
+        {/* Top Meta & Quant Stats Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
               Audit Complete ({audit.fetchTimeMs}ms)
@@ -120,96 +122,116 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
             </a>
           </div>
 
-          <h3 className="text-lg sm:text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100 line-clamp-2">
-            {meta.title || 'No Title Tag Found'}
-          </h3>
-          <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
-            {meta.description || 'No Meta Description Found'}
-          </p>
-
-          {/* SPA Diagnostic Banner if fallback was active */}
-          {audit.spaDiagnostic?.isClientRenderedSpa && audit.spaDiagnostic.spaWarning && (
-            <div className="mt-2.5 flex items-start gap-2.5 p-3 rounded-xl bg-purple-50/80 dark:bg-purple-950/20 border border-purple-200/80 dark:border-purple-800/40 text-xs text-purple-900 dark:text-purple-300">
-              <Sparkles className="w-4 h-4 shrink-0 text-purple-600 dark:text-purple-400 mt-0.5" />
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-bold text-slate-800 dark:text-slate-100">
-                    Client-Side Rendered (SPA) Detected:
-                  </span>
-                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-purple-200/70 dark:bg-purple-900/60 text-purple-800 dark:text-purple-200 font-semibold">
-                    Extracted via {audit.spaDiagnostic.extractionMethod}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                  {audit.spaDiagnostic.spaWarning}
-                </p>
-              </div>
+          {/* Quick Metrics: Word Count & Reading Time */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex items-center gap-1.5 shadow-2xs">
+              <FileText className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">Words:</span>
+              <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-100 tabular-nums">
+                {wordCount.toLocaleString()}
+              </span>
             </div>
-          )}
+
+            <div className="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex items-center gap-1.5 shadow-2xs">
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">Read:</span>
+              <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-100 tabular-nums">
+                {readingTimeMinutes}m
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Quick Stats Pills & White-Label PDF Export */}
-        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-          <button
-            onClick={() => setIsPdfModalOpen(true)}
-            className="px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Download formatted client PDF report"
-          >
-            <Download className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
-            <span>Export Client PDF</span>
-          </button>
+        {/* Page Title & Meta Description */}
+        <div className="space-y-1">
+          <h3 className="text-lg sm:text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
+            {meta.title || 'No Title Tag Found'}
+          </h3>
+          <p className="text-xs sm:text-[13px] text-slate-600 dark:text-slate-300 max-w-5xl leading-relaxed">
+            {meta.description || 'No Meta Description Found'}
+          </p>
+        </div>
 
-          <button
-            onClick={() => setIsDiffModalOpen(true)}
-            className="px-2.5 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Compare current audit against previous baseline"
-          >
-            <GitCompare className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span>Before vs After</span>
-          </button>
-
-          <button
-            onClick={() => setIsSnippetModalOpen(true)}
-            className="px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/60 font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Optimize for Google Featured Snippet (Position 0)"
-          >
-            <Award className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
-            <span>Snippet (Pos 0)</span>
-          </button>
-
-          <button
-            onClick={() => setIsScratchpadOpen(true)}
-            className="px-2.5 py-1.5 rounded-lg bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border border-teal-300 dark:border-teal-800 hover:bg-teal-100 dark:hover:bg-teal-900/60 font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Open copy in Live SEO Scratchpad to optimize keywords"
-          >
-            <FileEdit className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400" />
-            <span>SEO Scratchpad</span>
-          </button>
-
-          <button
-            onClick={() => setIsLinkTopologyOpen(true)}
-            className="px-2.5 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Inspect internal link topology, destination hubs & anchor text distribution"
-          >
-            <Network className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span>Link Topology</span>
-          </button>
-
-          <div className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 flex items-center gap-2">
-            <FileText className="w-3.5 h-3.5 text-slate-400" />
-            <div className="text-xs text-slate-500 dark:text-slate-400">Words:</div>
-            <div className="text-xs font-mono font-bold text-slate-800 dark:text-slate-100 tabular-nums">
-              {wordCount.toLocaleString()}
+        {/* SPA Diagnostic Banner if fallback was active */}
+        {audit.spaDiagnostic?.isClientRenderedSpa && audit.spaDiagnostic.spaWarning && (
+          <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-purple-50/80 dark:bg-purple-950/20 border border-purple-200/80 dark:border-purple-800/40 text-xs text-purple-900 dark:text-purple-300">
+            <Sparkles className="w-4 h-4 shrink-0 text-purple-600 dark:text-purple-400 mt-0.5" />
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-bold text-slate-800 dark:text-slate-100">
+                  Client-Side Rendered (SPA) Detected:
+                </span>
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-purple-200/70 dark:bg-purple-900/60 text-purple-800 dark:text-purple-200 font-semibold">
+                  Extracted via {audit.spaDiagnostic.extractionMethod}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                {audit.spaDiagnostic.spaWarning}
+              </p>
             </div>
           </div>
+        )}
 
-          <div className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 flex items-center gap-2">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
-            <div className="text-xs text-slate-500 dark:text-slate-400">Read:</div>
-            <div className="text-xs font-mono font-bold text-slate-800 dark:text-slate-100 tabular-nums">
-              {readingTimeMinutes}m
-            </div>
+        {/* Diagnostic Actions Strip */}
+        <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 pt-1">
+          <div className="flex items-center gap-0.5">
+            <Tooltip content="Before vs After" side="top">
+              <button
+                type="button"
+                onClick={() => setIsDiffModalOpen(true)}
+                className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                aria-label="Before vs After"
+              >
+                <GitCompare className="size-4" />
+              </button>
+            </Tooltip>
+
+            <Tooltip content="Position 0 Snippet" side="top">
+              <button
+                type="button"
+                onClick={() => setIsSnippetModalOpen(true)}
+                className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                aria-label="Featured Snippet Optimization"
+              >
+                <Award className="size-4" />
+              </button>
+            </Tooltip>
+
+            <Tooltip content="Live SEO Scratchpad" side="top">
+              <button
+                type="button"
+                onClick={() => setIsScratchpadOpen(true)}
+                className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-teal-600 dark:text-slate-400 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                aria-label="Live SEO Scratchpad"
+              >
+                <FileEdit className="size-4" />
+              </button>
+            </Tooltip>
+
+            <Tooltip content="Link Topology" side="top">
+              <button
+                type="button"
+                onClick={() => setIsLinkTopologyOpen(true)}
+                className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                aria-label="Internal Link Topology"
+              >
+                <Network className="size-4" />
+              </button>
+            </Tooltip>
           </div>
+
+          <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5 hidden sm:block" />
+
+          <Tooltip content="Download Client PDF" side="top">
+            <button
+              type="button"
+              onClick={() => setIsPdfModalOpen(true)}
+              className="px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+              <span>Export Client PDF</span>
+            </button>
+          </Tooltip>
         </div>
       </div>
 
@@ -348,15 +370,16 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
                     <span>Length: <strong className="text-slate-800 dark:text-slate-100 font-mono tabular-nums">{meta.descriptionLength}</strong> / 160 chars</span>
                     <div className="flex items-center gap-2">
                       <span>JSON-LD Schema: <strong className={`font-mono ${meta.hasJsonLdSchema ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400'}`}>{meta.hasJsonLdSchema ? 'Detected' : 'None'}</strong></span>
-                      <button
-                        type="button"
-                        onClick={() => setIsSchemaModalOpen(true)}
-                        className="px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 flex items-center gap-1 transition-colors cursor-pointer"
-                        title="Build or inspect JSON-LD Schema"
-                      >
-                        <FileCode className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
-                        <span>{meta.hasJsonLdSchema ? 'Schema Tools' : 'Build Schema'}</span>
-                      </button>
+                      <Tooltip content="Build or Inspect Schema" side="top">
+                        <button
+                          type="button"
+                          onClick={() => setIsSchemaModalOpen(true)}
+                          className="px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          <FileCode className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+                          <span>{meta.hasJsonLdSchema ? 'Schema Tools' : 'Build Schema'}</span>
+                        </button>
+                      </Tooltip>
                     </div>
                   </div>
                 </div>

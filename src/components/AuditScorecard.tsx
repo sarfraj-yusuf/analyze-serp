@@ -295,7 +295,7 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
   };
 
   return (
-    <div className="p-6 sm:p-8 rounded-2xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-6 my-6">
+    <div className="p-6 sm:p-8 rounded-2xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 space-y-6 my-6">
       {/* Header Score Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-slate-200 dark:border-white/10">
         <div className="flex items-center gap-4">

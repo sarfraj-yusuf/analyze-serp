@@ -30,7 +30,7 @@ export const ProUpgradeModal: React.FC<ProUpgradeModalProps> = ({ isOpen, onClos
       aria-modal="true"
       aria-labelledby="pro-modal-title"
     >
-      <div className="relative w-full max-w-xl bg-white dark:bg-[#131b2e] rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-white/20 shadow-2xl space-y-6 overflow-hidden text-slate-800 dark:text-slate-100">
+      <div className="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-white/10 shadow-2xl space-y-6 overflow-hidden text-slate-800 dark:text-slate-100">
         {/* Decorative ambient background glow */}
         <div className="absolute -top-20 -right-20 w-56 h-56 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none will-change-transform" />
         <div className="absolute -bottom-20 -left-20 w-56 h-56 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none will-change-transform" />

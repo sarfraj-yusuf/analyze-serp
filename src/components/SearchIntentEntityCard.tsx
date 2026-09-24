@@ -88,7 +88,7 @@ export const SearchIntentEntityCard: React.FC<SearchIntentEntityCardProps> = ({ 
       {/* Grid: Intent Signals & Topical Entities */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Intent Keyword Signals */}
-        <div className="p-5 rounded-xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-3">
+        <div className="p-5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/10 space-y-3">
           <div className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <Target className="w-4 h-4 text-emerald-500" />
             <span>Search Intent Indicators Detected</span>
@@ -111,7 +111,7 @@ export const SearchIntentEntityCard: React.FC<SearchIntentEntityCardProps> = ({ 
         </div>
 
         {/* Top Extracted Entities */}
-        <div className="p-5 rounded-xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-3">
+        <div className="p-5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/10 space-y-3">
           <div className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <Key className="w-4 h-4 text-cyan-500" />
             <span>Topical Entities Discovered</span>

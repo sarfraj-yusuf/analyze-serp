@@ -428,7 +428,7 @@ export default function DashboardPage() {
 
             {/* Metrics Bento Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="p-4 rounded-2xl bg-white dark:bg-[#0c1220] border border-slate-200/80 dark:border-white/10 space-y-1 shadow-xs">
+              <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 space-y-1 shadow-xs">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
                   <span>Total Audits</span>
                   <Activity className="w-4 h-4 text-emerald-500" />
@@ -439,7 +439,7 @@ export default function DashboardPage() {
                 <span className="text-[11px] text-slate-500 dark:text-slate-400">Pages analyzed</span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-white dark:bg-[#0c1220] border border-slate-200/80 dark:border-white/10 space-y-1 shadow-xs">
+              <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 space-y-1 shadow-xs">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
                   <span>AI Actions Run</span>
                   <Sparkles className="w-4 h-4 text-emerald-500" />
@@ -450,7 +450,7 @@ export default function DashboardPage() {
                 <span className="text-[11px] text-slate-500 dark:text-slate-400">Rewrites &amp; code fixes</span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-white dark:bg-[#0c1220] border border-slate-200/80 dark:border-white/10 space-y-1 shadow-xs">
+              <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 space-y-1 shadow-xs">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
                   <span>Average Health</span>
                   <Target className="w-4 h-4 text-emerald-500" />
@@ -461,7 +461,7 @@ export default function DashboardPage() {
                 <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">Technical Score</span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-white dark:bg-[#0c1220] border border-slate-200/80 dark:border-white/10 space-y-1 shadow-xs">
+              <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 space-y-1 shadow-xs">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
                   <span>Quota Reset</span>
                   <Clock className="w-4 h-4 text-emerald-500" />

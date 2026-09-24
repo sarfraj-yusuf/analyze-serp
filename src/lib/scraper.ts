@@ -135,6 +135,28 @@ export function getRotatingBrowserHeaders(targetIndex?: number): Record<string, 
   return { ...DESKTOP_BROWSER_PROFILES[index].headers };
 }
 
+function formatNetworkError(err: any, url: string): Error {
+  const code = String(err.code || err.cause?.code || '').toUpperCase();
+  const msg = String(err.message || '').toLowerCase();
+
+  if (err.name === 'AbortError' || msg.includes('timeout') || msg.includes('aborted')) {
+    return new Error(`Connection Timeout: Target website at ${url} took longer than 8 seconds to respond.`);
+  }
+  if (code === 'ENOTFOUND' || msg.includes('getaddrinfo') || msg.includes('enotfound')) {
+    return new Error(`Domain Not Found: Could not resolve DNS for ${url}. The domain may be offline, misspelled, or expired.`);
+  }
+  if (code === 'ECONNREFUSED' || msg.includes('econnrefused')) {
+    return new Error(`Server Unreachable: The target web server at ${url} refused the connection.`);
+  }
+  if (code === 'ECONNRESET' || msg.includes('econnreset')) {
+    return new Error(`Connection Reset: The target server abruptly closed the connection for ${url}.`);
+  }
+  if (code.includes('CERT') || msg.includes('ssl') || msg.includes('tls') || msg.includes('certificate')) {
+    return new Error(`SSL/TLS Error: Failed to establish a secure HTTPS connection to ${url}.`);
+  }
+  return new Error(err.message || `Failed to fetch webpage at ${url}`);
+}
+
 /**
  * High-performance, non-AI server-side web scraper using Cheerio
  */
@@ -158,30 +180,27 @@ export async function scrapePage(targetUrl: string, profileIndex?: number): Prom
       headers: browserHeaders,
     });
   } catch (fetchErr: any) {
-      // If the 8-second timer aborted the request, do NOT retry; fail immediately
-      if (fetchErr.name === 'AbortError' || controller.signal.aborted) {
-        throw new Error(`Connection Timeout: Target website at ${formattedUrl} took longer than 8 seconds to respond.`);
-      }
-
-      // If https connection failed (e.g. SSL/TLS handshake error) and user entered bare domain without protocol, try http fallback
-      if (formattedUrl.startsWith('https://') && !/^https:\/\//i.test(targetUrl.trim())) {
-        const fallbackUrl = `http://${targetUrl.trim().replace(/^https?:\/\//i, '')}`;
-        await validateUrlSafety(fallbackUrl);
-        try {
-          response = await fetch(fallbackUrl, {
-            signal: controller.signal,
-            headers: browserHeaders,
-          });
-        } catch (fallbackErr: any) {
-          if (fallbackErr.name === 'AbortError' || controller.signal.aborted) {
-            throw new Error(`Connection Timeout: Target website at ${formattedUrl} took longer than 8 seconds to respond.`);
-          }
-          throw fallbackErr;
-        }
-      } else {
-        throw fetchErr;
-      }
+    // If the 8-second timer aborted the request, do NOT retry; fail immediately
+    if (fetchErr.name === 'AbortError' || controller.signal.aborted) {
+      throw new Error(`Connection Timeout: Target website at ${formattedUrl} took longer than 8 seconds to respond.`);
     }
+
+    // If https connection failed (e.g. SSL/TLS handshake error) and user entered bare domain without protocol, try http fallback
+    if (formattedUrl.startsWith('https://') && !/^https:\/\//i.test(targetUrl.trim())) {
+      const fallbackUrl = `http://${targetUrl.trim().replace(/^https?:\/\//i, '')}`;
+      await validateUrlSafety(fallbackUrl);
+      try {
+        response = await fetch(fallbackUrl, {
+          signal: controller.signal,
+          headers: browserHeaders,
+        });
+      } catch (fallbackErr: any) {
+        throw formatNetworkError(fallbackErr, formattedUrl);
+      }
+    } else {
+      throw formatNetworkError(fetchErr, formattedUrl);
+    }
+  }
 
     const ttfbMs = Date.now() - ttfbStart;
 

@@ -45,7 +45,7 @@ export const ImageAuditList: React.FC<ImageAuditListProps> = ({ imageAudit }) =>
       </div>
 
       {/* Detailed Image List */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#080c14] max-h-72 overflow-y-auto shadow-inner">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950/80 max-h-72 overflow-y-auto shadow-inner">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-gray-400 font-semibold uppercase tracking-wider">

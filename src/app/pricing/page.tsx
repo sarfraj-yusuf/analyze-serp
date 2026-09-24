@@ -201,7 +201,7 @@ export default function PricingPage() {
         {/* Section 2: 3-Tier Enterprise Pricing Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
           {/* Card 1: Free Starter (Post-Beta Base) */}
-          <div className="glass-panel p-6 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-white/10 flex flex-col justify-between space-y-6 shadow-sm">
+          <div className="glass-panel p-6 sm:p-7 rounded-2xl border border-slate-200/80 dark:border-white/10 flex flex-col justify-between space-y-6 shadow-sm">
             <div className="space-y-4">
               <div className="space-y-1">
                 <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">
@@ -254,9 +254,9 @@ export default function PricingPage() {
           </div>
 
           {/* Card 2: Pro Auditor (Featured Focal Point - Public Beta Active) */}
-          <div className="glass-panel p-6 sm:p-7 rounded-3xl border-2 border-emerald-500/80 bg-emerald-500/[0.04] flex flex-col justify-between space-y-6 shadow-xl relative">
+          <div className="glass-panel p-6 sm:p-7 rounded-2xl border-2 border-emerald-500/80 bg-emerald-500/[0.04] flex flex-col justify-between space-y-6 shadow-xl relative">
             {/* Active Beta Badge */}
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-600 text-white shadow-md flex items-center gap-1.5 whitespace-nowrap">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-600 text-white shadow-md flex items-center gap-1.5 whitespace-nowrap">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               <span>ACTIVE IN PUBLIC BETA • 100% UNLOCKED</span>
             </div>
@@ -267,11 +267,12 @@ export default function PricingPage() {
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Pro Auditor (Featured)</span>
                 </div>
-                <div className="flex items-baseline gap-2">
+                <div className="flex items-baseline gap-2 flex-wrap">
                   <span className="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-100">$0</span>
-                  <span className="line-through text-xs text-slate-400 font-medium">$19 / month</span>
-                  <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                    PUBLIC BETA
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">/ month</span>
+                  <span className="line-through text-xs text-slate-400 font-medium">($19 value)</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                    Public Beta Free
                   </span>
                 </div>
               </div>
@@ -331,7 +332,7 @@ export default function PricingPage() {
           </div>
 
           {/* Card 3: Agency Scale Tier */}
-          <div className="glass-panel p-6 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-white/10 flex flex-col justify-between space-y-6 shadow-sm">
+          <div className="glass-panel p-6 sm:p-7 rounded-2xl border border-slate-200/80 dark:border-white/10 flex flex-col justify-between space-y-6 shadow-sm">
             <div className="space-y-4">
               <div className="space-y-1">
                 <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">
@@ -419,7 +420,7 @@ export default function PricingPage() {
             </p>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0c121e] shadow-sm">
+          <div className="overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 shadow-sm">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] text-slate-600 dark:text-gray-400 font-bold uppercase tracking-wider">

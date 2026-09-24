@@ -157,17 +157,56 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
         </div>
       ) : data ? (
         <div className="space-y-6">
-          {/* Top Score Banner */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 rounded-2xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10">
+          {/* Top Score Banner with Circular SVG Gauge Ring */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 rounded-2xl bg-slate-100/90 dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 shadow-xs">
             <div className="flex items-center gap-5">
-              {/* Glowing Gauge Ring */}
-              <div
-                className={`w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center shrink-0 shadow-lg transition-all ${scoreColor}`}
-              >
-                <span className="text-2xl font-bold">{score}</span>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-70">
-                  / 100
-                </span>
+              {/* Circular SVG Gauge Ring */}
+              <div className="relative size-22 sm:size-24 flex items-center justify-center shrink-0">
+                <svg className="size-22 sm:size-24 -rotate-90">
+                  <circle
+                    cx="44"
+                    cy="44"
+                    r="36"
+                    stroke="currentColor"
+                    strokeWidth="5.5"
+                    className="text-slate-200 dark:text-slate-800"
+                    fill="transparent"
+                  />
+                  <circle
+                    cx="44"
+                    cy="44"
+                    r="36"
+                    stroke="currentColor"
+                    strokeWidth="5.5"
+                    className={
+                      score >= 90
+                        ? 'text-emerald-500'
+                        : score >= 50
+                        ? 'text-amber-500'
+                        : 'text-rose-500'
+                    }
+                    strokeDasharray="226.19"
+                    strokeDashoffset={226.19 - (226.19 * Math.min(100, Math.max(0, score))) / 100}
+                    strokeLinecap="round"
+                    fill="transparent"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                  <span
+                    className={`text-2xl font-bold font-mono tracking-tight ${
+                      score >= 90
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : score >= 50
+                        ? 'text-amber-600 dark:text-amber-400'
+                        : 'text-rose-600 dark:text-rose-400'
+                    }`}
+                  >
+                    {score}
+                  </span>
+                  <span className="text-[9px] font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500 font-semibold">
+                    / 100
+                  </span>
+                </div>
               </div>
 
               <div>
@@ -194,7 +233,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => fetchSpeedData(initialUrl, strategy)}
-                className="px-3.5 py-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-gray-200 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+                className="px-3.5 py-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-gray-200 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95"
               >
                 <RefreshCw className="w-3.5 h-3.5 text-cyan-500" />
                 <span>Re-Audit Speed</span>
@@ -205,7 +244,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
           {/* 4 Core Web Vitals Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* 1. LCP Card */}
-            <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-white/20 transition-all">
+            <div className="p-4 rounded-xl bg-slate-100/90 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3 shadow-xs hover:border-slate-300 dark:hover:border-white/20 transition-all">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-slate-100">
                   <Clock className="w-4 h-4 text-emerald-500" />
@@ -215,7 +254,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
               </div>
 
               <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                <div className="text-2xl font-bold font-mono text-slate-800 dark:text-slate-100">
                   {data.lcp.displayValue}
                 </div>
                 <span
@@ -231,26 +270,22 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
                 </span>
               </div>
 
-              {/* Threshold Meter */}
-              <div className="w-full bg-slate-200 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${
-                    data.lcp.category === 'FAST'
-                      ? 'bg-emerald-500'
-                      : data.lcp.category === 'AVERAGE'
-                      ? 'bg-amber-500'
-                      : 'bg-rose-500'
-                  }`}
-                  style={{
-                    width: `${Math.min(100, (data.lcp.value / 4.0) * 100)}%`,
-                  }}
-                />
+              {/* 3-Zone Visual Gauge Bar */}
+              <div className="space-y-1">
+                <div className="w-full bg-slate-200 dark:bg-white/10 h-2 rounded-full overflow-hidden flex">
+                  <div className="h-full bg-emerald-500 w-[62.5%]" title="Good (<=2.5s)" />
+                  <div className="h-full bg-amber-500 w-[37.5%]" title="Needs Work (2.5s - 4.0s)" />
+                </div>
+                <div className="flex justify-between text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                  <span>0s</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">2.5s (Good)</span>
+                  <span>4.0s (Poor)</span>
+                </div>
               </div>
-              <div className="text-[10px] text-slate-500 dark:text-gray-400">Target: &lt;= 2.5 seconds</div>
             </div>
 
             {/* 2. INP Card */}
-            <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-white/20 transition-all">
+            <div className="p-4 rounded-xl bg-slate-100/90 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3 shadow-xs hover:border-slate-300 dark:hover:border-white/20 transition-all">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-slate-100">
                   <MousePointerClick className="w-4 h-4 text-cyan-500" />
@@ -260,7 +295,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
               </div>
 
               <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                <div className="text-2xl font-bold font-mono text-slate-800 dark:text-slate-100">
                   {data.inp.displayValue}
                 </div>
                 <span
@@ -276,26 +311,22 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
                 </span>
               </div>
 
-              {/* Threshold Meter */}
-              <div className="w-full bg-slate-200 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${
-                    data.inp.category === 'FAST'
-                      ? 'bg-emerald-500'
-                      : data.inp.category === 'AVERAGE'
-                      ? 'bg-amber-500'
-                      : 'bg-rose-500'
-                  }`}
-                  style={{
-                    width: `${Math.min(100, (data.inp.value / 500) * 100)}%`,
-                  }}
-                />
+              {/* 3-Zone Visual Gauge Bar */}
+              <div className="space-y-1">
+                <div className="w-full bg-slate-200 dark:bg-white/10 h-2 rounded-full overflow-hidden flex">
+                  <div className="h-full bg-emerald-500 w-[40%]" title="Good (<=200ms)" />
+                  <div className="h-full bg-amber-500 w-[60%]" title="Needs Work (200ms - 500ms)" />
+                </div>
+                <div className="flex justify-between text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                  <span>0ms</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">200ms (Good)</span>
+                  <span>500ms (Poor)</span>
+                </div>
               </div>
-              <div className="text-[10px] text-slate-500 dark:text-gray-400">Target: &lt;= 200 ms</div>
             </div>
 
             {/* 3. CLS Card */}
-            <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-white/20 transition-all">
+            <div className="p-4 rounded-xl bg-slate-100/90 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3 shadow-xs hover:border-slate-300 dark:hover:border-white/20 transition-all">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-slate-100">
                   <Layout className="w-4 h-4 text-indigo-500" />
@@ -305,7 +336,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
               </div>
 
               <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                <div className="text-2xl font-bold font-mono text-slate-800 dark:text-slate-100">
                   {data.cls.displayValue}
                 </div>
                 <span
@@ -321,26 +352,22 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
                 </span>
               </div>
 
-              {/* Threshold Meter */}
-              <div className="w-full bg-slate-200 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${
-                    data.cls.category === 'FAST'
-                      ? 'bg-emerald-500'
-                      : data.cls.category === 'AVERAGE'
-                      ? 'bg-amber-500'
-                      : 'bg-rose-500'
-                  }`}
-                  style={{
-                    width: `${Math.min(100, (data.cls.value / 0.25) * 100)}%`,
-                  }}
-                />
+              {/* 3-Zone Visual Gauge Bar */}
+              <div className="space-y-1">
+                <div className="w-full bg-slate-200 dark:bg-white/10 h-2 rounded-full overflow-hidden flex">
+                  <div className="h-full bg-emerald-500 w-[40%]" title="Good (<=0.10)" />
+                  <div className="h-full bg-amber-500 w-[60%]" title="Needs Work (0.10 - 0.25)" />
+                </div>
+                <div className="flex justify-between text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                  <span>0.0</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">0.10 (Good)</span>
+                  <span>0.25 (Poor)</span>
+                </div>
               </div>
-              <div className="text-[10px] text-slate-500 dark:text-gray-400">Target: &lt;= 0.10</div>
             </div>
 
             {/* 4. FCP Card */}
-            <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-white/20 transition-all">
+            <div className="p-4 rounded-xl bg-slate-100/90 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3 shadow-xs hover:border-slate-300 dark:hover:border-white/20 transition-all">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-slate-100">
                   <Activity className="w-4 h-4 text-purple-500" />
@@ -350,7 +377,7 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
               </div>
 
               <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                <div className="text-2xl font-bold font-mono text-slate-800 dark:text-slate-100">
                   {data.fcp.displayValue}
                 </div>
                 <span
@@ -366,22 +393,18 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
                 </span>
               </div>
 
-              {/* Threshold Meter */}
-              <div className="w-full bg-slate-200 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${
-                    data.fcp.category === 'FAST'
-                      ? 'bg-emerald-500'
-                      : data.fcp.category === 'AVERAGE'
-                      ? 'bg-amber-500'
-                      : 'bg-rose-500'
-                  }`}
-                  style={{
-                    width: `${Math.min(100, (data.fcp.value / 3.0) * 100)}%`,
-                  }}
-                />
+              {/* 3-Zone Visual Gauge Bar */}
+              <div className="space-y-1">
+                <div className="w-full bg-slate-200 dark:bg-white/10 h-2 rounded-full overflow-hidden flex">
+                  <div className="h-full bg-emerald-500 w-[60%]" title="Good (<=1.8s)" />
+                  <div className="h-full bg-amber-500 w-[40%]" title="Needs Work (1.8s - 3.0s)" />
+                </div>
+                <div className="flex justify-between text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                  <span>0s</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">1.8s (Good)</span>
+                  <span>3.0s (Poor)</span>
+                </div>
               </div>
-              <div className="text-[10px] text-slate-500 dark:text-gray-400">Target: &lt;= 1.8 seconds</div>
             </div>
           </div>
 

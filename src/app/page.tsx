@@ -43,6 +43,7 @@ import {
 import { CookieConsentBanner } from '@/components/CookieConsentBanner';
 import { SpotlightCard } from '@/components/SpotlightCard';
 import { SerpComparisonToggle } from '@/components/SerpComparisonToggle';
+import { normalizeUrl, isValidUrl } from '@/lib/url-utils';
 
 const ProUpgradeModal = dynamic(
   () => import('@/components/ProUpgradeModal').then((mod) => mod.ProUpgradeModal),
@@ -165,6 +166,19 @@ export default function Home() {
     setUrls(updated);
   };
 
+  const handleUrlBlur = (index: number) => {
+    const val = urls[index]?.trim();
+    if (!val) return;
+    if (isValidUrl(val)) {
+      const normalized = normalizeUrl(val);
+      if (normalized !== val) {
+        const updated = [...urls];
+        updated[index] = normalized;
+        setUrls(updated);
+      }
+    }
+  };
+
   const handleTrySample = () => {
     const sampleUrls = ['https://analyzeserp.com', 'https://vercel.com'];
     const sampleKw = 'seo competitor analysis tool';
@@ -180,20 +194,36 @@ export default function Home() {
       return;
     }
 
-    const validUrls = urls.map((u) => u.trim()).filter(Boolean);
-    if (validUrls.length === 0) {
+    const rawUrls = urls.map((u) => u.trim()).filter(Boolean);
+    if (rawUrls.length === 0) {
       setErrorMsg('Please enter at least 1 valid URL to run the audit.');
       return;
     }
 
-    if (dailyAuditCount + validUrls.length > MAX_FREE_DAILY_AUDITS) {
+    const invalidList: string[] = [];
+    const normalizedList: string[] = [];
+    for (const u of rawUrls) {
+      if (!isValidUrl(u)) {
+        invalidList.push(u);
+      } else {
+        normalizedList.push(normalizeUrl(u));
+      }
+    }
+
+    if (invalidList.length > 0) {
+      setErrorMsg(`Invalid URL format: "${invalidList[0]}". Please enter a valid web domain or URL (e.g. example.com or https://example.com).`);
+      return;
+    }
+
+    if (dailyAuditCount + normalizedList.length > MAX_FREE_DAILY_AUDITS) {
       setIsProModalOpen(true);
       return;
     }
 
+    setUrls(normalizedList);
     setIsSubmitting(true);
     const queryParams = new URLSearchParams();
-    queryParams.set('urls', validUrls.join(','));
+    queryParams.set('urls', normalizedList.join(','));
     if (targetKeyword.trim()) {
       queryParams.set('keyword', targetKeyword.trim());
     }
@@ -344,31 +374,12 @@ export default function Home() {
 
             <form onSubmit={handleAuditSubmit} className="space-y-4">
               <div className="space-y-3">
-                {/* Integrated Focus Keyword Field */}
-                <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                  <div className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300">
-                    <Key className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span>Focus Keyword <span className="text-slate-400 dark:text-slate-500 font-normal">(Optional for intent alignment)</span></span>
-                  </div>
-                  <div className="w-full sm:max-w-xs">
-                    <input
-                      id="target-keyword-input"
-                      type="text"
-                      aria-label="Target search keyword or focus query"
-                      placeholder="e.g. seo competitor audit"
-                      value={targetKeyword}
-                      onChange={(e) => setTargetKeyword(e.target.value)}
-                      className="w-full px-3 py-1.5 rounded-lg glass-input text-xs focus:outline-none font-mono transition-all"
-                    />
-                  </div>
-                </div>
-
                 {/* URLs Inputs */}
                 {urls.map((url, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     <div className="relative flex-1">
                       <span
-                        className={`absolute left-3 top-1/2 -translate-y-1/2 font-mono text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                        className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 font-mono text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md min-w-[62px] sm:min-w-[70px] text-center select-none ${
                           idx === 0
                             ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30'
                             : 'bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300'
@@ -386,7 +397,8 @@ export default function Home() {
                         }
                         value={url}
                         onChange={(e) => handleUrlChange(idx, e.target.value)}
-                        className="w-full pl-22 sm:pl-26 pr-4 py-3 rounded-xl glass-input text-xs sm:text-sm focus:outline-none font-mono transition-all"
+                        onBlur={() => handleUrlBlur(idx)}
+                        className="w-full pl-[80px] sm:pl-[94px] pr-4 py-2.5 sm:py-3 rounded-xl glass-input text-xs sm:text-sm focus:outline-none font-mono transition-all"
                       />
                     </div>
 
@@ -395,7 +407,7 @@ export default function Home() {
                         type="button"
                         onClick={() => removeUrlInput(idx)}
                         aria-label={`Remove URL ${idx + 1}`}
-                        className="p-3 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all cursor-pointer active:scale-[0.98] shrink-0"
+                        className="p-2.5 sm:p-3 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all cursor-pointer active:scale-[0.98] shrink-0"
                         title={`Remove URL ${idx + 1}`}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -403,6 +415,25 @@ export default function Home() {
                     )}
                   </div>
                 ))}
+
+                {/* Integrated Focus Keyword Field */}
+                <div className="p-3 sm:p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300">
+                    <Key className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span>Focus Keyword <span className="text-slate-400 dark:text-slate-500 font-normal">(Optional for intent alignment)</span></span>
+                  </div>
+                  <div className="w-full sm:max-w-xs">
+                    <input
+                      id="target-keyword-input"
+                      type="text"
+                      aria-label="Target search keyword or focus query"
+                      placeholder="e.g. seo competitor audit"
+                      value={targetKeyword}
+                      onChange={(e) => setTargetKeyword(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-lg glass-input text-xs focus:outline-none font-mono transition-all"
+                    />
+                  </div>
+                </div>
               </div>
 
               {errorMsg && (

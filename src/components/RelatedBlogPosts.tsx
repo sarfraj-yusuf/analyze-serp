@@ -52,7 +52,7 @@ export const RelatedBlogPosts: React.FC<RelatedBlogPostsProps> = ({
         {relatedPosts.map((post) => (
           <article
             key={post.slug}
-            className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 hover:border-emerald-500/40 overflow-hidden group shadow-xs hover:shadow-lg transition-all flex flex-col justify-between bg-white dark:bg-[#0c1220]/60"
+            className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 hover:border-emerald-500/40 overflow-hidden group shadow-xs hover:shadow-lg transition-all flex flex-col justify-between bg-white dark:bg-slate-900/60"
           >
             {/* Thumbnail */}
             <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100 dark:bg-slate-900">

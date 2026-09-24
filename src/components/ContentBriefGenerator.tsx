@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { SinglePageAudit } from '@/types/seo';
 import { analyzeKeywordGaps } from '@/lib/keyword-gap';
 import {
@@ -21,6 +21,7 @@ import {
   SlidersHorizontal,
   Award,
   FileEdit,
+  ChevronDown,
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
@@ -28,6 +29,7 @@ import { AiSectionWriterModal } from './AiSectionWriterModal';
 import { JsonLdSchemaModal } from './JsonLdSchemaModal';
 import { FeaturedSnippetModal } from './FeaturedSnippetModal';
 import { ContentScratchpadModal } from './ContentScratchpadModal';
+import { Tooltip } from './Tooltip';
 
 interface ContentBriefGeneratorProps {
   results: SinglePageAudit[];
@@ -50,6 +52,31 @@ export const ContentBriefGenerator: React.FC<ContentBriefGeneratorProps> = ({
   const [aiModalHeading, setAiModalHeading] = useState<string>('');
   const [aiModalTopic, setAiModalTopic] = useState<string>('');
   const [copiedHeadingIdx, setCopiedHeadingIdx] = useState<number | null>(null);
+  const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
+  const exportDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isExportDropdownOpen) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        exportDropdownRef.current &&
+        !exportDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsExportDropdownOpen(false);
+      }
+    };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsExportDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isExportDropdownOpen]);
 
   // Interactive on-page checklist state
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({
@@ -345,65 +372,119 @@ ${aggregatedHeadings
         </div>
 
         {/* 1-Click Action Buttons */}
-        <div className="flex items-center gap-2 flex-wrap shrink-0">
-          <button
-            type="button"
-            onClick={() => setIsScratchpadOpen(true)}
-            className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs shadow-emerald-600/20"
-            title="Open in Live SEO Content Scratchpad with real-time scoring"
-          >
-            <FileEdit className="w-3.5 h-3.5" />
-            <span>Live SEO Scratchpad</span>
-          </button>
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap shrink-0">
+          <div className="flex items-center gap-0.5">
+            <Tooltip content="Live SEO Scratchpad" side="top">
+              <button
+                type="button"
+                onClick={() => setIsScratchpadOpen(true)}
+                className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                aria-label="Live SEO Scratchpad"
+              >
+                <FileEdit className="size-4" />
+              </button>
+            </Tooltip>
 
-          <button
-            type="button"
-            onClick={() => {
-              setAiModalHeading(`Comprehensive Guide to ${activeTargetKeyword}`);
-              setAiModalTopic(activeTargetKeyword);
-              setIsAiWriterOpen(true);
-            }}
-            className="px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
-            <span>AI Draft Section</span>
-          </button>
+            <Tooltip content="AI Draft Section" side="top">
+              <button
+                type="button"
+                onClick={() => {
+                  setAiModalHeading(`Comprehensive Guide to ${activeTargetKeyword}`);
+                  setAiModalTopic(activeTargetKeyword);
+                  setIsAiWriterOpen(true);
+                }}
+                className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                aria-label="AI Draft Section"
+              >
+                <Sparkles className="size-4" />
+              </button>
+            </Tooltip>
+          </div>
 
-          <button
-            onClick={handleCopyMarkdown}
-            className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Copy formatted Markdown brief to clipboard"
-          >
-            {copied ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-emerald-700 dark:text-emerald-400 font-bold">Copied Brief!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
-                <span>Copy Markdown</span>
-              </>
+          <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5 hidden sm:block" />
+
+          {/* Unified Export Brief Dropdown */}
+          <div className="relative" ref={exportDropdownRef}>
+            <Tooltip content="Export Brief" side="top">
+              <button
+                type="button"
+                onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                <span>Export</span>
+                <ChevronDown
+                  className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${
+                    isExportDropdownOpen ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+            </Tooltip>
+
+            {isExportDropdownOpen && (
+              <div className="absolute right-0 top-full mt-1.5 w-48 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 shadow-xl p-1 z-30 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
+                {/* 1. Copy Markdown */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleCopyMarkdown();
+                    setTimeout(() => setIsExportDropdownOpen(false), 800);
+                  }}
+                  className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-xs flex items-center justify-between text-slate-700 dark:text-slate-200 transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2">
+                    {copied ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                    )}
+                    <span className={copied ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'font-medium'}>
+                      {copied ? 'Copied Brief!' : 'Copy Markdown'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 px-1 py-0.5 rounded bg-slate-100 dark:bg-white/5">
+                    MD
+                  </span>
+                </button>
+
+                {/* 2. Download .MD */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleDownloadMarkdown();
+                    setIsExportDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-xs flex items-center justify-between text-slate-700 dark:text-slate-200 transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2">
+                    <Download className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                    <span className="font-medium">Download .MD</span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-purple-700 dark:text-purple-300 px-1 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40">
+                    File
+                  </span>
+                </button>
+
+                {/* 3. Export PDF */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleDownloadPDF();
+                    setIsExportDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-xs flex items-center justify-between text-slate-700 dark:text-slate-200 transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="font-medium">Export PDF</span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-300 px-1 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40">
+                    PDF
+                  </span>
+                </button>
+              </div>
             )}
-          </button>
-
-          <button
-            onClick={handleDownloadMarkdown}
-            className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Download brief as .MD file"
-          >
-            <Download className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-            <span>Download .MD</span>
-          </button>
-
-          <button
-            onClick={handleDownloadPDF}
-            className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Export brief as PDF"
-          >
-            <FileText className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-            <span>Export PDF</span>
-          </button>
+          </div>
         </div>
       </div>
 
@@ -658,28 +739,30 @@ ${aggregatedHeadings
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setIsSchemaModalOpen(true)}
-              className="px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="Convert heading questions to FAQPage Schema"
-            >
-              <FileCode className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              <span>FAQ Schema</span>
-            </button>
+            <Tooltip content="Convert to FAQ Schema" side="top">
+              <button
+                type="button"
+                onClick={() => setIsSchemaModalOpen(true)}
+                className="px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <FileCode className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                <span>FAQ Schema</span>
+              </button>
+            </Tooltip>
 
-            <button
-              type="button"
-              onClick={() => {
-                setSnippetModalHeading(aggregatedHeadings[0]?.text ? `## ${aggregatedHeadings[0].text}` : `## What is ${activeTargetKeyword}?`);
-                setIsSnippetModalOpen(true);
-              }}
-              className="px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/60 flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="Craft Google Featured Snippet (Position 0) bait"
-            >
-              <Award className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-              <span>Position 0 Bait</span>
-            </button>
+            <Tooltip content="Optimize Position 0 Bait" side="top">
+              <button
+                type="button"
+                onClick={() => {
+                  setSnippetModalHeading(aggregatedHeadings[0]?.text ? `## ${aggregatedHeadings[0].text}` : `## What is ${activeTargetKeyword}?`);
+                  setIsSnippetModalOpen(true);
+                }}
+                className="px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/60 flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Award className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span>Position 0 Bait</span>
+              </button>
+            </Tooltip>
             <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 hidden sm:inline">
               Click <strong>&quot;Draft with AI&quot;</strong> to generate section copy
             </div>

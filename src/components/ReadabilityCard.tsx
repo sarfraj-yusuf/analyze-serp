@@ -32,7 +32,7 @@ export const ReadabilityCard: React.FC<ReadabilityCardProps> = ({ readability })
   return (
     <div className="space-y-6">
       {/* Overview Score Banner */}
-      <div className="p-6 sm:p-8 rounded-2xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
+      <div className="p-6 sm:p-8 rounded-2xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
         <div className="flex items-center gap-4">
           <div className={`w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center shrink-0 shadow-md ${easeColor}`}>
             <span className="text-2xl font-bold">{fleschReadingEase}</span>

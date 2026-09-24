@@ -41,7 +41,7 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
   return (
     <div className="space-y-6">
       {/* Header Score Banner */}
-      <div className="p-6 sm:p-8 rounded-2xl bg-slate-100 dark:bg-[#080c14] border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
+      <div className="p-6 sm:p-8 rounded-2xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
         <div className="flex items-center gap-4">
           <div className={`w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center shrink-0 shadow-md ${gradeColor}`}>
             <span className="text-2xl font-bold">{technicalScore}</span>
@@ -226,7 +226,7 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
 
       {/* robots.txt Indexability Status */}
       {robotsValidation && (
-        <div className="p-4 rounded-xl bg-[#080c14] border border-slate-200 dark:border-white/10 space-y-2">
+        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/10 space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-100">
               <FileText className="w-4 h-4 text-cyan-500" />

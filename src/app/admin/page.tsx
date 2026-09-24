@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { Tooltip } from '@/components/Tooltip';
 import {
   Lock,
   Key,
@@ -160,12 +161,53 @@ export interface SystemHealthData {
   };
   services: {
     geminiConfigured: boolean;
+    geminiLive?: boolean;
+    geminiPingMs?: number;
     pagespeedConfigured: boolean;
+    pagespeedLive?: boolean;
+    pagespeedPingMs?: number;
     authConfigured: boolean;
     adminKeyConfigured: boolean;
   };
   bannedIpsCount: number;
   incidents24hCount: number;
+}
+
+function getLatencyStatus(ms: number | undefined | null) {
+  if (ms === undefined || ms === null || ms < 0) {
+    return {
+      label: 'Offline / Failed',
+      color: 'text-rose-600 dark:text-rose-400',
+      bg: 'bg-rose-500',
+      border: 'border-rose-500/30',
+      bgSoft: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20',
+    };
+  }
+  if (ms <= 50) {
+    return {
+      label: 'Optimal (<50ms)',
+      color: 'text-emerald-600 dark:text-emerald-400',
+      bg: 'bg-emerald-500',
+      border: 'border-emerald-500/30',
+      bgSoft: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20',
+    };
+  }
+  if (ms <= 200) {
+    return {
+      label: 'Moderate (50-200ms)',
+      color: 'text-amber-600 dark:text-amber-400',
+      bg: 'bg-amber-500',
+      border: 'border-amber-500/30',
+      bgSoft: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20',
+    };
+  }
+  return {
+    label: 'Degraded (>200ms)',
+    color: 'text-rose-600 dark:text-rose-400',
+    bg: 'bg-rose-500',
+    border: 'border-rose-500/30',
+    bgSoft: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20',
+  };
 }
 
 interface MaintenanceConfig {
@@ -250,7 +292,7 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   const [adminData, setAdminData] = useState<AdminData | null>(null);
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
@@ -284,10 +326,18 @@ export default function AdminPage() {
   const [selectedToolFilter, setSelectedToolFilter] = useState('All');
   const [actionInProgressEmail, setActionInProgressEmail] = useState<string | null>(null);
 
+  // User Management Role Menu & Custom Credit Modal State
+  const [openRoleMenuEmail, setOpenRoleMenuEmail] = useState<string | null>(null);
+  const [creditModalUser, setCreditModalUser] = useState<{ email: string; currentLimit: number } | null>(null);
+  const [customLimitInput, setCustomLimitInput] = useState<number>(5);
+  const [isSubmittingCreditModal, setIsSubmittingCreditModal] = useState(false);
+
   // Security & Blacklist Form State
   const [newBanIp, setNewBanIp] = useState('');
   const [newBanReason, setNewBanReason] = useState('');
   const [isBanningIp, setIsBanningIp] = useState(false);
+  const [actionIpMap, setActionIpMap] = useState<Record<string, boolean>>({});
+  const [confirmUnbanIp, setConfirmUnbanIp] = useState<string | null>(null);
   const [selectedSeverityFilter, setSelectedSeverityFilter] = useState<'all' | 'critical' | 'high' | 'medium' | 'low'>('all');
 
   // Live Site Controls State
@@ -299,11 +349,22 @@ export default function AdminPage() {
   const [applyToExistingFreeUsers, setApplyToExistingFreeUsers] = useState(false);
   const [isSavingConfig, setIsSavingConfig] = useState(false);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
+  // Track Unsaved Changes in Site Controls
+  const isConfigDirty = useMemo(() => {
+    if (!adminData?.siteConfig) return false;
+    return JSON.stringify(liveConfig) !== JSON.stringify(adminData.siteConfig);
+  }, [liveConfig, adminData?.siteConfig]);
+
+  // Auto-Sync Telemetry & Threats (15-second background poll)
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState(true);
+  const [isAutoSyncing, setIsAutoSyncing] = useState(false);
+  const [, setLastSyncedTime] = useState<Date | null>(null);
+
+  const showToast = (text: string, type: 'success' | 'error' = 'success') => {
+    setToastMessage({ text, type });
     setTimeout(() => {
-      setToastMessage((prev) => (prev === msg ? null : prev));
-    }, 4000);
+      setToastMessage((prev) => (prev?.text === text ? null : prev));
+    }, 4500);
   };
 
   const fetchAdminData = async (keyToUse: string) => {
@@ -326,12 +387,36 @@ export default function AdminPage() {
         setLiveConfig(data.siteConfig);
       }
       setIsAuthenticated(true);
+      setLastSyncedTime(new Date());
       localStorage.setItem('analyze_admin_key', keyToUse);
     } catch (err: any) {
       setErrorMsg(err.message || 'An error occurred while loading admin panel.');
       setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Silent background fetch for real-time telemetry & threats without triggering full-page loading state
+  const fetchAdminDataSilently = async (keyToUse: string) => {
+    if (!keyToUse) return;
+    setIsAutoSyncing(true);
+    try {
+      const res = await fetch('/api/admin/data', {
+        headers: { 'x-admin-key': keyToUse },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAdminData(data);
+        if (data.siteConfig) {
+          setLiveConfig(data.siteConfig);
+        }
+        setLastSyncedTime(new Date());
+      }
+    } catch {
+      // Silent error catching prevents admin form disruptions during typing/auditing
+    } finally {
+      setIsAutoSyncing(false);
     }
   };
 
@@ -352,7 +437,7 @@ export default function AdminPage() {
         setAdminData((prev) => prev ? { ...prev, siteConfig: data.siteConfig } : null);
       }
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      showToast(err.message || 'Failed to save configuration.', 'error');
     } finally {
       setIsSavingConfig(false);
     }
@@ -365,6 +450,17 @@ export default function AdminPage() {
       fetchAdminData(savedKey);
     }
   }, []);
+
+  // 15-second background auto-refresh interval for telemetry & threat radar
+  useEffect(() => {
+    if (!isAuthenticated || !adminKey || !autoSyncEnabled) return;
+
+    const interval = setInterval(() => {
+      fetchAdminDataSilently(adminKey);
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, adminKey, autoSyncEnabled]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -382,7 +478,7 @@ export default function AdminPage() {
   // Perform Admin Mutation Action
   const executeUserAction = async (
     email: string,
-    action: 'ADJUST_CREDITS' | 'ADD_BONUS_CREDITS' | 'RESET_USAGE' | 'TOGGLE_ROLE' | 'TOGGLE_STATUS',
+    action: 'ADJUST_CREDITS' | 'ADD_BONUS_CREDITS' | 'RESET_USAGE' | 'UPDATE_ROLE' | 'TOGGLE_ROLE' | 'TOGGLE_STATUS',
     value?: any
   ) => {
     setActionInProgressEmail(email);
@@ -414,7 +510,7 @@ export default function AdminPage() {
             summary: {
               ...prev.summary,
               proUsersCount: updatedUsers.filter((u) => u.role === 'pro').length,
-              freeUsersCount: updatedUsers.filter((u) => u.role !== 'pro').length,
+              freeUsersCount: updatedUsers.filter((u) => u.role === 'user' || !u.role).length,
               suspendedUsersCount: updatedUsers.filter((u) => u.status === 'suspended').length,
               activeUsersCount: updatedUsers.filter((u) => u.status !== 'suspended').length,
             },
@@ -422,7 +518,7 @@ export default function AdminPage() {
         });
       }
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      showToast(err.message || 'Action failed.', 'error');
     } finally {
       setActionInProgressEmail(null);
     }
@@ -554,7 +650,9 @@ export default function AdminPage() {
   // Execute Ban IP
   const handleBanIp = async (ipToBan: string, reasonToBan: string) => {
     if (!ipToBan || !ipToBan.trim()) return;
+    const targetIp = ipToBan.trim();
     setIsBanningIp(true);
+    setActionIpMap((prev) => ({ ...prev, [targetIp]: true }));
     try {
       const res = await fetch('/api/admin/users/action', {
         method: 'POST',
@@ -564,20 +662,20 @@ export default function AdminPage() {
         },
         body: JSON.stringify({
           action: 'BAN_IP',
-          ip: ipToBan.trim(),
+          ip: targetIp,
           reason: reasonToBan.trim() || 'Manual Admin Ban',
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to ban IP');
-      showToast(data.message || `IP ${ipToBan} has been added to blacklist.`);
+      showToast(data.message || `IP ${targetIp} has been added to blacklist.`);
       setNewBanIp('');
       setNewBanReason('');
       if (adminData && data.bannedIps) {
         setAdminData((prev) => {
           if (!prev) return null;
           const updatedBots = prev.suspiciousBots?.map((bot) =>
-            bot.ip === ipToBan.trim() ? { ...bot, isBanned: true, status: 'banned' as const } : bot
+            bot.ip === targetIp ? { ...bot, isBanned: true, status: 'banned' as const } : bot
           );
           return {
             ...prev,
@@ -587,15 +685,17 @@ export default function AdminPage() {
         });
       }
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      showToast(err.message || 'Failed to ban IP.', 'error');
     } finally {
       setIsBanningIp(false);
+      setActionIpMap((prev) => ({ ...prev, [targetIp]: false }));
     }
   };
 
-  // Execute Unban IP
+  // Execute Unban IP (Zero window.confirm antipattern)
   const handleUnbanIp = async (ipToUnban: string) => {
-    if (!confirm(`Are you sure you want to lift the blacklist ban on ${ipToUnban}?`)) return;
+    const targetIp = ipToUnban.trim();
+    setActionIpMap((prev) => ({ ...prev, [targetIp]: true }));
     try {
       const res = await fetch('/api/admin/users/action', {
         method: 'POST',
@@ -605,17 +705,17 @@ export default function AdminPage() {
         },
         body: JSON.stringify({
           action: 'UNBAN_IP',
-          ip: ipToUnban,
+          ip: targetIp,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to unban IP');
-      showToast(data.message || `IP ${ipToUnban} unbanned.`);
+      showToast(data.message || `IP ${targetIp} unbanned.`);
       if (adminData && data.bannedIps) {
         setAdminData((prev) => {
           if (!prev) return null;
           const updatedBots = prev.suspiciousBots?.map((bot) =>
-            bot.ip === ipToUnban ? { ...bot, isBanned: false, status: 'quarantined' as const } : bot
+            bot.ip === targetIp ? { ...bot, isBanned: false, status: 'quarantined' as const } : bot
           );
           return {
             ...prev,
@@ -625,7 +725,10 @@ export default function AdminPage() {
         });
       }
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      showToast(err.message || 'Failed to unban IP.', 'error');
+    } finally {
+      setActionIpMap((prev) => ({ ...prev, [targetIp]: false }));
+      setConfirmUnbanIp(null);
     }
   };
 
@@ -661,9 +764,17 @@ export default function AdminPage() {
 
       {/* Floating Toast Alert */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-slate-900 text-white dark:bg-emerald-950 dark:text-emerald-100 border border-emerald-500/40 shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-200 text-xs font-medium">
-          <CheckCircle2 className="size-4 text-emerald-400 shrink-0" />
-          <span>{toastMessage}</span>
+        <div className={`fixed bottom-6 right-6 z-50 p-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-200 text-xs font-medium border ${
+          toastMessage.type === 'error'
+            ? 'bg-slate-900 text-rose-100 dark:bg-rose-950 dark:text-rose-100 border-rose-500/50'
+            : 'bg-slate-900 text-white dark:bg-emerald-950 dark:text-emerald-100 border-emerald-500/40'
+        }`}>
+          {toastMessage.type === 'error' ? (
+            <AlertCircle className="size-4 text-rose-400 shrink-0" />
+          ) : (
+            <CheckCircle2 className="size-4 text-emerald-400 shrink-0" />
+          )}
+          <span>{toastMessage.text}</span>
         </div>
       )}
 
@@ -685,33 +796,66 @@ export default function AdminPage() {
 
           {isAuthenticated && (
             <div className="flex items-center gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={exportUsersToCsv}
-                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-                title="Export registered users to CSV"
-              >
-                <Download className="size-3.5 text-slate-500" />
-                <span>Export CSV</span>
-              </button>
+              <Tooltip content="Export registered users to CSV">
+                <button
+                  type="button"
+                  onClick={exportUsersToCsv}
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <Download className="size-3.5 text-slate-500" />
+                  <span>Export CSV</span>
+                </button>
+              </Tooltip>
 
-              <button
-                type="button"
-                onClick={() => fetchAdminData(adminKey)}
-                disabled={isLoading}
-                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>Refresh Live</span>
-              </button>
+              <Tooltip content={autoSyncEnabled ? 'Auto-sync active (telemetry syncs every 15s). Click to pause.' : 'Auto-sync paused. Click to resume 15s refresh.'}>
+                <button
+                  type="button"
+                  onClick={() => setAutoSyncEnabled((prev) => !prev)}
+                  className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                    autoSyncEnabled
+                      ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                      : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-white/10'
+                  }`}
+                >
+                  <span className="relative flex size-3 items-center justify-center shrink-0">
+                    {isAutoSyncing ? (
+                      <RefreshCw className="size-2.5 animate-spin text-emerald-500" />
+                    ) : (
+                      <>
+                        {autoSyncEnabled && (
+                          <span className="animate-ping absolute inline-flex size-2 rounded-full bg-emerald-400 opacity-75" />
+                        )}
+                        <span className={`relative inline-flex rounded-full size-2 ${autoSyncEnabled ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                      </>
+                    )}
+                  </span>
+                  <span className="font-mono text-[11px] whitespace-nowrap">
+                    Auto-Sync: <span className="font-bold">{autoSyncEnabled ? 'ON' : 'OFF'}</span>
+                  </span>
+                </button>
+              </Tooltip>
 
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-semibold transition-all cursor-pointer"
-              >
-                Lock Panel
-              </button>
+              <Tooltip content="Refresh live telemetry & data">
+                <button
+                  type="button"
+                  onClick={() => fetchAdminData(adminKey)}
+                  disabled={isLoading}
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                  <span>Refresh Live</span>
+                </button>
+              </Tooltip>
+
+              <Tooltip content="Lock management panel">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-semibold transition-all cursor-pointer"
+                >
+                  Lock Panel
+                </button>
+              </Tooltip>
             </div>
           )}
         </div>
@@ -765,8 +909,8 @@ export default function AdminPage() {
               <aside
                 className={`
                   fixed inset-y-0 left-0 z-40 w-64 glass-panel border-r border-slate-200/80 dark:border-white/10 flex flex-col justify-between transition-all duration-300 ease-in-out md:static md:translate-x-0 md:rounded-2xl md:border md:shrink-0
-                  ${isSidebarCollapsed ? 'md:w-[68px] p-3' : 'md:w-60 p-4'}
-                  ${isMobileSidebarOpen ? 'translate-x-0 shadow-2xl bg-white dark:bg-slate-950 p-4' : '-translate-x-full md:translate-x-0'}
+                  ${isSidebarCollapsed ? 'md:w-[68px] md:p-3' : 'md:w-60 md:p-3.5'}
+                  ${isMobileSidebarOpen ? 'translate-x-0 shadow-2xl bg-white dark:bg-slate-950 p-4' : '-translate-x-full md:translate-x-0 p-4'}
                 `}
               >
                 <div>
@@ -787,29 +931,31 @@ export default function AdminPage() {
                   <div className={`hidden md:flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'} pb-3 mb-2 border-b border-slate-200/80 dark:border-white/10`}>
                     {!isSidebarCollapsed ? (
                       <>
-                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 whitespace-nowrap overflow-hidden transition-all duration-300">
                           Console Navigation
                         </span>
+                        <Tooltip content="Collapse sidebar" side="right">
+                          <button
+                            type="button"
+                            onClick={toggleSidebarCollapsed}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                            aria-label="Collapse sidebar"
+                          >
+                            <ChevronLeft className="size-3.5" />
+                          </button>
+                        </Tooltip>
+                      </>
+                    ) : (
+                      <Tooltip content="Expand sidebar" side="right">
                         <button
                           type="button"
                           onClick={toggleSidebarCollapsed}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                          title="Collapse sidebar"
-                          aria-label="Collapse sidebar"
+                          aria-label="Expand sidebar"
                         >
-                          <ChevronLeft className="size-3.5" />
+                          <ChevronRight className="size-4" />
                         </button>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={toggleSidebarCollapsed}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                        title="Expand sidebar"
-                        aria-label="Expand sidebar"
-                      >
-                        <ChevronRight className="size-4" />
-                      </button>
+                      </Tooltip>
                     )}
                   </div>
 
@@ -838,54 +984,75 @@ export default function AdminPage() {
                     ].map((item) => {
                       const Icon = item.icon;
                       const isActive = activeTab === item.id;
-                      const tooltipText = `${item.label}${item.badge !== null && item.badge !== undefined ? ` (${item.badge})` : ''}`;
+                      const badgeText = item.badge !== null && item.badge !== undefined ? String(item.badge) : undefined;
 
                       return (
-                        <button
+                        <Tooltip
                           key={item.id}
-                          type="button"
-                          onClick={() => {
-                            setActiveTab(item.id);
-                            setIsMobileSidebarOpen(false);
-                          }}
-                          title={isSidebarCollapsed ? tooltipText : undefined}
-                          className={`w-full relative flex items-center ${
-                            isSidebarCollapsed
-                              ? 'justify-between md:justify-center px-3 md:px-0 py-2.5'
-                              : 'justify-between px-3 py-2.5'
-                          } rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                            isActive
-                              ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
-                              : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
-                          }`}
+                          content={item.label}
+                          badge={badgeText}
+                          side="right"
+                          disabled={!isSidebarCollapsed}
                         >
-                          <div className={`flex items-center gap-2.5 ${isSidebarCollapsed ? 'md:justify-center md:gap-0' : ''} truncate`}>
-                            <Icon className="size-4 shrink-0" />
-                            <span className={`truncate ${isSidebarCollapsed ? 'md:hidden' : 'inline'}`}>
-                              {item.label}
-                            </span>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveTab(item.id);
+                              setIsMobileSidebarOpen(false);
+                            }}
+                            className={`w-full relative flex items-center ${
+                              isSidebarCollapsed
+                                ? 'justify-between md:justify-center px-3 md:px-0 py-2.5'
+                                : 'justify-between px-3 py-2.5'
+                            } rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                              isActive
+                                ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
+                                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
+                            }`}
+                          >
+                            <div className={`flex items-center gap-2.5 ${isSidebarCollapsed ? 'md:justify-center md:gap-0' : ''} min-w-0`}>
+                              <Icon className="size-4 shrink-0" />
+                              <span
+                                className={`whitespace-nowrap transition-all duration-300 ease-in-out ${
+                                  isSidebarCollapsed
+                                    ? 'md:max-w-0 md:opacity-0 md:invisible'
+                                    : 'md:max-w-[140px] md:opacity-100 md:visible'
+                                } overflow-hidden`}
+                              >
+                                {item.label}
+                              </span>
+                            </div>
 
-                          {/* Full Badge pill (visible on mobile or when expanded) */}
-                          {item.badge !== null && item.badge !== undefined && (
-                            <span
-                              className={`${isSidebarCollapsed ? 'md:hidden' : 'inline-block'} px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                                isActive
-                                  ? 'bg-white/20 text-white'
-                                  : item.badgeVariant === 'alert'
-                                  ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30'
-                                  : 'bg-slate-200/80 dark:bg-white/10 text-slate-600 dark:text-slate-400'
-                              }`}
-                            >
-                              {item.badge}
-                            </span>
-                          )}
+                            {/* Full Badge pill (visible on mobile or when expanded) */}
+                            {badgeText !== undefined && (
+                              <span
+                                className={`transition-all duration-300 ease-in-out ${
+                                  isSidebarCollapsed
+                                    ? 'md:max-w-0 md:opacity-0 md:p-0 md:border-0 md:invisible'
+                                    : 'md:max-w-[80px] md:opacity-100 md:visible'
+                                } overflow-hidden px-2 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${
+                                  isActive
+                                    ? 'bg-white/20 text-white'
+                                    : item.badgeVariant === 'alert'
+                                    ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                                    : 'bg-slate-200/80 dark:bg-white/10 text-slate-600 dark:text-slate-400'
+                                }`}
+                              >
+                                {badgeText}
+                              </span>
+                            )}
 
-                          {/* Collapsed Alert Pip Indicator on desktop */}
-                          {isSidebarCollapsed && item.badgeVariant === 'alert' && (
-                            <span className="hidden md:block absolute top-1.5 right-1.5 size-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900 animate-pulse" />
-                          )}
-                        </button>
+                            {/* Collapsed Alert Pip Indicator on desktop */}
+                            {isSidebarCollapsed && item.badgeVariant === 'alert' && (
+                              <span className="hidden md:block absolute top-1.5 right-1.5 size-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900 animate-pulse" />
+                            )}
+
+                            {/* Collapsed Normal Count Pip on desktop */}
+                            {isSidebarCollapsed && badgeText !== undefined && item.badgeVariant !== 'alert' && (
+                              <span className="hidden md:block absolute top-1.5 right-1.5 size-1.5 rounded-full bg-slate-400 dark:bg-slate-500 ring-1 ring-white dark:ring-slate-900" />
+                            )}
+                          </button>
+                        </Tooltip>
                       );
                     })}
                   </div>
@@ -897,67 +1064,80 @@ export default function AdminPage() {
                     <div className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 text-[11px] space-y-1">
                       <div className="flex items-center justify-between">
                         <span className="text-slate-500 dark:text-slate-400">Database</span>
-                        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                        <span className={`font-mono font-bold ${getLatencyStatus(adminData.systemHealth?.dbPingMs).color}`}>
                           {adminData.systemHealth?.dbPingMs ?? -1} ms
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-500 dark:text-slate-400">Status</span>
-                        <span className="font-mono text-slate-700 dark:text-slate-300">
-                          {adminData.systemHealth?.status === 'healthy' ? 'Operational' : 'Degraded'}
+                        <span className="text-slate-500 dark:text-slate-400">Latency</span>
+                        <span className={`font-mono text-[10px] font-bold ${getLatencyStatus(adminData.systemHealth?.dbPingMs).color}`}>
+                          {getLatencyStatus(adminData.systemHealth?.dbPingMs).label}
                         </span>
                       </div>
                     </div>
                   ) : (
                     <>
                       {/* Desktop Collapsed Status Icon */}
-                      <div
-                        className="hidden md:flex items-center justify-center p-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 cursor-help"
-                        title={`Database: ${adminData.systemHealth?.dbPingMs ?? -1}ms (${adminData.systemHealth?.status === 'healthy' ? 'Operational' : 'Degraded'})`}
+                      <Tooltip
+                        content={`Database: ${adminData.systemHealth?.dbPingMs ?? -1}ms (${getLatencyStatus(adminData.systemHealth?.dbPingMs).label})`}
+                        side="right"
                       >
-                        <span className="relative flex size-2.5">
-                          <span
-                            className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                              adminData.systemHealth?.status === 'healthy' ? 'bg-emerald-400' : 'bg-amber-400'
-                            }`}
-                          />
-                          <span
-                            className={`relative inline-flex rounded-full size-2.5 ${
-                              adminData.systemHealth?.status === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500'
-                            }`}
-                          />
-                        </span>
-                      </div>
+                        <div
+                          className="hidden md:flex items-center justify-center p-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 cursor-help"
+                        >
+                          <span className="relative flex size-2.5">
+                            <span
+                              className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                                getLatencyStatus(adminData.systemHealth?.dbPingMs).bg
+                              }`}
+                            />
+                            <span
+                              className={`relative inline-flex rounded-full size-2.5 ${
+                                getLatencyStatus(adminData.systemHealth?.dbPingMs).bg
+                              }`}
+                            />
+                          </span>
+                        </div>
+                      </Tooltip>
 
                       {/* Mobile Drawer Status (Always Expanded) */}
                       <div className="md:hidden px-3 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 text-[11px] space-y-1">
                         <div className="flex items-center justify-between">
                           <span className="text-slate-500 dark:text-slate-400">Database</span>
-                          <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                          <span className={`font-mono font-bold ${getLatencyStatus(adminData.systemHealth?.dbPingMs).color}`}>
                             {adminData.systemHealth?.dbPingMs ?? -1} ms
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-slate-500 dark:text-slate-400">Status</span>
-                          <span className="font-mono text-slate-700 dark:text-slate-300">
-                            {adminData.systemHealth?.status === 'healthy' ? 'Operational' : 'Degraded'}
+                          <span className="text-slate-500 dark:text-slate-400">Latency</span>
+                          <span className={`font-mono text-[10px] font-bold ${getLatencyStatus(adminData.systemHealth?.dbPingMs).color}`}>
+                            {getLatencyStatus(adminData.systemHealth?.dbPingMs).label}
                           </span>
                         </div>
                       </div>
                     </>
                   )}
 
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    title={isSidebarCollapsed ? 'Lock Panel' : undefined}
-                    className={`w-full py-2 ${
-                      isSidebarCollapsed ? 'md:px-0 md:justify-center' : 'px-3 justify-center'
-                    } rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer`}
-                  >
-                    <LogOut className="size-3.5 shrink-0" />
-                    <span className={isSidebarCollapsed ? 'md:hidden' : 'inline'}>Lock Panel</span>
-                  </button>
+                  <Tooltip content="Lock Management Panel" side="right" disabled={!isSidebarCollapsed}>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className={`w-full py-2 ${
+                        isSidebarCollapsed ? 'md:px-0 md:justify-center' : 'px-3 justify-center'
+                      } rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer`}
+                    >
+                      <LogOut className="size-3.5 shrink-0" />
+                      <span
+                        className={`whitespace-nowrap transition-all duration-300 ease-in-out ${
+                          isSidebarCollapsed
+                            ? 'md:max-w-0 md:opacity-0 md:invisible'
+                            : 'md:max-w-[100px] md:opacity-100 md:visible'
+                        } overflow-hidden`}
+                      >
+                        Lock Panel
+                      </span>
+                    </button>
+                  </Tooltip>
                 </div>
               </aside>
 
@@ -982,17 +1162,6 @@ export default function AdminPage() {
                       aria-label="Open navigation sidebar"
                     >
                       <Menu className="size-4 text-slate-600 dark:text-slate-300" />
-                    </button>
-
-                    {/* Desktop Sidebar Toggle Button */}
-                    <button
-                      type="button"
-                      onClick={toggleSidebarCollapsed}
-                      className="hidden md:flex p-2 rounded-xl border border-slate-200/80 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0"
-                      title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                      aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                    >
-                      {isSidebarCollapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
                     </button>
                     <div>
                       <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
@@ -1019,7 +1188,7 @@ export default function AdminPage() {
                   <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                     {/* Search Input */}
                     {activeTab !== 'controls' && (
-                      <div className="relative w-full sm:w-64">
+                      <div className="relative w-full sm:w-72 lg:w-80 transition-all">
                         <Search className="size-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
@@ -1041,33 +1210,143 @@ export default function AdminPage() {
                     )}
 
                     {activeTab === 'users' && (
-                      <button
-                        type="button"
-                        onClick={exportUsersToCsv}
-                        className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
-                        title="Export registered users to CSV"
-                      >
-                        <Download className="size-3.5 text-slate-500" />
-                        <span className="hidden sm:inline">Export CSV</span>
-                      </button>
+                      <Tooltip content="Export registered users to CSV">
+                        <button
+                          type="button"
+                          onClick={exportUsersToCsv}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                        >
+                          <Download className="size-3.5 text-slate-500" />
+                          <span className="hidden sm:inline">Export CSV</span>
+                        </button>
+                      </Tooltip>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={() => fetchAdminData(adminKey)}
-                      disabled={isLoading}
-                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
-                      title="Refresh live data"
-                    >
-                      <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                      <span className="hidden sm:inline">Refresh</span>
-                    </button>
+                    <Tooltip content="Refresh live telemetry & data">
+                      <button
+                        type="button"
+                        onClick={() => fetchAdminData(adminKey)}
+                        disabled={isLoading}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
+                      >
+                        <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                        <span className="hidden sm:inline">Refresh</span>
+                      </button>
+                    </Tooltip>
                   </div>
                 </div>
 
                 {/* TAB 0: OVERVIEW (KPIs + Charts + Health Ring) */}
                 {activeTab === 'overview' && (
                   <div className="space-y-6">
+                    {/* Live Telemetry Health Quick-Bar */}
+                    <div className="p-3 rounded-2xl glass-panel border border-slate-200/80 dark:border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="relative flex size-2">
+                          <span
+                            className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                              adminData.systemHealth?.status === 'healthy' ? 'bg-emerald-400' : 'bg-amber-400'
+                            }`}
+                          />
+                          <span
+                            className={`relative inline-flex rounded-full size-2 ${
+                              adminData.systemHealth?.status === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500'
+                            }`}
+                          />
+                        </span>
+                        <span className="font-mono text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                          Infrastructure Telemetry
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Auto-Sync Live Status Chip */}
+                        <Tooltip content={autoSyncEnabled ? 'Telemetry auto-sync active (syncs every 15s). Click to pause.' : 'Auto-sync paused. Click to resume 15s refresh.'}>
+                          <button
+                            type="button"
+                            onClick={() => setAutoSyncEnabled((prev) => !prev)}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold flex items-center gap-1.5 border transition-all cursor-pointer ${
+                              autoSyncEnabled
+                                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
+                                : 'bg-slate-100 dark:bg-white/5 text-slate-500 border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10'
+                            }`}
+                          >
+                            <span className="relative flex size-3 items-center justify-center shrink-0">
+                              {isAutoSyncing ? (
+                                <RefreshCw className="size-2.5 animate-spin text-emerald-500" />
+                              ) : (
+                                <>
+                                  {autoSyncEnabled && (
+                                    <span className="animate-ping absolute inline-flex size-1.5 rounded-full bg-emerald-400 opacity-75" />
+                                  )}
+                                  <span className={`relative inline-flex rounded-full size-1.5 ${autoSyncEnabled ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                                </>
+                              )}
+                            </span>
+                            <span>Auto-Sync: {autoSyncEnabled ? 'ON' : 'OFF'}</span>
+                          </button>
+                        </Tooltip>
+
+                        {/* MySQL Ping Chip */}
+                        <Tooltip content={`Database Ping: ${adminData.systemHealth?.dbPingMs ?? -1} ms (${getLatencyStatus(adminData.systemHealth?.dbPingMs).label})`}>
+                          <div className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold flex items-center gap-1.5 border ${getLatencyStatus(adminData.systemHealth?.dbPingMs).bgSoft}`}>
+                            <span className={`size-1.5 rounded-full ${getLatencyStatus(adminData.systemHealth?.dbPingMs).bg}`} />
+                            <span>DB: {adminData.systemHealth?.dbPingMs ?? -1}ms</span>
+                          </div>
+                        </Tooltip>
+
+                        {/* Gemini Live Chip */}
+                        <Tooltip content={adminData.systemHealth?.services.geminiLive ? `Gemini 2.5 Flash Live (${adminData.systemHealth?.services.geminiPingMs}ms)` : 'Gemini AI API Key Unset or Unreachable'}>
+                          <div className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold flex items-center gap-1.5 border ${
+                            adminData.systemHealth?.services.geminiLive
+                              ? getLatencyStatus(adminData.systemHealth?.services.geminiPingMs).bgSoft
+                              : 'bg-slate-100 dark:bg-white/5 text-slate-500 border-slate-200 dark:border-white/10'
+                          }`}>
+                            <span className={`size-1.5 rounded-full ${
+                              adminData.systemHealth?.services.geminiLive
+                                ? getLatencyStatus(adminData.systemHealth?.services.geminiPingMs).bg
+                                : 'bg-slate-400'
+                            }`} />
+                            <span>Gemini: {adminData.systemHealth?.services.geminiLive ? `${adminData.systemHealth?.services.geminiPingMs}ms` : 'Inactive'}</span>
+                          </div>
+                        </Tooltip>
+
+                        {/* Memory Heap Chip */}
+                        {(() => {
+                          const used = adminData.systemHealth?.memory.heapUsedMB || 0;
+                          const total = Math.max(1, adminData.systemHealth?.memory.heapTotalMB || 1);
+                          const percent = Math.min(100, Math.round((used / total) * 100));
+                          const isWarning = percent > 85;
+                          const isModerate = percent > 60;
+                          const chipStyle = isWarning
+                            ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20'
+                            : isModerate
+                            ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                            : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
+                          return (
+                            <Tooltip content={`Heap: ${used}MB / ${total}MB (RSS: ${adminData.systemHealth?.memory.rssMB || 0}MB)`}>
+                              <div className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold flex items-center gap-1.5 border ${chipStyle}`}>
+                                <Cpu className="size-3 shrink-0" />
+                                <span>Heap: {percent}%</span>
+                              </div>
+                            </Tooltip>
+                          );
+                        })()}
+
+                        {/* Bot Radar Status */}
+                        <Tooltip content={adminData.suspiciousBots && adminData.suspiciousBots.length > 0 ? `${adminData.suspiciousBots.length} High-Burst Bots Active` : 'Bot Threat Radar Normal'}>
+                          <div className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold flex items-center gap-1.5 border ${
+                            adminData.suspiciousBots && adminData.suspiciousBots.length > 0
+                              ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                              : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10'
+                          }`}>
+                            <Bot className="size-3 shrink-0" />
+                            <span>Bots: {adminData.suspiciousBots?.length || 0}</span>
+                          </div>
+                        </Tooltip>
+                      </div>
+                    </div>
+
                     {/* Executive Summary Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Metric 1: Registered Accounts */}
@@ -1079,7 +1358,7 @@ export default function AdminPage() {
                     <Users className="size-4 text-emerald-500" />
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black text-slate-800 dark:text-slate-100 font-mono">
+                    <span className="text-3xl font-bold text-slate-800 dark:text-slate-100 font-mono tracking-tight">
                       {adminData.summary.totalRegisteredUsers || 0}
                     </span>
                     <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
@@ -1096,12 +1375,12 @@ export default function AdminPage() {
                 <div className="glass-panel p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-3">
                   <div className="flex items-center justify-between text-slate-400">
                     <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                      Total Tool Runs
+                       Total Tool Runs
                     </span>
                     <Activity className="size-4 text-cyan-500" />
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black text-slate-800 dark:text-slate-100 font-mono">
+                    <span className="text-3xl font-bold text-slate-800 dark:text-slate-100 font-mono tracking-tight">
                       {adminData.summary.totalAuditsRun}
                     </span>
                     <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
@@ -1139,7 +1418,7 @@ export default function AdminPage() {
                     </span>
                     <Star className="size-4 text-amber-400 fill-amber-400" />
                   </div>
-                  <div className="text-3xl font-black text-slate-800 dark:text-slate-100 font-mono flex items-center gap-1.5">
+                  <div className="text-3xl font-bold text-slate-800 dark:text-slate-100 font-mono tracking-tight flex items-center gap-1.5">
                     <span>{adminData.summary.avgRating}</span>
                     <span className="text-xs font-normal text-slate-400">/ 5.0</span>
                   </div>
@@ -1261,7 +1540,7 @@ export default function AdminPage() {
 
                       {/* Center Stats */}
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                        <span className="text-2xl font-black font-mono text-slate-900 dark:text-white">
+                        <span className="text-2xl font-bold font-mono text-slate-800 dark:text-slate-100 tracking-tight">
                           {adminData.summary.totalRegisteredUsers}
                         </span>
                         <span className="text-[9px] uppercase font-mono text-slate-500 dark:text-slate-400 tracking-wider">
@@ -1410,31 +1689,76 @@ export default function AdminPage() {
                                   </span>
                                 </td>
 
-                                {/* Plan Tier & 1-Click Pro Toggle */}
+                                {/* Plan Tier & 3-Role Selector Dropdown */}
                                 <td className="px-6 py-4">
-                                  <div className="flex items-center gap-2">
-                                    <span
-                                      className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase flex items-center gap-1 ${
-                                        isPro
-                                          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
-                                          : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10'
-                                      }`}
-                                    >
-                                      {isPro && <Crown className="size-3 text-amber-500" />}
-                                      <span>{user.role?.toUpperCase() || 'USER'}</span>
-                                    </span>
-
+                                  <div className="relative inline-block text-left">
                                     <button
                                       type="button"
                                       disabled={isBusy}
-                                      onClick={() =>
-                                        executeUserAction(user.email, 'TOGGLE_ROLE', isPro ? 'user' : 'pro')
-                                      }
-                                      className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer disabled:opacity-50"
-                                      title={isPro ? 'Downgrade to Free tier' : 'Grant Pro subscription tier'}
+                                      onClick={() => setOpenRoleMenuEmail((prev) => prev === user.email ? null : user.email)}
+                                      className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold uppercase flex items-center gap-1.5 transition-all cursor-pointer border ${
+                                        user.role === 'admin'
+                                          ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30 hover:bg-rose-500/25'
+                                          : isPro
+                                          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 hover:bg-amber-500/25'
+                                          : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10'
+                                      }`}
                                     >
-                                      {isPro ? 'Demote' : 'Make Pro'}
+                                      {user.role === 'admin' ? (
+                                        <ShieldCheck className="size-3 text-rose-500" />
+                                      ) : isPro ? (
+                                        <Crown className="size-3 text-amber-500" />
+                                      ) : (
+                                        <Users className="size-3 text-slate-400" />
+                                      )}
+                                      <span>{user.role?.toUpperCase() || 'USER'}</span>
+                                      <ChevronRight className={`size-3 text-slate-400 transition-transform ${openRoleMenuEmail === user.email ? 'rotate-90' : ''}`} />
                                     </button>
+
+                                    {/* Role Dropdown Menu */}
+                                    {openRoleMenuEmail === user.email && (
+                                      <>
+                                        <div
+                                          className="fixed inset-0 z-40"
+                                          onClick={() => setOpenRoleMenuEmail(null)}
+                                        />
+                                        <div className="absolute left-0 mt-1 w-44 rounded-xl glass-panel shadow-xl border border-slate-200/80 dark:border-white/10 p-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150 bg-white/95 dark:bg-slate-900/95">
+                                          <div className="text-[10px] font-mono font-bold uppercase px-2 py-1 text-slate-400 border-b border-slate-100 dark:border-white/5 mb-1">
+                                            Assign Role
+                                          </div>
+                                          {(['user', 'pro', 'admin'] as const).map((r) => {
+                                            const active = (user.role || 'user') === r;
+                                            return (
+                                              <button
+                                                key={r}
+                                                type="button"
+                                                onClick={async () => {
+                                                  setOpenRoleMenuEmail(null);
+                                                  await executeUserAction(user.email, 'UPDATE_ROLE', r);
+                                                }}
+                                                className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                                                  active
+                                                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold'
+                                                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'
+                                                }`}
+                                              >
+                                                <div className="flex items-center gap-1.5 capitalize">
+                                                  {r === 'admin' ? (
+                                                    <ShieldCheck className="size-3.5 text-rose-500" />
+                                                  ) : r === 'pro' ? (
+                                                    <Crown className="size-3.5 text-amber-500" />
+                                                  ) : (
+                                                    <Users className="size-3.5 text-slate-400" />
+                                                  )}
+                                                  <span>{r === 'user' ? 'Free User' : r === 'pro' ? 'Pro Auditor' : 'Platform Admin'}</span>
+                                                </div>
+                                                {active && <Check className="size-3 text-emerald-500" />}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      </>
+                                    )}
                                   </div>
                                 </td>
 
@@ -1464,77 +1788,74 @@ export default function AdminPage() {
 
                                 {/* Account Status Toggle */}
                                 <td className="px-6 py-4">
-                                  <button
-                                    type="button"
-                                    disabled={isBusy}
-                                    onClick={() =>
-                                      executeUserAction(user.email, 'TOGGLE_STATUS', isSuspended ? 'active' : 'suspended')
-                                    }
-                                    className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase flex items-center gap-1 transition-all cursor-pointer ${
-                                      isSuspended
-                                        ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30'
-                                        : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
-                                    }`}
-                                    title={isSuspended ? 'Reactivate account' : 'Suspend account'}
-                                  >
-                                    <span className={`size-1.5 rounded-full ${isSuspended ? 'bg-rose-500' : 'bg-emerald-500'}`} />
-                                    <span>{user.status || 'ACTIVE'}</span>
-                                  </button>
+                                  <Tooltip content={isSuspended ? 'Reactivate account' : 'Suspend account'}>
+                                    <button
+                                      type="button"
+                                      disabled={isBusy}
+                                      onClick={() =>
+                                        executeUserAction(user.email, 'TOGGLE_STATUS', isSuspended ? 'active' : 'suspended')
+                                      }
+                                      className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase flex items-center gap-1 transition-all cursor-pointer ${
+                                        isSuspended
+                                          ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                                          : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
+                                      }`}
+                                    >
+                                      <span className={`size-1.5 rounded-full ${isSuspended ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+                                      <span>{user.status || 'ACTIVE'}</span>
+                                    </button>
+                                  </Tooltip>
                                 </td>
 
                                 {/* Quick Credit Boost Buttons */}
                                 <td className="px-6 py-4">
                                   <div className="flex items-center gap-1.5">
-                                    <button
-                                      type="button"
-                                      disabled={isBusy}
-                                      onClick={() => executeUserAction(user.email, 'ADD_BONUS_CREDITS', 10)}
-                                      className="px-2 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-mono font-bold text-[10px] border border-emerald-500/20 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
-                                      title="Add +10 AI Credits to daily limit"
-                                    >
-                                      +10
-                                    </button>
+                                    <Tooltip content="Add +10 AI Credits">
+                                      <button
+                                        type="button"
+                                        disabled={isBusy}
+                                        onClick={() => executeUserAction(user.email, 'ADD_BONUS_CREDITS', 10)}
+                                        className="px-2 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-mono font-bold text-[10px] border border-emerald-500/20 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                                      >
+                                        +10
+                                      </button>
+                                    </Tooltip>
 
-                                    <button
-                                      type="button"
-                                      disabled={isBusy}
-                                      onClick={() => executeUserAction(user.email, 'ADD_BONUS_CREDITS', 50)}
-                                      className="px-2 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-mono font-bold text-[10px] border border-indigo-500/20 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
-                                      title="Add +50 AI Credits to daily limit"
-                                    >
-                                      +50
-                                    </button>
+                                    <Tooltip content="Add +50 AI Credits">
+                                      <button
+                                        type="button"
+                                        disabled={isBusy}
+                                        onClick={() => executeUserAction(user.email, 'ADD_BONUS_CREDITS', 50)}
+                                        className="px-2 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-mono font-bold text-[10px] border border-indigo-500/20 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                                      >
+                                        +50
+                                      </button>
+                                    </Tooltip>
 
-                                    <button
-                                      type="button"
-                                      disabled={isBusy}
-                                      onClick={() => executeUserAction(user.email, 'RESET_USAGE')}
-                                      className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-200 dark:border-white/10 transition-all cursor-pointer"
-                                      title="Reset today's used credits to 0"
-                                    >
-                                      <RotateCcw className="size-3" />
-                                    </button>
+                                    <Tooltip content="Reset today's used credits to 0">
+                                      <button
+                                        type="button"
+                                        disabled={isBusy}
+                                        onClick={() => executeUserAction(user.email, 'RESET_USAGE')}
+                                        className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-200 dark:border-white/10 transition-all cursor-pointer"
+                                      >
+                                        <RotateCcw className="size-3" />
+                                      </button>
+                                    </Tooltip>
 
-                                    <button
-                                      type="button"
-                                      disabled={isBusy}
-                                      onClick={() => {
-                                        const promptVal = prompt(
-                                          `Enter new daily AI credit limit for ${user.email}:`,
-                                          String(quotaLimit)
-                                        );
-                                        if (promptVal !== null) {
-                                          const num = Number(promptVal);
-                                          if (!isNaN(num) && num >= 0) {
-                                            executeUserAction(user.email, 'ADJUST_CREDITS', num);
-                                          }
-                                        }
-                                      }}
-                                      className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-200 dark:border-white/10 transition-all cursor-pointer"
-                                      title="Set custom daily limit"
-                                    >
-                                      <SlidersHorizontal className="size-3" />
-                                    </button>
+                                    <Tooltip content="Set custom daily limit">
+                                      <button
+                                        type="button"
+                                        disabled={isBusy}
+                                        onClick={() => {
+                                          setCreditModalUser({ email: user.email, currentLimit: quotaLimit });
+                                          setCustomLimitInput(quotaLimit);
+                                        }}
+                                        className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-200 dark:border-white/10 transition-all cursor-pointer"
+                                      >
+                                        <SlidersHorizontal className="size-3" />
+                                      </button>
+                                    </Tooltip>
                                   </div>
                                 </td>
 
@@ -1571,7 +1892,7 @@ export default function AdminPage() {
                         </span>
                         <Globe className="size-4 text-emerald-500" />
                       </div>
-                      <div className="text-3xl font-black text-slate-800 dark:text-slate-100 font-mono">
+                      <div className="text-3xl font-bold text-slate-800 dark:text-slate-100 font-mono tracking-tight">
                         {adminData.marketIntelligence?.uniqueDomainsCount ?? 0}
                       </div>
                       <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5">
@@ -1588,12 +1909,13 @@ export default function AdminPage() {
                         </span>
                         <Target className="size-4 text-cyan-500" />
                       </div>
-                      <div
-                        className="text-lg font-extrabold text-slate-800 dark:text-slate-100 font-mono truncate"
-                        title={adminData.marketIntelligence?.topDomains?.[0]?.domain || 'N/A'}
-                      >
-                        {adminData.marketIntelligence?.topDomains?.[0]?.domain || 'None yet'}
-                      </div>
+                      <Tooltip content={adminData.marketIntelligence?.topDomains?.[0]?.domain || 'None yet'}>
+                        <div
+                          className="text-lg font-extrabold text-slate-800 dark:text-slate-100 font-mono truncate cursor-default"
+                        >
+                          {adminData.marketIntelligence?.topDomains?.[0]?.domain || 'None yet'}
+                        </div>
+                      </Tooltip>
                       <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5">
                         <span className="font-semibold text-cyan-600 dark:text-cyan-400">
                           {adminData.marketIntelligence?.topDomains?.[0]?.count || 0} total audits
@@ -1609,7 +1931,7 @@ export default function AdminPage() {
                         </span>
                         <Layers className="size-4 text-indigo-500" />
                       </div>
-                      <div className="text-3xl font-black text-slate-800 dark:text-slate-100 font-mono">
+                      <div className="text-3xl font-bold text-slate-800 dark:text-slate-100 font-mono tracking-tight">
                         {adminData.marketIntelligence?.uniqueKeywordsCount ?? 0}
                       </div>
                       <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5">
@@ -1626,7 +1948,7 @@ export default function AdminPage() {
                         </span>
                         <TrendingUp className="size-4 text-amber-500" />
                       </div>
-                      <div className="text-3xl font-black text-slate-800 dark:text-slate-100 font-mono flex items-baseline gap-1">
+                      <div className="text-3xl font-bold text-slate-800 dark:text-slate-100 font-mono tracking-tight flex items-baseline gap-1">
                         <span>{adminData.marketIntelligence?.platformAvgScore ?? 0}</span>
                         <span className="text-xs font-normal text-slate-400">/ 100</span>
                       </div>
@@ -1956,7 +2278,7 @@ export default function AdminPage() {
                             adminData.systemHealth?.status === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500'
                           }`}
                         />
-                        <span className="text-xl font-black text-slate-800 dark:text-slate-100 font-mono uppercase">
+                        <span className="text-xl font-bold text-slate-800 dark:text-slate-100 font-mono uppercase tracking-tight">
                           {adminData.systemHealth?.status === 'healthy' ? 'Healthy' : 'Degraded'}
                         </span>
                       </div>
@@ -1973,7 +2295,7 @@ export default function AdminPage() {
                         </span>
                         <Ban className="size-4 text-rose-500" />
                       </div>
-                      <div className="text-3xl font-black text-slate-800 dark:text-slate-100 font-mono">
+                      <div className="text-3xl font-bold text-slate-800 dark:text-slate-100 font-mono tracking-tight">
                         {adminData.bannedIps?.length ?? 0}
                       </div>
                       <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5">
@@ -1990,7 +2312,7 @@ export default function AdminPage() {
                         </span>
                         <ShieldAlert className="size-4 text-amber-500" />
                       </div>
-                      <div className="text-3xl font-black text-slate-800 dark:text-slate-100 font-mono">
+                      <div className="text-3xl font-bold text-slate-800 dark:text-slate-100 font-mono tracking-tight">
                         {adminData.systemHealth?.incidents24hCount ?? 0}
                       </div>
                       <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5">
@@ -2004,25 +2326,61 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    {/* KPI 4: Server Runtime & Memory */}
-                    <div className="glass-panel p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-2">
+                    {/* KPI 4: Server Runtime & Memory Gauge */}
+                    <div className="glass-panel p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-3">
                       <div className="flex items-center justify-between text-slate-400">
                         <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                          Server Uptime &amp; Heap
+                          Memory Heap &amp; Runtime
                         </span>
                         <Cpu className="size-4 text-cyan-500" />
                       </div>
-                      <div className="text-xl font-black text-slate-800 dark:text-slate-100 font-mono">
-                        {(() => {
-                          const s = adminData.systemHealth?.uptimeSeconds || 0;
-                          const h = Math.floor(s / 3600);
-                          const m = Math.floor((s % 3600) / 60);
-                          return `${h}h ${m}m uptime`;
-                        })()}
-                      </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5 font-mono">
-                        <span>Heap: {adminData.systemHealth?.memory.heapUsedMB || 0} MB / {adminData.systemHealth?.memory.heapTotalMB || 0} MB</span>
-                      </div>
+
+                      {(() => {
+                        const used = adminData.systemHealth?.memory.heapUsedMB || 0;
+                        const total = Math.max(1, adminData.systemHealth?.memory.heapTotalMB || 1);
+                        const rss = adminData.systemHealth?.memory.rssMB || 0;
+                        const percent = Math.min(100, Math.round((used / total) * 100));
+                        const isWarning = percent > 85;
+                        const isModerate = percent > 60;
+                        const barColor = isWarning ? 'bg-rose-500' : isModerate ? 'bg-amber-500' : 'bg-emerald-500';
+                        const textColor = isWarning ? 'text-rose-600 dark:text-rose-400' : isModerate ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
+
+                        const s = adminData.systemHealth?.uptimeSeconds || 0;
+                        const h = Math.floor(s / 3600);
+                        const m = Math.floor((s % 3600) / 60);
+
+                        return (
+                          <div className="space-y-2">
+                            <div className="flex items-baseline justify-between">
+                              <div className="flex items-baseline gap-1.5 font-mono">
+                                <span className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                                  {percent}%
+                                </span>
+                                <span className={`text-[10px] font-bold uppercase ${textColor}`}>
+                                  {isWarning ? 'Critical Load' : isModerate ? 'Elevated' : 'Optimal'}
+                                </span>
+                              </div>
+                              <span className="text-[11px] font-mono text-slate-400">
+                                {h}h {m}m up
+                              </span>
+                            </div>
+
+                            {/* Visual Capacity Bar */}
+                            <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${barColor} ${isWarning ? 'animate-pulse' : ''}`}
+                                style={{ width: `${Math.max(5, percent)}%` }}
+                              />
+                            </div>
+
+                            {/* Memory Submetrics */}
+                            <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-white/5">
+                              <span>Heap: {used}/{total} MB</span>
+                              <span>RSS: {rss} MB</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -2045,15 +2403,18 @@ export default function AdminPage() {
                           <span className="text-xs font-bold text-slate-800 dark:text-slate-200">MySQL Database</span>
                           <span
                             className={`size-2 rounded-full ${
-                              adminData.systemHealth?.dbConnected ? 'bg-emerald-500' : 'bg-rose-500'
+                              adminData.systemHealth?.dbConnected ? getLatencyStatus(adminData.systemHealth?.dbPingMs).bg : 'bg-rose-500'
                             }`}
                           />
                         </div>
                         <div className="text-xs font-mono text-slate-600 dark:text-slate-400">
                           {adminData.systemHealth?.dbConnected ? 'Pool Connected' : 'Memory Fallback'}
                         </div>
-                        <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
-                          Ping: {adminData.systemHealth?.dbPingMs ?? -1} ms
+                        <div className="flex items-center justify-between text-[11px] font-mono pt-1 border-t border-slate-100 dark:border-white/5">
+                          <span className="text-slate-400">Ping:</span>
+                          <span className={`font-bold ${getLatencyStatus(adminData.systemHealth?.dbPingMs).color}`}>
+                            {adminData.systemHealth?.dbPingMs ?? -1} ms
+                          </span>
                         </div>
                       </div>
 
@@ -2063,21 +2424,28 @@ export default function AdminPage() {
                           <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Gemini 2.5 Flash</span>
                           <span
                             className={`size-2 rounded-full ${
-                              adminData.systemHealth?.services.geminiConfigured ? 'bg-emerald-500' : 'bg-amber-500'
+                              adminData.systemHealth?.services.geminiLive
+                                ? getLatencyStatus(adminData.systemHealth?.services.geminiPingMs).bg
+                                : adminData.systemHealth?.services.geminiConfigured
+                                ? 'bg-amber-500'
+                                : 'bg-slate-400'
                             }`}
                           />
                         </div>
                         <div className="text-xs font-mono text-slate-600 dark:text-slate-400">
                           AI Diagnostics Engine
                         </div>
-                        <div
-                          className={`text-[11px] font-mono font-bold ${
-                            adminData.systemHealth?.services.geminiConfigured
-                              ? 'text-emerald-600 dark:text-emerald-400'
-                              : 'text-amber-600 dark:text-amber-400'
-                          }`}
-                        >
-                          {adminData.systemHealth?.services.geminiConfigured ? 'API Key Active' : 'Key Unset'}
+                        <div className="flex items-center justify-between text-[11px] font-mono pt-1 border-t border-slate-100 dark:border-white/5">
+                          <span className="text-slate-400">Live API:</span>
+                          {adminData.systemHealth?.services.geminiLive ? (
+                            <span className={`font-bold ${getLatencyStatus(adminData.systemHealth?.services.geminiPingMs).color}`}>
+                              Active ({adminData.systemHealth?.services.geminiPingMs} ms)
+                            </span>
+                          ) : adminData.systemHealth?.services.geminiConfigured ? (
+                            <span className="font-bold text-amber-600 dark:text-amber-400">Key Set (Unreachable)</span>
+                          ) : (
+                            <span className="text-slate-400">Key Unset</span>
+                          )}
                         </div>
                       </div>
 
@@ -2087,21 +2455,28 @@ export default function AdminPage() {
                           <span className="text-xs font-bold text-slate-800 dark:text-slate-200">PageSpeed Insights</span>
                           <span
                             className={`size-2 rounded-full ${
-                              adminData.systemHealth?.services.pagespeedConfigured ? 'bg-emerald-500' : 'bg-slate-400'
+                              adminData.systemHealth?.services.pagespeedLive
+                                ? getLatencyStatus(adminData.systemHealth?.services.pagespeedPingMs).bg
+                                : adminData.systemHealth?.services.pagespeedConfigured
+                                ? 'bg-emerald-500'
+                                : 'bg-slate-400'
                             }`}
                           />
                         </div>
                         <div className="text-xs font-mono text-slate-600 dark:text-slate-400">
                           CWV &amp; Performance Audit
                         </div>
-                        <div
-                          className={`text-[11px] font-mono font-bold ${
-                            adminData.systemHealth?.services.pagespeedConfigured
-                              ? 'text-emerald-600 dark:text-emerald-400'
-                              : 'text-slate-500'
-                          }`}
-                        >
-                          {adminData.systemHealth?.services.pagespeedConfigured ? 'Configured' : 'Optional (Free Tier)'}
+                        <div className="flex items-center justify-between text-[11px] font-mono pt-1 border-t border-slate-100 dark:border-white/5">
+                          <span className="text-slate-400">API Health:</span>
+                          {adminData.systemHealth?.services.pagespeedLive ? (
+                            <span className={`font-bold ${getLatencyStatus(adminData.systemHealth?.services.pagespeedPingMs).color}`}>
+                              Ready ({adminData.systemHealth?.services.pagespeedPingMs} ms)
+                            </span>
+                          ) : adminData.systemHealth?.services.pagespeedConfigured ? (
+                            <span className="font-bold text-emerald-600 dark:text-emerald-400">Configured</span>
+                          ) : (
+                            <span className="text-slate-400">Optional (Free Tier)</span>
+                          )}
                         </div>
                       </div>
 
@@ -2121,8 +2496,11 @@ export default function AdminPage() {
                         <div className="text-xs font-mono text-slate-600 dark:text-slate-400">
                           OAuth &amp; Timing-Safe Passkey
                         </div>
-                        <div className="text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                          Locked &amp; Enforced
+                        <div className="flex items-center justify-between text-[11px] font-mono pt-1 border-t border-slate-100 dark:border-white/5">
+                          <span className="text-slate-400">Security:</span>
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                            Locked &amp; Enforced
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -2145,6 +2523,33 @@ export default function AdminPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
+                        {/* Auto-Sync Status in Threat Radar */}
+                        <Tooltip content={autoSyncEnabled ? 'Radar auto-refreshing every 15s. Click to pause.' : 'Live radar sync paused. Click to resume.'}>
+                          <button
+                            type="button"
+                            onClick={() => setAutoSyncEnabled((prev) => !prev)}
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold flex items-center gap-1.5 border transition-all cursor-pointer ${
+                              autoSyncEnabled
+                                ? 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10'
+                                : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                            }`}
+                          >
+                            <span className="relative flex size-3 items-center justify-center shrink-0">
+                              {isAutoSyncing ? (
+                                <RefreshCw className="size-2.5 animate-spin text-emerald-500" />
+                              ) : (
+                                <>
+                                  {autoSyncEnabled && (
+                                    <span className="animate-ping absolute inline-flex size-1.5 rounded-full bg-emerald-400 opacity-75" />
+                                  )}
+                                  <span className={`relative inline-flex rounded-full size-1.5 ${autoSyncEnabled ? 'bg-emerald-500' : 'bg-amber-400'}`} />
+                                </>
+                              )}
+                            </span>
+                            <span>Radar Sync: {autoSyncEnabled ? 'LIVE' : 'PAUSED'}</span>
+                          </button>
+                        </Tooltip>
+
                         {adminData.suspiciousBots && adminData.suspiciousBots.length > 0 ? (
                           <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1.5">
                             <span className="size-1.5 rounded-full bg-rose-500 animate-ping" />
@@ -2217,22 +2622,39 @@ export default function AdminPage() {
                                   </td>
                                   <td className="px-6 py-4 text-right font-sans">
                                     {isBanned ? (
-                                      <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
-                                        Mitigated
-                                      </span>
+                                      <Tooltip content={`Lift ban for IP ${bot.ip}`}>
+                                        <button
+                                          type="button"
+                                          disabled={actionIpMap[bot.ip]}
+                                          onClick={() => handleUnbanIp(bot.ip)}
+                                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 text-[11px] font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                                        >
+                                          {actionIpMap[bot.ip] ? (
+                                            <RefreshCw className="size-3 animate-spin" />
+                                          ) : (
+                                            <RotateCcw className="size-3 text-slate-500" />
+                                          )}
+                                          <span>Lift Ban</span>
+                                        </button>
+                                      </Tooltip>
                                     ) : (
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setNewBanIp(bot.ip);
-                                          setNewBanReason(`Automated Bot Flood (${bot.peakCount || bot.callsLastMinute} calls/min)`);
-                                          handleBanIp(bot.ip, `Automated Bot Flood (${bot.peakCount || bot.callsLastMinute} calls/min)`);
-                                        }}
-                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-bold shadow-xs transition-all cursor-pointer"
-                                      >
-                                        <Ban className="size-3" />
-                                        <span>Blacklist Bot</span>
-                                      </button>
+                                      <Tooltip content={`Immediately block IP ${bot.ip}`}>
+                                        <button
+                                          type="button"
+                                          disabled={actionIpMap[bot.ip]}
+                                          onClick={() => {
+                                            handleBanIp(bot.ip, `Automated Bot Flood (${bot.peakCount || bot.callsLastMinute} calls/min)`);
+                                          }}
+                                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                                        >
+                                          {actionIpMap[bot.ip] ? (
+                                            <RefreshCw className="size-3 animate-spin" />
+                                          ) : (
+                                            <Ban className="size-3" />
+                                          )}
+                                          <span>Blacklist Bot</span>
+                                        </button>
+                                      </Tooltip>
                                     )}
                                   </td>
                                 </tr>
@@ -2339,13 +2761,38 @@ export default function AdminPage() {
                                   {new Date(b.created_at).toLocaleString()}
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleUnbanIp(b.ip_address)}
-                                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200 dark:border-white/10 text-[11px] font-medium transition-all cursor-pointer font-sans"
-                                  >
-                                    Lift Ban
-                                  </button>
+                                  {confirmUnbanIp === b.ip_address ? (
+                                    <div className="flex items-center justify-end gap-1.5 font-sans">
+                                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">Unban?</span>
+                                      <button
+                                        type="button"
+                                        disabled={actionIpMap[b.ip_address]}
+                                        onClick={() => handleUnbanIp(b.ip_address)}
+                                        className="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-all cursor-pointer disabled:opacity-50"
+                                        aria-label="Confirm Unban"
+                                      >
+                                        {actionIpMap[b.ip_address] ? <RefreshCw className="size-3 animate-spin" /> : <Check className="size-3" />}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setConfirmUnbanIp(null)}
+                                        className="p-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-white/10 text-slate-600 dark:text-slate-300 transition-all cursor-pointer"
+                                        aria-label="Cancel Unban"
+                                      >
+                                        <X className="size-3" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      disabled={actionIpMap[b.ip_address]}
+                                      onClick={() => setConfirmUnbanIp(b.ip_address)}
+                                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200 dark:border-white/10 text-[11px] font-medium transition-all cursor-pointer font-sans disabled:opacity-50"
+                                    >
+                                      {actionIpMap[b.ip_address] ? <RefreshCw className="size-3 animate-spin inline mr-1" /> : null}
+                                      Lift Ban
+                                    </button>
+                                  )}
                                 </td>
                               </tr>
                             ))
@@ -2475,18 +2922,19 @@ export default function AdminPage() {
                                         Banned
                                       </span>
                                     ) : (
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setNewBanIp(inc.ip_address);
-                                          setNewBanReason(`Banned from incident ${inc.incident_type}`);
-                                          handleBanIp(inc.ip_address, `Triggered by ${inc.incident_type}`);
-                                        }}
-                                        className="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-[11px] font-bold transition-all cursor-pointer"
-                                        title={`Ban IP ${inc.ip_address}`}
-                                      >
-                                        Ban IP
-                                      </button>
+                                      <Tooltip content={`Ban IP ${inc.ip_address}`}>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setNewBanIp(inc.ip_address);
+                                            setNewBanReason(`Banned from incident ${inc.incident_type}`);
+                                            handleBanIp(inc.ip_address, `Triggered by ${inc.incident_type}`);
+                                          }}
+                                          className="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-[11px] font-bold transition-all cursor-pointer"
+                                        >
+                                          Ban IP
+                                        </button>
+                                      </Tooltip>
                                     )}
                                   </td>
                                 </tr>
@@ -2680,6 +3128,36 @@ export default function AdminPage() {
                     </div>
                   </div>
 
+                  {/* Unsaved Changes Alert Bar */}
+                  {isConfigDirty && (
+                    <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="flex items-center gap-2.5 text-amber-800 dark:text-amber-300 font-medium">
+                        <AlertTriangle className="size-4 shrink-0 text-amber-500 animate-pulse" />
+                        <span>You have unsaved configuration changes. Click <strong>Save All Changes</strong> to apply them live.</span>
+                      </div>
+                      <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (adminData?.siteConfig) setLiveConfig(adminData.siteConfig);
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-all cursor-pointer"
+                        >
+                          Discard
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSaveSiteConfig}
+                          disabled={isSavingConfig}
+                          className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        >
+                          {isSavingConfig ? <RefreshCw className="size-3 animate-spin" /> : <Save className="size-3" />}
+                          <span>{isSavingConfig ? 'Saving...' : 'Save All Changes'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid gap-5 lg:grid-cols-2">
                     {/* === CARD 1: MAINTENANCE MODE === */}
                     <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 overflow-hidden shadow-sm">
@@ -2730,6 +3208,17 @@ export default function AdminPage() {
                               ? 'Strict Lock: Blocks tool usage and shows a full-page warning.'
                               : 'Banner Only: Shows a warning bar, tools remain accessible.'}
                           </p>
+                          {liveConfig.maintenance.level === 'strict_lock' && (
+                            <div className="mt-2.5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-400 flex items-start gap-2 text-xs">
+                              <AlertTriangle className="size-4 shrink-0 mt-0.5 text-rose-500" />
+                              <div>
+                                <span className="font-bold">Caution: Strict Lockout Active</span>
+                                <p className="mt-0.5 leading-relaxed text-[11px]">
+                                  All public audit requests, crawlers, and tool features will be blocked site-wide until maintenance mode is turned off.
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         {/* Title */}
@@ -3052,9 +3541,122 @@ export default function AdminPage() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        )
+      )}
+
+        {/* Custom Credit Allocation Modal */}
+        {creditModalUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+            <div
+              className="fixed inset-0"
+              onClick={() => !isSubmittingCreditModal && setCreditModalUser(null)}
+            />
+            <div className="relative w-full max-w-md p-6 rounded-2xl glass-panel border border-slate-200/80 dark:border-white/10 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 z-10 bg-white dark:bg-slate-900">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    <SlidersHorizontal className="size-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                      Adjust Daily AI Credits
+                    </h3>
+                    <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate max-w-[240px]">
+                      {creditModalUser.email}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCreditModalUser(null)}
+                  disabled={isSubmittingCreditModal}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Current Daily Limit:</span>
+                  <span className="font-mono font-bold text-slate-800 dark:text-slate-200 px-2 py-0.5 rounded bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                    {creditModalUser.currentLimit} credits / day
+                  </span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+                    New Daily AI Limit:
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={0}
+                      max={10000}
+                      step={1}
+                      value={customLimitInput}
+                      onChange={(e) => setCustomLimitInput(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-mono font-bold focus:outline-none"
+                    />
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono text-slate-400 pointer-events-none">
+                      credits/day
+                    </span>
+                  </div>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="space-y-1.5 pt-1">
+                  <span className="text-[11px] font-mono text-slate-400 block">Quick Presets:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[5, 10, 25, 50, 100, 250, 500].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setCustomLimitInput(preset)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition-all border cursor-pointer ${
+                          customLimitInput === preset
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                            : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10'
+                        }`}
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100 dark:border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setCreditModalUser(null)}
+                  disabled={isSubmittingCreditModal}
+                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isSubmittingCreditModal}
+                  onClick={async () => {
+                    setIsSubmittingCreditModal(true);
+                    try {
+                      await executeUserAction(creditModalUser.email, 'ADJUST_CREDITS', customLimitInput);
+                      setCreditModalUser(null);
+                    } finally {
+                      setIsSubmittingCreditModal(false);
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmittingCreditModal && <RefreshCw className="size-3 animate-spin" />}
+                  <span>Save Limit</span>
+                </button>
               </div>
             </div>
-          )
+          </div>
         )}
       </main>
 

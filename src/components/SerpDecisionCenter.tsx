@@ -39,46 +39,46 @@ export const SerpDecisionCenter: React.FC<SerpDecisionCenterProps> = ({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      {/* Sticky Report Navigation Bar */}
-      <div className="sticky top-16 z-30 py-2 px-3 sm:px-4 rounded-xl glass-panel border border-slate-200/80 dark:border-white/[0.08] shadow-xs backdrop-blur-xl flex items-center justify-between gap-3 overflow-x-auto text-xs scrollbar-none">
+      {/* Sticky Report Navigation Bar (Compact HUD) */}
+      <div className="sticky top-16 z-30 py-1.5 px-3 sm:px-4 rounded-xl glass-panel border border-slate-200/80 dark:border-white/[0.08] shadow-xs backdrop-blur-md flex items-center justify-between gap-2 overflow-x-auto text-xs scrollbar-none">
         <div className="flex items-center gap-2 shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          <span className="font-mono text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden sm:inline">
+          <span className="font-mono text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden sm:inline">
             Report Sections
           </span>
         </div>
-        <div className="flex items-center gap-1 shrink-0 p-1 rounded-lg bg-slate-100/90 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06]">
+        <div className="flex items-center gap-1 shrink-0 p-0.5 sm:p-1 rounded-lg bg-slate-100/90 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06]">
           {/* Chapter 1: Strategy & Triage */}
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500 px-1 font-semibold hidden md:inline">
+          <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500 px-1 font-semibold hidden md:inline">
             Stage 1:
           </span>
           <button
             onClick={() => handleScrollToSection('decision-hero-section')}
-            className="px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-xs font-medium transition-all cursor-pointer"
+            className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-[11px] sm:text-xs font-medium transition-all cursor-pointer"
           >
             Verdict
           </button>
           <button
             onClick={() => handleScrollToSection('consensus-blueprint-section')}
-            className="px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-xs font-medium transition-all cursor-pointer"
+            className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-[11px] sm:text-xs font-medium transition-all cursor-pointer"
           >
             Blueprint
           </button>
           <button
             onClick={() => handleScrollToSection('action-plan-section')}
-            className="px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-xs font-medium transition-all cursor-pointer"
+            className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-[11px] sm:text-xs font-medium transition-all cursor-pointer"
           >
             Roadmap
           </button>
           <button
             onClick={() => handleScrollToSection('strengths-section')}
-            className="px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-xs font-medium transition-all cursor-pointer"
+            className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-[11px] sm:text-xs font-medium transition-all cursor-pointer"
           >
             Strengths
           </button>
           <button
             onClick={() => handleScrollToSection('technical-hygiene-section')}
-            className="px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-xs font-medium transition-all cursor-pointer"
+            className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 text-[11px] sm:text-xs font-medium transition-all cursor-pointer"
           >
             Technical
           </button>
@@ -87,18 +87,18 @@ export const SerpDecisionCenter: React.FC<SerpDecisionCenterProps> = ({
           <span className="w-px h-3.5 bg-slate-200 dark:border-white/10 mx-0.5" />
 
           {/* Chapter 2: Content & Keywords */}
-          <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-600 dark:text-emerald-400 px-1 font-semibold hidden md:inline">
+          <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-emerald-600 dark:text-emerald-400 px-1 font-semibold hidden md:inline">
             Stage 2:
           </span>
           <button
             onClick={() => handleScrollToSection('keyword-gap-section')}
-            className="px-2.5 py-1 rounded-md text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-500/10 text-xs font-semibold transition-all cursor-pointer"
+            className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-500/10 text-[11px] sm:text-xs font-semibold transition-all cursor-pointer"
           >
             Keyword Gaps
           </button>
           <button
             onClick={() => handleScrollToSection('content-brief-section')}
-            className="px-2.5 py-1 rounded-md text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-500/10 text-xs font-semibold transition-all cursor-pointer"
+            className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-500/10 text-[11px] sm:text-xs font-semibold transition-all cursor-pointer"
           >
             Content Brief
           </button>
@@ -109,7 +109,7 @@ export const SerpDecisionCenter: React.FC<SerpDecisionCenterProps> = ({
           {/* Chapter 3: Deep Dive */}
           <button
             onClick={() => handleScrollToSection('deep-dive-section')}
-            className="px-2.5 py-1 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-800 text-xs font-medium transition-all cursor-pointer"
+            className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-800 text-[11px] sm:text-xs font-medium transition-all cursor-pointer"
           >
             Raw Data
           </button>

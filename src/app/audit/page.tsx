@@ -11,6 +11,7 @@ import { BatchAuditResponse, SinglePageAudit, KeywordGapAnalysis } from '@/types
 import { analyzeKeywordGaps } from '@/lib/keyword-gap';
 import { triggerToolExecutionFeedback } from '@/lib/feedback-trigger';
 import { autoCaptureSnapshot } from '@/lib/audit-snapshot-manager';
+import { normalizeUrl, isValidUrl } from '@/lib/url-utils';
 import {
   Search,
   Plus,
@@ -69,9 +70,24 @@ function AuditWorkspaceClient() {
   // Core audit execution function
   const runAudit = useCallback(
     async (urlsToAudit: string[], keyword: string = '') => {
-      const validUrls = urlsToAudit.map((u) => u.trim()).filter(Boolean);
-      if (validUrls.length === 0) {
+      const rawUrls = urlsToAudit.map((u) => u.trim()).filter(Boolean);
+      if (rawUrls.length === 0) {
         setErrorMsg('Please enter at least 1 valid URL to run the audit.');
+        return;
+      }
+
+      const invalidList: string[] = [];
+      const normalizedUrls: string[] = [];
+      for (const u of rawUrls) {
+        if (!isValidUrl(u)) {
+          invalidList.push(u);
+        } else {
+          normalizedUrls.push(normalizeUrl(u));
+        }
+      }
+
+      if (invalidList.length > 0) {
+        setErrorMsg(`Invalid URL format: "${invalidList[0]}". Please enter a valid web domain or URL (e.g. example.com or https://example.com).`);
         return;
       }
 
@@ -82,7 +98,7 @@ function AuditWorkspaceClient() {
         const res = await fetch('/api/audit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ urls: validUrls }),
+          body: JSON.stringify({ urls: normalizedUrls }),
         });
 
         if (!res.ok) {
@@ -103,7 +119,7 @@ function AuditWorkspaceClient() {
         // Persist session
         try {
           const sessionPayload: PersistedAuditSession = {
-            urls: validUrls,
+            urls: normalizedUrls,
             targetKeyword: keyword.trim(),
             auditResponse: data,
             keywordGapAnalysis: gapAnalysis,
@@ -217,6 +233,19 @@ function AuditWorkspaceClient() {
     setUrls(updated);
   };
 
+  const handleUrlBlur = (index: number) => {
+    const val = urls[index]?.trim();
+    if (!val) return;
+    if (isValidUrl(val)) {
+      const normalized = normalizeUrl(val);
+      if (normalized !== val) {
+        const updated = [...urls];
+        updated[index] = normalized;
+        setUrls(updated);
+      }
+    }
+  };
+
   const addUrlInput = () => {
     if (urls.length >= 5) {
       setErrorMsg('Free mode allows up to 5 URLs. Upgrade to Pro for unlimited batch auditing.');
@@ -233,20 +262,36 @@ function AuditWorkspaceClient() {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const validUrls = urls.map((u) => u.trim()).filter(Boolean);
-    if (validUrls.length === 0) {
+    const rawUrls = urls.map((u) => u.trim()).filter(Boolean);
+    if (rawUrls.length === 0) {
       setErrorMsg('Please enter at least 1 valid URL.');
       return;
     }
 
+    const invalidList: string[] = [];
+    const normalizedUrls: string[] = [];
+    for (const u of rawUrls) {
+      if (!isValidUrl(u)) {
+        invalidList.push(u);
+      } else {
+        normalizedUrls.push(normalizeUrl(u));
+      }
+    }
+
+    if (invalidList.length > 0) {
+      setErrorMsg(`Invalid URL format: "${invalidList[0]}". Please enter a valid domain or URL (e.g. example.com or https://example.com).`);
+      return;
+    }
+
+    setUrls(normalizedUrls);
     const newQuery = new URLSearchParams();
-    newQuery.set('urls', validUrls.join(','));
+    newQuery.set('urls', normalizedUrls.join(','));
     if (targetKeyword.trim()) {
       newQuery.set('keyword', targetKeyword.trim());
     }
     router.push(`/audit?${newQuery.toString()}`);
 
-    runAudit(validUrls, targetKeyword);
+    runAudit(normalizedUrls, targetKeyword);
   };
 
   const handleTrySample = () => {
@@ -390,6 +435,7 @@ function AuditWorkspaceClient() {
                       type="text"
                       value={url}
                       onChange={(e) => handleUrlChange(idx, e.target.value)}
+                      onBlur={() => handleUrlBlur(idx)}
                       placeholder={
                         idx === 0
                           ? 'https://yourdomain.com/landing-page'
@@ -453,20 +499,8 @@ function AuditWorkspaceClient() {
 
         {/* Audit Workspace or Loading or Empty State */}
         {isAuditing ? (
-          <div className="space-y-4 py-8">
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold uppercase tracking-wider animate-pulse">
-                <Zap className="size-3.5" />
-                <span>Running Multi-URL Competitor Analysis</span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                Crawling DOMs &amp; Extracting SERP Signals...
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-lg mx-auto">
-                Benchmarking title tags, heading depths, word count parity, and cross-comparing keyword gaps in real time.
-              </p>
-            </div>
-            <AuditSkeleton />
+          <div className="py-4">
+            <AuditSkeleton urls={urls} targetKeyword={targetKeyword} />
           </div>
         ) : auditResponse && auditResponse.results.length > 0 ? (
           <CompetitorWorkspace

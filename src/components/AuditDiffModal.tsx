@@ -37,6 +37,7 @@ import {
 } from '@/lib/audit-snapshot-manager';
 import { compareAudits, AuditDiffReport, calculateAuditScore } from '@/lib/audit-diff-engine';
 import { AuthModal } from './AuthModal';
+import { Tooltip } from './Tooltip';
 
 export interface AuditDiffModalProps {
   isOpen: boolean;
@@ -234,14 +235,16 @@ export const AuditDiffModal: React.FC<AuditDiffModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
-              title="Close modal"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <Tooltip content="Close (Esc)" side="bottom">
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </Tooltip>
           </div>
         </div>
 
@@ -300,36 +303,38 @@ export const AuditDiffModal: React.FC<AuditDiffModalProps> = ({
                 </button>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={() => setIsCreatingSnapshot(true)}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
-                title="Save current audit as a new snapshot"
-              >
-                <Save className="w-3.5 h-3.5 text-indigo-500" />
-                <span>Save Snapshot</span>
-              </button>
+              <Tooltip content="Save Snapshot" side="top">
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingSnapshot(true)}
+                  className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Save className="w-3.5 h-3.5 text-indigo-500" />
+                  <span>Save Snapshot</span>
+                </button>
+              </Tooltip>
             )}
 
             {/* Cloud Sync Status */}
-            <button
-              type="button"
-              onClick={handleCloudSync}
-              disabled={cloudSyncing}
-              className="px-2.5 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 font-medium flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
-              title="Sync snapshots to cloud database across devices"
-            >
-              <Cloud className="w-3.5 h-3.5" />
-              <span>
-                {cloudSyncedSuccess
-                  ? 'Synced!'
-                  : cloudSyncing
-                  ? 'Syncing...'
-                  : session
-                  ? 'Cloud Synced'
-                  : 'Sync to Account'}
-              </span>
-            </button>
+            <Tooltip content="Sync Snapshots" side="top">
+              <button
+                type="button"
+                onClick={handleCloudSync}
+                disabled={cloudSyncing}
+                className="px-2.5 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 font-medium flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <Cloud className="w-3.5 h-3.5" />
+                <span>
+                  {cloudSyncedSuccess
+                    ? 'Synced!'
+                    : cloudSyncing
+                    ? 'Syncing...'
+                    : session
+                    ? 'Cloud Synced'
+                    : 'Sync to Account'}
+                </span>
+              </button>
+            </Tooltip>
           </div>
         </div>
 

@@ -139,15 +139,13 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
         {/* Right side controls: Toggle Visuals + Summary Badges */}
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
+            type="button"
             onClick={() => setShowAnalytics(!showAnalytics)}
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors flex items-center gap-1.5 cursor-pointer ${
-              showAnalytics
-                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
-                : 'bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10'
-            }`}
+            className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+            title={showAnalytics ? 'Hide Benchmark Charts' : 'Show Benchmark Charts'}
+            aria-label={showAnalytics ? 'Hide Benchmark Charts' : 'Show Benchmark Charts'}
           >
-            <PieChart className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>{showAnalytics ? 'Hide Benchmark Charts' : 'Show Benchmark Charts'}</span>
+            <PieChart className="size-4" />
           </button>
 
           <div className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-left">
@@ -241,7 +239,14 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
                           }`}
                           title={r.url}
                         >
-                          {isTarget ? '🎯 You' : `#${idx + 1}`} {host}
+                          {isTarget ? (
+                            <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-400">
+                              <Target className="size-3 shrink-0" /> You
+                            </span>
+                          ) : (
+                            <span className="font-mono text-slate-500">#{idx + 1}</span>
+                          )}{' '}
+                          <span className="truncate">{host}</span>
                         </span>
                         <span className="font-bold tabular-nums text-slate-800 dark:text-slate-100">
                           {r.wordCount.toLocaleString()}
@@ -290,7 +295,14 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
                           }`}
                           title={r.url}
                         >
-                          {isTarget ? '🎯 You' : `#${idx + 1}`} {host}
+                          {isTarget ? (
+                            <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-400">
+                              <Target className="size-3 shrink-0" /> You
+                            </span>
+                          ) : (
+                            <span className="font-mono text-slate-500">#{idx + 1}</span>
+                          )}{' '}
+                          <span className="truncate">{host}</span>
                         </span>
                         <span className="font-bold tabular-nums text-slate-800 dark:text-slate-100">
                           {score}/100
@@ -339,7 +351,14 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
                           }`}
                           title={r.url}
                         >
-                          {isTarget ? '🎯 You' : `#${idx + 1}`} {host}
+                          {isTarget ? (
+                            <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-400">
+                              <Target className="size-3 shrink-0" /> You
+                            </span>
+                          ) : (
+                            <span className="font-mono text-slate-500">#{idx + 1}</span>
+                          )}{' '}
+                          <span className="truncate">{host}</span>
                         </span>
                         <span className="font-bold tabular-nums text-slate-800 dark:text-slate-100">
                           {ttfb}ms
@@ -419,14 +438,14 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
       </div>
 
       {/* 4. Benchmark Matrix Table with Sticky Left Column */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0c1322] shadow-xs">
+      <div className="overflow-x-auto rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900 shadow-xs">
         <table className="w-full text-left border-collapse text-xs">
-          <thead className="sticky top-0 z-20 bg-slate-100 dark:bg-[#0c1322] border-b border-slate-200 dark:border-white/10">
+          <thead className="sticky top-0 z-20 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-white/10">
             <tr>
               {/* Sticky Column Header */}
               <th
                 scope="col"
-                className="py-3.5 px-4 w-56 min-w-[210px] shrink-0 sticky left-0 z-30 bg-slate-100 dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]"
+                className="py-3.5 px-4 w-56 min-w-[210px] shrink-0 sticky left-0 z-30 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]"
               >
                 <div className="font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider text-[11px]">
                   SEO Signal Metric
@@ -490,15 +509,18 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
                 <tr className="bg-slate-50 dark:bg-white/[0.02]">
                   <td
                     colSpan={sortedResults.length + 1}
-                    className="py-1.5 px-4 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 border-y border-slate-200 dark:border-white/10"
+                    className="py-1.5 px-4 text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-y border-slate-200 dark:border-white/10"
                   >
-                    ⚡ Technical &amp; Server Speed Performance
+                    <span className="inline-flex items-center gap-1.5">
+                      <Zap className="size-3 text-emerald-500" />
+                      <span>Technical &amp; Server Speed Performance</span>
+                    </span>
                   </td>
                 </tr>
 
                 {/* 1. Technical Health Score */}
                 <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-1.5">
                       <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                       <span>Technical SEO Score</span>
@@ -541,7 +563,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
 
                 {/* 2. TTFB Speed & Page Weight */}
                 <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-1.5">
                       <Zap className="w-4 h-4 text-amber-500 shrink-0" />
                       <span>TTFB &amp; HTML Size</span>
@@ -577,7 +599,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
 
                 {/* 3. Technical Signals (Schema, Canonical, Robots) */}
                 <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-1.5">
                       <Code className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                       <span>Schema &amp; Directives</span>
@@ -632,15 +654,18 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
                 <tr className="bg-slate-50 dark:bg-white/[0.02]">
                   <td
                     colSpan={sortedResults.length + 1}
-                    className="py-1.5 px-4 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 border-y border-slate-200 dark:border-white/10"
+                    className="py-1.5 px-4 text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-y border-slate-200 dark:border-white/10"
                   >
-                    📝 Content Depth &amp; Readability
+                    <span className="inline-flex items-center gap-1.5">
+                      <FileText className="size-3 text-emerald-500" />
+                      <span>Content Depth &amp; Readability</span>
+                    </span>
                   </td>
                 </tr>
 
                 {/* 4. Word Count */}
                 <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-1.5">
                       <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                       <span>Word Count</span>
@@ -689,7 +714,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
 
                 {/* 5. Readability & Tone */}
                 <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-1.5">
                       <BookOpen className="w-4 h-4 text-indigo-500 shrink-0" />
                       <span>Readability Grade</span>
@@ -725,7 +750,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
 
                 {/* 6. Top 3 Keyword Phrases */}
                 <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-1.5">
                       <Key className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
                       <span>Top 2-Gram Keywords</span>
@@ -771,15 +796,18 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
                 <tr className="bg-slate-50 dark:bg-white/[0.02]">
                   <td
                     colSpan={sortedResults.length + 1}
-                    className="py-1.5 px-4 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 border-y border-slate-200 dark:border-white/10"
+                    className="py-1.5 px-4 text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-y border-slate-200 dark:border-white/10"
                   >
-                    📑 Headings &amp; Document Hierarchy
+                    <span className="inline-flex items-center gap-1.5">
+                      <Layers className="size-3 text-indigo-500" />
+                      <span>Headings &amp; Document Hierarchy</span>
+                    </span>
                   </td>
                 </tr>
 
                 {/* 7. H1 Count */}
                 <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-1.5">
                       <BarChart2 className="w-4 h-4 text-indigo-500 shrink-0" />
                       <span>H1 Tag Count</span>
@@ -817,7 +845,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
 
                 {/* 8. Headings Breakdown (H2 & H3) */}
                 <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-1.5">
                       <Layers className="w-4 h-4 text-indigo-500 shrink-0" />
                       <span>Total Headings (H2/H3)</span>
@@ -859,15 +887,18 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
                 <tr className="bg-slate-50 dark:bg-white/[0.02]">
                   <td
                     colSpan={sortedResults.length + 1}
-                    className="py-1.5 px-4 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 border-y border-slate-200 dark:border-white/10"
+                    className="py-1.5 px-4 text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 border-y border-slate-200 dark:border-white/10"
                   >
-                    🔗 Metadata, Media &amp; Link Graph
+                    <span className="inline-flex items-center gap-1.5">
+                      <Link2 className="size-3 text-cyan-500" />
+                      <span>Metadata, Media &amp; Link Graph</span>
+                    </span>
                   </td>
                 </tr>
 
                 {/* 9. Title Tag Length */}
                 <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-1.5">
                       <Tag className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
                       <span>Title Tag Length</span>
@@ -906,7 +937,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
 
                 {/* 10. Meta Description Length */}
                 <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-1.5">
                       <FileText className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
                       <span>Meta Description</span>
@@ -951,7 +982,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
 
                 {/* 11. Images & Missing Alt Text */}
                 <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-1.5">
                       <ImageIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                       <span>Images &amp; Missing ALT</span>
@@ -989,7 +1020,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
 
                 {/* 12. Internal vs External Links */}
                 <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-1.5">
                       <Link2 className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
                       <span>Internal &amp; External Links</span>
@@ -1019,7 +1050,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
 
                 {/* 13. Affiliate Links Detected */}
                 <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-100 sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-1.5">
                       <Link2 className="w-4 h-4 text-amber-500 shrink-0" />
                       <span>Affiliate Monetization</span>

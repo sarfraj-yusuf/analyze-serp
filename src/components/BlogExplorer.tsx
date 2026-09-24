@@ -305,7 +305,7 @@ export const BlogExplorer: React.FC<BlogExplorerProps> = ({
             {gridPosts.map((post) => (
               <article
                 key={post.slug}
-                className="glass-panel rounded-3xl border border-slate-200/80 dark:border-white/10 hover:border-emerald-500/40 flex flex-col justify-between overflow-hidden group shadow-xs hover:shadow-xl transition-all bg-white dark:bg-[#0c1220]/60"
+                className="glass-panel rounded-3xl border border-slate-200/80 dark:border-white/10 hover:border-emerald-500/40 flex flex-col justify-between overflow-hidden group shadow-xs hover:shadow-xl transition-all bg-white dark:bg-slate-900/60"
               >
                 {/* Visual Header Thumbnail */}
                 <div className="relative aspect-[16/9] w-full overflow-hidden border-b border-slate-200/80 dark:border-white/10 bg-slate-100 dark:bg-slate-900">

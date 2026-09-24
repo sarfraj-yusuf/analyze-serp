@@ -32,6 +32,7 @@ import {
 import { AuthModal } from './AuthModal';
 import { Logo } from './Logo';
 import { LiveAnnouncementBanner } from './LiveAnnouncementBanner';
+import { Tooltip } from './Tooltip';
 
 interface ToolItem {
   title: string;
@@ -295,7 +296,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             {/* Mega Flyout Menu */}
             {isToolsOpen && (
               <div
-                className="absolute top-full left-0 mt-1.5 w-[680px] -ml-20 lg:ml-0 rounded-2xl glass-panel p-5 border border-slate-200/90 dark:border-white/10 shadow-2xl bg-white/95 dark:bg-[#0c1220]/95 backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150"
+                className="absolute top-full left-0 mt-1.5 w-[680px] -ml-20 lg:ml-0 rounded-2xl glass-panel p-5 border border-slate-200/90 dark:border-white/10 shadow-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150"
                 role="menu"
                 aria-label="SEO Tools Directory"
               >
@@ -419,7 +420,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             {/* Resources Dropdown Menu */}
             {isResourcesOpen && (
               <div
-                className="absolute top-full left-0 mt-1.5 w-[360px] rounded-2xl glass-panel p-3 border border-slate-200/90 dark:border-white/10 shadow-2xl bg-white/95 dark:bg-[#0c1220]/95 backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150"
+                className="absolute top-full left-0 mt-1.5 w-[360px] rounded-2xl glass-panel p-3 border border-slate-200/90 dark:border-white/10 shadow-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150"
                 role="menu"
                 aria-label="Resources Directory"
               >
@@ -486,20 +487,21 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
 
         {/* Right Utility Cluster: Theme Toggle, Auth / Credits & Mobile Button */}
         <div className="flex items-center gap-2.5 shrink-0">
-          {/* Light / Dark Mode Icon-Only Toggle Button (Approach 1) */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-            className="h-[38px] w-[38px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300 transition-all cursor-pointer flex items-center justify-center shadow-xs shrink-0 active:scale-95 group/theme"
-            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-          >
-            {theme === 'dark' ? (
-              <Sun className="w-4 h-4 text-amber-400 transition-transform duration-300 group-hover/theme:rotate-90" />
-            ) : (
-              <Moon className="w-4 h-4 text-indigo-600 transition-transform duration-300 group-hover/theme:-rotate-12" />
-            )}
-          </button>
+          {/* Light / Dark Mode Icon-Only Toggle Button */}
+          <Tooltip content={theme === 'dark' ? 'Light Mode' : 'Dark Mode'} side="bottom">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              className="p-2 rounded-lg text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer flex items-center justify-center shrink-0 active:scale-95"
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400 transition-transform duration-300 hover:rotate-90" />
+              ) : (
+                <Moon className="w-4 h-4 text-indigo-600 transition-transform duration-300 hover:-rotate-12" />
+              )}
+            </button>
+          </Tooltip>
 
           {/* User Authentication & AI Credits Dock */}
           {status === 'loading' ? (
@@ -529,7 +531,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
               {/* Profile Dropdown */}
               {isProfileMenuOpen && (
                 <div
-                  className="absolute right-0 mt-2 top-full w-64 rounded-2xl glass-panel p-3 border border-slate-200 dark:border-white/10 shadow-xl bg-white dark:bg-[#0c1220] space-y-3 z-50 animate-in fade-in zoom-in-95 duration-150"
+                  className="absolute right-0 mt-2 top-full w-64 rounded-2xl glass-panel p-3 border border-slate-200 dark:border-white/10 shadow-xl bg-white dark:bg-slate-900 space-y-3 z-50 animate-in fade-in zoom-in-95 duration-150"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="pb-2 border-b border-slate-200/80 dark:border-white/10">

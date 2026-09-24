@@ -14,6 +14,7 @@ import {
   Code,
   Check,
 } from 'lucide-react';
+import { Tooltip } from './Tooltip';
 
 interface ExportDropdownProps {
   report: SerpAlignmentReport;
@@ -315,19 +316,20 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
   return (
     <>
       {/* Trigger Button */}
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={toggleOpen}
-        aria-expanded={isOpen}
-        aria-haspopup="true"
-        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-600/20 active:scale-95 cursor-pointer shrink-0"
-        title="Export audit data in PDF, CSV, Markdown, or JSON formats"
-      >
-        <Download className="size-3" />
-        <span>Export</span>
-        <ChevronDown className={`size-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
+      <Tooltip content="Export Reports" side="top">
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={toggleOpen}
+          aria-expanded={isOpen}
+          aria-haspopup="true"
+          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-600/20 active:scale-95 cursor-pointer shrink-0"
+        >
+          <Download className="size-3" />
+          <span>Export</span>
+          <ChevronDown className={`size-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
+      </Tooltip>
 
       {/* Floating Dropdown Hub Rendered via React Portal */}
       {mounted && isOpen && createPortal(

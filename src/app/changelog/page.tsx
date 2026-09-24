@@ -210,7 +210,7 @@ export default function ChangelogPage() {
           {CHANGELOG_RELEASES.map((release) => (
             <article key={release.version} className="relative group">
               {/* Timeline Beacon Node */}
-              <div className="absolute -left-[35px] sm:-left-[51px] top-1.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-[#0c1220] border-2 border-emerald-500 flex items-center justify-center text-[10px] font-bold text-emerald-600 dark:text-emerald-400 shadow-sm">
+              <div className="absolute -left-[35px] sm:-left-[51px] top-1.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-slate-900 border-2 border-emerald-500 flex items-center justify-center text-[10px] font-bold text-emerald-600 dark:text-emerald-400 shadow-sm">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
               </div>
 

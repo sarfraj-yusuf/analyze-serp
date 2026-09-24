@@ -122,9 +122,15 @@ export async function POST(req: Request) {
         break;
       }
 
+      case 'UPDATE_ROLE':
       case 'TOGGLE_ROLE': {
-        const newRole = value === 'pro' ? 'pro' : 'user';
-        const newLimit = newRole === 'pro' ? Math.max(50, user.daily_ai_credits_limit) : 5;
+        const allowedRoles: ('user' | 'pro' | 'admin')[] = ['user', 'pro', 'admin'];
+        const newRole: 'user' | 'pro' | 'admin' = allowedRoles.includes(value) ? value : (value === 'pro' ? 'pro' : 'user');
+        const newLimit = newRole === 'admin'
+          ? Math.max(100, user.daily_ai_credits_limit || 100)
+          : newRole === 'pro'
+          ? Math.max(50, user.daily_ai_credits_limit || 50)
+          : 5;
         success = await adminUpdateUser(email, {
           role: newRole,
           daily_ai_credits_limit: newLimit,

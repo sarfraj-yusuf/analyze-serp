@@ -134,7 +134,7 @@ export const AiSectionWriterModal: React.FC<AiSectionWriterModalProps> = ({
         onClick={onClose}
       >
         <div
-          className="relative w-full max-w-3xl rounded-3xl p-5 sm:p-7 border border-slate-200 dark:border-white/15 shadow-2xl space-y-6 bg-white dark:bg-[#0c1220] my-auto max-h-[92vh] overflow-y-auto modal-scroll text-slate-800 dark:text-slate-100 transition-all"
+          className="relative w-full max-w-3xl rounded-2xl p-5 sm:p-7 border border-slate-200 dark:border-white/15 shadow-2xl space-y-6 bg-white dark:bg-slate-900 my-auto max-h-[92vh] overflow-y-auto modal-scroll text-slate-800 dark:text-slate-100 transition-all"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close Button */}

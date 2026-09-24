@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { SinglePageAudit, KeywordGapItem } from '@/types/seo';
 import { analyzeKeywordGaps } from '@/lib/keyword-gap';
 import {
@@ -16,9 +16,12 @@ import {
   X,
   ExternalLink,
   SlidersHorizontal,
+  Download,
+  ChevronDown,
 } from 'lucide-react';
 import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
 import { AiSectionWriterModal } from './AiSectionWriterModal';
+import { Tooltip } from './Tooltip';
 
 interface KeywordGapMatrixProps {
   results: SinglePageAudit[];
@@ -45,6 +48,31 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedWords, setCopiedWords] = useState(false);
   const [copiedMarkdown, setCopiedMarkdown] = useState(false);
+  const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
+  const exportDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isExportDropdownOpen) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        exportDropdownRef.current &&
+        !exportDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsExportDropdownOpen(false);
+      }
+    };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsExportDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isExportDropdownOpen]);
 
   // AI Section Writer Modal State
   const [isAiWriterOpen, setIsAiWriterOpen] = useState(false);
@@ -207,61 +235,108 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
         </div>
 
         {/* 1-Click Action Buttons */}
-        <div className="flex items-center gap-2 flex-wrap shrink-0">
-          <button
-            type="button"
-            onClick={() => handleDraftWithAi()}
-            className="px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Draft an article section or outline integrating missing competitor keyword gaps"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
-            <span>AI Topic Draft</span>
-          </button>
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap shrink-0">
+          <Tooltip content="AI Topic Draft" side="top">
+            <button
+              type="button"
+              onClick={() => handleDraftWithAi()}
+              className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="AI Topic Draft"
+            >
+              <Sparkles className="size-4" />
+            </button>
+          </Tooltip>
 
-          <button
-            onClick={handleExportCsv}
-            className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Download CSV of current keyword gaps"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
-            <span>Export CSV</span>
-          </button>
+          <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5 hidden sm:block" />
 
-          <button
-            onClick={handleCopyMarkdown}
-            className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Copy Markdown table for Notion or Google Docs"
-          >
-            {copiedMarkdown ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-emerald-700 dark:text-emerald-400 font-bold">Copied Table!</span>
-              </>
-            ) : (
-              <>
-                <FileText className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
-                <span>Copy Markdown</span>
-              </>
+          {/* Unified Export Gaps Dropdown */}
+          <div className="relative shrink-0" ref={exportDropdownRef}>
+            <Tooltip content="Export Keywords" side="top">
+              <button
+                type="button"
+                onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                <span>Export</span>
+                <ChevronDown
+                  className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${
+                    isExportDropdownOpen ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+            </Tooltip>
+
+            {isExportDropdownOpen && (
+              <div className="absolute right-0 top-full mt-1.5 w-48 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 shadow-xl p-1 z-30 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
+                {/* 1. Export CSV */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleExportCsv();
+                    setIsExportDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-xs flex items-center justify-between text-slate-700 dark:text-slate-200 transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2">
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="font-medium">Export CSV</span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-300 px-1 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40">
+                    CSV
+                  </span>
+                </button>
+
+                {/* 2. Copy Markdown */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleCopyMarkdown();
+                    setTimeout(() => setIsExportDropdownOpen(false), 800);
+                  }}
+                  className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-xs flex items-center justify-between text-slate-700 dark:text-slate-200 transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2">
+                    {copiedMarkdown ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    ) : (
+                      <FileText className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                    )}
+                    <span className={copiedMarkdown ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'font-medium'}>
+                      {copiedMarkdown ? 'Copied Table!' : 'Copy Markdown'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 px-1 py-0.5 rounded bg-slate-100 dark:bg-white/5">
+                    MD
+                  </span>
+                </button>
+
+                {/* 3. Copy Phrases */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleCopyWords();
+                    setTimeout(() => setIsExportDropdownOpen(false), 800);
+                  }}
+                  className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-xs flex items-center justify-between text-slate-700 dark:text-slate-200 transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2">
+                    {copiedWords ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                    )}
+                    <span className={copiedWords ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'font-medium'}>
+                      {copiedWords ? 'Copied Phrases!' : 'Copy Phrases Only'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-purple-700 dark:text-purple-300 px-1 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40">
+                    TXT
+                  </span>
+                </button>
+              </div>
             )}
-          </button>
-
-          <button
-            onClick={handleCopyWords}
-            className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Copy list of missing keyword phrases to clipboard"
-          >
-            {copiedWords ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-emerald-700 dark:text-emerald-400 font-bold">Copied Words!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-                <span>Copy Phrases</span>
-              </>
-            )}
-          </button>
+          </div>
         </div>
       </div>
 
@@ -464,14 +539,14 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
       </div>
 
       {/* 4. Ergonomic Cross-Comparison Table with Sticky Column */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0c1322] max-h-[520px] overflow-y-auto modal-scroll shadow-xs">
+      <div className="overflow-x-auto rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900 max-h-[520px] overflow-y-auto modal-scroll shadow-xs">
         <table className="w-full text-left border-collapse text-xs">
-          <thead className="sticky top-0 z-20 bg-slate-100 dark:bg-[#0c1322] border-b border-slate-200 dark:border-white/10">
+          <thead className="sticky top-0 z-20 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-white/10">
             <tr>
               {/* Sticky Left Column Header */}
               <th
                 scope="col"
-                className="py-3 px-4 w-60 min-w-[220px] shrink-0 sticky left-0 z-30 bg-slate-100 dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]"
+                className="py-3 px-4 w-60 min-w-[220px] shrink-0 sticky left-0 z-30 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]"
               >
                 <div className="font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider text-[11px]">
                   Keyword Term
@@ -563,7 +638,7 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                   className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors"
                 >
                   {/* Sticky Left Column: Keyword Term */}
-                  <td className="py-2.5 px-4 font-medium text-slate-800 dark:text-slate-100 max-w-xs sticky left-0 z-10 bg-white dark:bg-[#0c1322] border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-2.5 px-4 font-medium text-slate-800 dark:text-slate-100 max-w-xs sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-semibold truncate" title={item.phrase}>
                         {item.phrase}

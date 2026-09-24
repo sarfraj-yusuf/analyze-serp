@@ -15,9 +15,11 @@ import { ContentBriefGenerator } from './ContentBriefGenerator';
 import { SingleAuditCard } from './SingleAuditCard';
 import { WhiteLabelPdfModal } from './WhiteLabelPdfModal';
 import { ExportDropdown } from './ExportDropdown';
+import { ShareAuditModal } from './ShareAuditModal';
 import { AuditDiffModal } from './AuditDiffModal';
 import { InternalLinkTopologyModal } from './InternalLinkTopologyModal';
 import { AuthModal } from './AuthModal';
+import { Tooltip } from './Tooltip';
 import {
   Activity,
   Target,
@@ -38,6 +40,9 @@ import {
   FileCode,
   GitCompare,
   Network,
+  AlertTriangle,
+  AlertCircle,
+  Cloud,
 } from 'lucide-react';
 
 export type WorkspaceTab = 'overview' | 'keywords' | 'matrix' | 'inspector' | 'brief';
@@ -67,13 +72,18 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
   const [isDiffModalOpen, setIsDiffModalOpen] = useState(initialOpenDiff);
   const [isTopologyModalOpen, setIsTopologyModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Filter only valid successful results
+  // Filter valid successful results vs failed results
   const validResults = useMemo(() => {
     return (results || []).filter((r) => r.status === 'success');
+  }, [results]);
+
+  const failedResults = useMemo(() => {
+    return (results || []).filter((r) => r.status === 'error');
   }, [results]);
 
   // Compute SERP alignment report
@@ -82,7 +92,57 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
     return analyzeSerpAlignment(validResults, targetUrl, targetKeyword);
   }, [validResults, targetUrl, targetKeyword]);
 
-  if (!results || results.length === 0 || !report || validResults.length === 0) {
+  if (!results || results.length === 0) {
+    return null;
+  }
+
+  // Gracefully handle edge-case where ALL audited URLs failed (e.g. offline, DNS failure, 404)
+  if (validResults.length === 0) {
+    return (
+      <div className="p-6 sm:p-8 rounded-2xl glass-panel border border-rose-300 dark:border-rose-900/60 bg-rose-50/40 dark:bg-rose-950/20 text-center space-y-4 max-w-2xl mx-auto my-8 animate-in fade-in">
+        <div className="size-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center mx-auto">
+          <AlertCircle className="size-6" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+            Unable to Benchmark Audited URLs
+          </h3>
+          <p className="text-xs text-slate-600 dark:text-slate-300 max-w-md mx-auto">
+            The target and competitor servers could not be crawled due to DNS resolution failures, offline hosts, or connection timeouts.
+          </p>
+        </div>
+        <div className="space-y-2 text-left max-w-lg mx-auto pt-2">
+          {failedResults.map((f, i) => (
+            <div key={i} className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/40 text-xs flex items-start gap-2.5">
+              <AlertTriangle className="size-4 text-rose-500 shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <span className="font-mono font-bold text-slate-800 dark:text-slate-200 truncate block">
+                  {f.url}
+                </span>
+                <span className="text-[11px] text-rose-600 dark:text-rose-400 leading-relaxed block">
+                  {f.errorMessage || 'Failed to fetch webpage.'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        {onEditUrls && (
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={onEditUrls}
+              className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-2"
+            >
+              <SlidersHorizontal className="size-3.5" />
+              <span>Adjust Competitor URLs</span>
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (!report) {
     return null;
   }
 
@@ -136,6 +196,41 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
   return (
     <div id="competitor-workspace" className="space-y-6 sm:space-y-8 animate-in fade-in duration-300">
       
+      {/* Competitor Offline / Error Alert Banner */}
+      {failedResults.length > 0 && (
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-950 dark:text-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in shadow-xs">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0">
+              <AlertTriangle className="size-4" />
+            </div>
+            <div>
+              <span className="font-bold text-slate-900 dark:text-white">
+                {failedResults.length === 1 ? '1 Competitor URL Unreachable' : `${failedResults.length} Competitor URLs Unreachable`}:
+              </span>{' '}
+              <span className="text-slate-700 dark:text-slate-300">
+                {failedResults.map((f) => {
+                  try {
+                    return new URL(f.url).hostname;
+                  } catch {
+                    return f.url;
+                  }
+                }).join(', ')}{' '}
+                — {failedResults[0].errorMessage || 'Connection timeout or offline host'}. (Excluded from benchmark matrix).
+              </span>
+            </div>
+          </div>
+          {onEditUrls && (
+            <button
+              type="button"
+              onClick={onEditUrls}
+              className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-900 dark:text-amber-200 font-bold text-xs shrink-0 self-start sm:self-auto transition-colors cursor-pointer border border-amber-500/30"
+            >
+              Replace URL
+            </button>
+          )}
+        </div>
+      )}
+
       {/* 1. EXECUTIVE SERP PARITY COCKPIT */}
       <div className="rounded-2xl p-4 sm:p-5 glass-panel border border-slate-200/80 dark:border-white/[0.08] shadow-sm relative z-40 backdrop-blur-md">
         
@@ -157,66 +252,80 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
           </div>
 
           {/* Right: Action Command Group */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            {session?.user?.email ? (
-              <span
-                className="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-semibold text-xs flex items-center gap-1.5"
-                title="This audit is automatically saved to your cloud workspace"
-              >
-                <ShieldCheck className="size-3 text-emerald-500" />
-                <span>Saved to Cloud</span>
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setShowAuthModal(true)}
-                className="px-2.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer"
-                title="Sign in to save this audit permanently to your cloud account"
-              >
-                <ShieldCheck className="size-3" />
-                <span>Save to Cloud</span>
-              </button>
-            )}
+          <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+            {/* Quick Utility Icon Buttons (Borderless & Clean) */}
+            <div className="flex items-center gap-0.5">
+              {/* Cloud Sync Status / Action */}
+              {session?.user?.email ? (
+                <Tooltip content="Saved to Cloud" side="top">
+                  <div
+                    className="p-1.5 sm:p-2 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors cursor-default relative"
+                    aria-label="Saved to Cloud Workspace"
+                  >
+                    <Cloud className="size-4" />
+                    <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-emerald-500" />
+                  </div>
+                </Tooltip>
+              ) : (
+                <Tooltip content="Save to Cloud" side="top">
+                  <button
+                    type="button"
+                    onClick={() => setShowAuthModal(true)}
+                    className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                    aria-label="Save to Cloud"
+                  >
+                    <Cloud className="size-4" />
+                  </button>
+                </Tooltip>
+              )}
 
-            <button
-              type="button"
-              onClick={handleShareLink}
-              className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-medium text-xs flex items-center gap-1.5 transition-all border border-slate-200 dark:border-white/10 active:scale-95 cursor-pointer"
-              title="Copy shareable audit link to clipboard"
-            >
-              {copiedLink ? <Check className="size-3 text-emerald-500" /> : <Share2 className="size-3" />}
-              <span>{copiedLink ? 'Link Copied!' : 'Share'}</span>
-            </button>
+              <Tooltip content="Share Audit" side="top">
+                <button
+                  type="button"
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  aria-label="Share benchmark audit"
+                >
+                  <Share2 className="size-4" />
+                </button>
+              </Tooltip>
 
-            <button
-              type="button"
-              onClick={handleCopySummary}
-              className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-medium text-xs flex items-center gap-1.5 transition-all border border-slate-200 dark:border-white/10 active:scale-95 cursor-pointer"
-              title="Copy executive summary to clipboard"
-            >
-              {copied ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
-              <span>{copied ? 'Copied!' : 'Copy Summary'}</span>
-            </button>
+              <Tooltip content={copied ? "Summary Copied!" : "Copy Summary"} side="top">
+                <button
+                  type="button"
+                  onClick={handleCopySummary}
+                  className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  aria-label="Copy executive summary"
+                >
+                  {copied ? <Check className="size-4 text-emerald-500" /> : <Copy className="size-4" />}
+                </button>
+              </Tooltip>
 
-            <button
-              type="button"
-              onClick={() => setIsDiffModalOpen(true)}
-              className="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-medium text-xs flex items-center gap-1.5 transition-all border border-indigo-200 dark:border-indigo-800 active:scale-95 cursor-pointer"
-              title="Compare current audit against previous baseline"
-            >
-              <GitCompare className="size-3 text-indigo-600 dark:text-indigo-400" />
-              <span>Before vs After</span>
-            </button>
+              <Tooltip content="Before vs After" side="top">
+                <button
+                  type="button"
+                  onClick={() => setIsDiffModalOpen(true)}
+                  className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  aria-label="Compare Before vs After"
+                >
+                  <GitCompare className="size-4" />
+                </button>
+              </Tooltip>
 
-            <button
-              type="button"
-              onClick={() => setIsTopologyModalOpen(true)}
-              className="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-medium text-xs flex items-center gap-1.5 transition-all border border-indigo-200 dark:border-indigo-800 active:scale-95 cursor-pointer"
-              title="Inspect competitor internal link topology, destination hubs & anchor text"
-            >
-              <Network className="size-3 text-indigo-600 dark:text-indigo-400" />
-              <span>Link Topology</span>
-            </button>
+              <Tooltip content="Link Topology" side="top">
+                <button
+                  type="button"
+                  onClick={() => setIsTopologyModalOpen(true)}
+                  className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  aria-label="Inspect link topology"
+                >
+                  <Network className="size-4" />
+                </button>
+              </Tooltip>
+            </div>
+
+            {/* Subtle Divider */}
+            <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block" />
 
             {/* Unified Export Hub Dropdown */}
             <ExportDropdown
@@ -292,14 +401,19 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                       href={cUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-2.5 py-1 rounded-lg bg-slate-100/90 hover:bg-slate-200/80 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-slate-200/80 dark:border-white/[0.06] text-slate-700 dark:text-slate-300 font-mono text-xs flex items-center gap-1.5 transition-colors group max-w-[240px]"
+                      className="px-2.5 py-1 rounded-lg bg-slate-100/90 hover:bg-slate-200/80 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-slate-200/80 dark:border-white/[0.06] text-slate-700 dark:text-slate-300 font-mono text-xs flex items-center gap-1.5 transition-colors group max-w-[260px]"
                       title={cUrl}
                     >
                       <span className="size-1.5 rounded-full bg-amber-500 shrink-0" />
                       <span className="truncate">{host}</span>
                       {compAudit?.wordCount ? (
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
                           ({compAudit.wordCount.toLocaleString()}w)
+                        </span>
+                      ) : null}
+                      {compAudit?.technicalAudit?.ttfbMs ? (
+                        <span className="text-[10px] text-cyan-700 dark:text-cyan-400 font-mono font-semibold">
+                          • {compAudit.technicalAudit.ttfbMs}ms
                         </span>
                       ) : null}
                       <ExternalLink className="size-3 text-slate-400 group-hover:text-emerald-500 shrink-0 transition-colors" />
@@ -313,27 +427,27 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
           </div>
 
           {/* Right Column (5 Cols): Elevated Executive Parity Scorecard */}
-          <div className="lg:col-span-5 rounded-xl p-4 bg-slate-50/90 dark:bg-[#070b14]/80 border border-slate-200/80 dark:border-white/[0.08] flex flex-col justify-between gap-3 shadow-xs">
+          <div className="lg:col-span-5 rounded-xl p-4 bg-slate-50/90 dark:bg-slate-950/80 border border-slate-200/80 dark:border-white/[0.08] flex flex-col justify-between gap-3 shadow-xs">
             
             {/* Score & Gauge Row */}
             <div className="flex items-center gap-3.5">
-              <div className="relative size-12 flex items-center justify-center shrink-0">
-                <svg className="size-12 -rotate-90">
+              <div className="relative size-14 sm:size-16 flex items-center justify-center shrink-0">
+                <svg className="size-14 sm:size-16 -rotate-90">
                   <circle
-                    cx="24"
-                    cy="24"
-                    r="20"
+                    cx="28"
+                    cy="28"
+                    r="23"
                     stroke="currentColor"
-                    strokeWidth="3.5"
+                    strokeWidth="4"
                     className="text-slate-200 dark:text-slate-800"
                     fill="transparent"
                   />
                   <circle
-                    cx="24"
-                    cy="24"
-                    r="20"
+                    cx="28"
+                    cy="28"
+                    r="23"
                     stroke="currentColor"
-                    strokeWidth="3.5"
+                    strokeWidth="4"
                     className={
                       (report.alignmentScore || 0) >= 70
                         ? 'text-emerald-500'
@@ -341,14 +455,14 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                         ? 'text-amber-500'
                         : 'text-rose-500'
                     }
-                    strokeDasharray="125.6"
-                    strokeDashoffset={125.6 - (125.6 * (report.alignmentScore || 70)) / 100}
+                    strokeDasharray="144.5"
+                    strokeDashoffset={144.5 - (144.5 * (report.alignmentScore || 70)) / 100}
                     strokeLinecap="round"
                     fill="transparent"
                   />
                 </svg>
                 <span
-                  className={`absolute font-heading font-extrabold text-xs ${
+                  className={`absolute font-heading font-extrabold text-sm sm:text-base tabular-nums ${
                     (report.alignmentScore || 0) >= 70
                       ? 'text-emerald-600 dark:text-emerald-400'
                       : (report.alignmentScore || 0) >= 50
@@ -415,105 +529,88 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
         className="sticky top-16 z-30 p-1.5 rounded-2xl glass-panel border border-slate-200/80 dark:border-white/[0.08] shadow-sm backdrop-blur-xl flex items-center gap-1.5 overflow-x-auto scrollbar-none"
       >
         {/* Tab 1: Overview */}
-        <button
-          type="button"
-          onClick={() => handleTabSwitch('overview')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
-            activeTab === 'overview'
-              ? 'bg-emerald-600 text-white shadow-xs font-bold'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
-          }`}
-        >
-          <Activity className="size-3.5" />
-          <span>Overview &amp; Roadmap</span>
-        </button>
-
-        {/* Tab 2: Keywords */}
-        {validResults.length >= 2 && (
+        <Tooltip content="Overview & Action Roadmap" side="bottom">
           <button
             type="button"
-            onClick={() => handleTabSwitch('keywords')}
+            onClick={() => handleTabSwitch('overview')}
             className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
-              activeTab === 'keywords'
+              activeTab === 'overview'
                 ? 'bg-emerald-600 text-white shadow-xs font-bold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
             }`}
           >
-            <Target className="size-3.5" />
-            <span>Keyword Gaps</span>
-            <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
+            <Activity className="size-3.5" />
+            <span>Overview &amp; Roadmap</span>
+          </button>
+        </Tooltip>
+
+        {/* Tab 2: Keywords */}
+        {validResults.length >= 2 && (
+          <Tooltip content="Competitor Gap Matrix" side="bottom">
+            <button
+              type="button"
+              onClick={() => handleTabSwitch('keywords')}
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
                 activeTab === 'keywords'
-                  ? 'bg-white/20 text-white'
-                  : 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
+                  ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
               }`}
             >
-              Gap Matrix
-            </span>
-          </button>
+              <Target className="size-3.5" />
+              <span>Keyword Gaps</span>
+            </button>
+          </Tooltip>
         )}
 
         {/* Tab 3: Comparison Matrix */}
         {validResults.length >= 2 && (
+          <Tooltip content={`${validResults.length} Audited URLs`} side="bottom">
+            <button
+              type="button"
+              onClick={() => handleTabSwitch('matrix')}
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
+                activeTab === 'matrix'
+                  ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
+              }`}
+            >
+              <Layers className="size-3.5" />
+              <span>Multi-URL Matrix</span>
+            </button>
+          </Tooltip>
+        )}
+
+        {/* Tab 4: Single URL Inspector */}
+        <Tooltip content="Interactive Page Inspector" side="bottom">
           <button
             type="button"
-            onClick={() => handleTabSwitch('matrix')}
+            onClick={() => handleTabSwitch('inspector')}
             className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
-              activeTab === 'matrix'
+              activeTab === 'inspector'
                 ? 'bg-emerald-600 text-white shadow-xs font-bold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
             }`}
           >
-            <Layers className="size-3.5" />
-            <span>Multi-URL Matrix</span>
-            <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
-                activeTab === 'matrix'
-                  ? 'bg-white/20 text-white'
-                  : 'bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300'
-              }`}
-            >
-              {validResults.length} URLs
-            </span>
+            <Search className="size-3.5" />
+            <span>URL Deep Inspector</span>
           </button>
-        )}
-
-        {/* Tab 4: Single URL Inspector */}
-        <button
-          type="button"
-          onClick={() => handleTabSwitch('inspector')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
-            activeTab === 'inspector'
-              ? 'bg-emerald-600 text-white shadow-xs font-bold'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
-          }`}
-        >
-          <Search className="size-3.5" />
-          <span>URL Deep Inspector</span>
-          <span
-            className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
-              activeTab === 'inspector'
-                ? 'bg-white/20 text-white'
-                : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
-            }`}
-          >
-            Interactive
-          </span>
-        </button>
+        </Tooltip>
 
         {/* Tab 5: Content Brief */}
-        <button
-          type="button"
-          onClick={() => handleTabSwitch('brief')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
-            activeTab === 'brief'
-              ? 'bg-emerald-600 text-white shadow-xs font-bold'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
-          }`}
-        >
-          <FileText className="size-3.5" />
-          <span>Strategic Content Brief</span>
-        </button>
+        <Tooltip content="Editorial Outline Brief" side="bottom">
+          <button
+            type="button"
+            onClick={() => handleTabSwitch('brief')}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
+              activeTab === 'brief'
+                ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
+            }`}
+          >
+            <FileText className="size-3.5" />
+            <span>Strategic Content Brief</span>
+          </button>
+        </Tooltip>
       </div>
 
       {/* 3. TAB WORKSPACE CONTENTS */}
@@ -664,17 +761,18 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                 </p>
               </div>
 
-              <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 self-start sm:self-auto shrink-0">
-                {validResults.length} URLs Ready
+              <span className="text-xs font-mono text-slate-600 dark:text-slate-400 font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 self-start sm:self-auto shrink-0">
+                {validResults.length} of {results.length} URLs Active
               </span>
             </div>
 
             {/* Interactive URL Switcher Dock */}
             <div className="p-2 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] shadow-xs">
               <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-0.5">
-                {validResults.map((audit, idx) => {
+                {results.map((audit, idx) => {
                   const isTarget = audit.url === effectiveTargetUrl;
                   const isSelected = activeUrlIndex === idx;
+                  const isFailed = audit.status === 'error';
                   let host = '';
                   try {
                     const parsed = new URL(audit.url);
@@ -690,11 +788,23 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                       onClick={() => setActiveUrlIndex(idx)}
                       className={`px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all shrink-0 cursor-pointer ${
                         isSelected
-                          ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-xs font-bold'
+                          ? isFailed
+                            ? 'bg-rose-600 text-white shadow-xs font-bold'
+                            : 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-xs font-bold'
+                          : isFailed
+                          ? 'text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 border border-rose-200 dark:border-rose-900/50'
                           : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-white/10'
                       }`}
                     >
-                      {isTarget ? (
+                      {isFailed ? (
+                        <>
+                          <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                          <span className="font-mono text-[10px] uppercase tracking-wider font-bold mr-0.5">
+                            Offline:
+                          </span>
+                          <span className="truncate max-w-[180px] font-medium">{host}</span>
+                        </>
+                      ) : isTarget ? (
                         <>
                           <span className={`w-2 h-2 rounded-full shrink-0 ${isSelected ? 'bg-emerald-400 dark:bg-emerald-600' : 'bg-emerald-500'}`} />
                           <span className={`font-mono text-[10px] uppercase tracking-wider font-bold mr-0.5 ${isSelected ? 'text-emerald-300 dark:text-emerald-700' : 'text-emerald-600 dark:text-emerald-400'}`}>
@@ -718,9 +828,9 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             </div>
 
             {/* Active Single Page Audit Card */}
-            {validResults[activeUrlIndex] && (
+            {results[activeUrlIndex] && (
               <div className="animate-in fade-in duration-200">
-                <SingleAuditCard audit={validResults[activeUrlIndex]} />
+                <SingleAuditCard audit={results[activeUrlIndex]} />
               </div>
             )}
           </div>
@@ -786,6 +896,18 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
           competitorAudits={validResults}
           pageTitle={targetAudit?.meta?.title || validResults[0]?.meta?.title || ''}
           headings={(targetAudit?.headings || validResults[0]?.headings || []).map((h) => ({ level: h.level, text: h.text }))}
+        />
+      )}
+
+      {/* Share Audit Modal */}
+      {isShareModalOpen && (
+        <ShareAuditModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          targetUrl={effectiveTargetUrl}
+          alignmentScore={report.alignmentScore}
+          targetKeyword={targetKeyword}
+          verdictHeadline={report.verdictHeadline}
         />
       )}
 

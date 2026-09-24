@@ -261,7 +261,7 @@ export const SerpSocialSimulator: React.FC<SerpSocialSimulatorProps> = ({ meta, 
 
             {/* View 2: Google Mobile SERP */}
             {activePlatform === 'mobile' && (
-              <div className="max-w-[360px] mx-auto space-y-2 font-sans p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0f19]">
+              <div className="max-w-[360px] mx-auto space-y-2 font-sans p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950">
                 <div className="flex items-center gap-2 text-xs">
                   <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center text-[10px] font-bold text-cyan-600 dark:text-cyan-400">
                     {hostname.charAt(0).toUpperCase()}
@@ -284,7 +284,7 @@ export const SerpSocialSimulator: React.FC<SerpSocialSimulatorProps> = ({ meta, 
 
             {/* View 3: Facebook OpenGraph Card */}
             {activePlatform === 'facebook' && (
-              <div className="max-w-[480px] mx-auto rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-[#131b2e] overflow-hidden shadow-sm">
+              <div className="max-w-[480px] mx-auto rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-900 overflow-hidden shadow-sm">
                 <div className="w-full h-36 bg-slate-200 dark:bg-white/5 relative flex items-center justify-center overflow-hidden">
                   {ogImage ? (
                     <img src={ogImage} alt="OG Banner" className="w-full h-full object-cover" />
@@ -306,7 +306,7 @@ export const SerpSocialSimulator: React.FC<SerpSocialSimulatorProps> = ({ meta, 
 
             {/* View 4: Twitter / X Card */}
             {activePlatform === 'twitter' && (
-              <div className="max-w-[480px] mx-auto rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0f19] overflow-hidden shadow-sm">
+              <div className="max-w-[480px] mx-auto rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950 overflow-hidden shadow-sm">
                 <div className="w-full h-36 bg-slate-200 dark:bg-white/5 relative flex items-center justify-center overflow-hidden">
                   {ogImage ? (
                     <img src={ogImage} alt="Twitter Card" className="w-full h-full object-cover" />

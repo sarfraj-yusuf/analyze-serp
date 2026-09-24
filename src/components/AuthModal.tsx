@@ -89,7 +89,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[430px] bg-white dark:bg-[#0c1220] rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-white/10 shadow-2xl space-y-5 text-slate-800 dark:text-slate-100 my-auto max-h-[92vh] overflow-y-auto modal-scroll animate-in zoom-in-95 duration-150"
+        className="relative w-full max-w-[430px] bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-7 border border-slate-200 dark:border-white/10 shadow-2xl space-y-5 text-slate-800 dark:text-slate-100 my-auto max-h-[92vh] overflow-y-auto modal-scroll animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -189,7 +189,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Subtle Divider */}
         <div className="relative flex items-center justify-center pt-1">
           <div className="border-t border-slate-200/80 dark:border-white/10 w-full" />
-          <span className="absolute px-2.5 bg-white dark:bg-[#0c1220] text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <span className="absolute px-2.5 bg-white dark:bg-slate-900 text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             Free Daily Member Perks
           </span>
         </div>
