@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { SinglePageAudit } from '@/types/seo';
 import { generateWhiteLabelPdfReport, WhiteLabelOptions } from '@/lib/pdf-report-generator';
 import { X, FileText, Download, Sparkles, Building, User, Mail, Palette } from 'lucide-react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface WhiteLabelPdfModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ const COLOR_PRESETS = [
 ];
 
 export const WhiteLabelPdfModal: React.FC<WhiteLabelPdfModalProps> = ({ isOpen, onClose, audit }) => {
+  const modalRef = useFocusTrap<HTMLDivElement>({ isOpen, onClose });
   const [agencyName, setAgencyName] = useState('Apex Digital Growth Agency');
   const [clientName, setClientName] = useState('Valued Client');
   const [auditorEmail, setAuditorEmail] = useState('audit@apexdigital.com');
@@ -27,7 +29,7 @@ export const WhiteLabelPdfModal: React.FC<WhiteLabelPdfModalProps> = ({ isOpen, 
 
   if (!isOpen) return null;
 
-  const handleGeneratePdf = (e: React.FormEvent) => {
+  const handleGeneratePdf = async (e: React.FormEvent) => {
     e.preventDefault();
     const options: WhiteLabelOptions = {
       agencyName,
@@ -36,17 +38,26 @@ export const WhiteLabelPdfModal: React.FC<WhiteLabelPdfModalProps> = ({ isOpen, 
       primaryColorHex,
     };
 
-    generateWhiteLabelPdfReport(audit, options);
+    await generateWhiteLabelPdfReport(audit, options);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-white/10 shadow-2xl space-y-6 text-slate-800 dark:text-slate-100">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="whitelabel-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+    >
+      <div
+        ref={modalRef}
+        className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-white/10 shadow-2xl space-y-6 text-slate-800 dark:text-slate-100"
+      >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-500 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer border border-slate-200 dark:border-white/10"
+          aria-label="Close white label export dialog"
+          className="absolute top-5 right-5 p-2 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-500 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer border border-slate-200 dark:border-white/10"
         >
           <X className="w-5 h-5" />
         </button>
@@ -58,7 +69,7 @@ export const WhiteLabelPdfModal: React.FC<WhiteLabelPdfModalProps> = ({ isOpen, 
             <span>White-Label B2B Agency Feature</span>
           </div>
 
-          <h3 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
+          <h3 id="whitelabel-modal-title" className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
             Export Branded Client PDF Report
           </h3>
 
@@ -70,11 +81,12 @@ export const WhiteLabelPdfModal: React.FC<WhiteLabelPdfModalProps> = ({ isOpen, 
         {/* Customization Form */}
         <form onSubmit={handleGeneratePdf} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-800 dark:text-gray-200 flex items-center gap-1.5">
+            <label htmlFor="pdf-agency-name" className="text-xs font-semibold text-slate-800 dark:text-gray-200 flex items-center gap-1.5">
               <Building className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               Agency Name
             </label>
             <input
+              id="pdf-agency-name"
               type="text"
               required
               value={agencyName}
@@ -86,11 +98,12 @@ export const WhiteLabelPdfModal: React.FC<WhiteLabelPdfModalProps> = ({ isOpen, 
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-800 dark:text-gray-200 flex items-center gap-1.5">
+              <label htmlFor="pdf-client-name" className="text-xs font-semibold text-slate-800 dark:text-gray-200 flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
                 Client Name / Company
               </label>
               <input
+                id="pdf-client-name"
                 type="text"
                 required
                 value={clientName}
@@ -101,11 +114,12 @@ export const WhiteLabelPdfModal: React.FC<WhiteLabelPdfModalProps> = ({ isOpen, 
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-800 dark:text-gray-200 flex items-center gap-1.5">
+              <label htmlFor="pdf-auditor-email" className="text-xs font-semibold text-slate-800 dark:text-gray-200 flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                 Auditor Email
               </label>
               <input
+                id="pdf-auditor-email"
                 type="email"
                 required
                 value={auditorEmail}
@@ -118,16 +132,19 @@ export const WhiteLabelPdfModal: React.FC<WhiteLabelPdfModalProps> = ({ isOpen, 
 
           {/* Color Preset Selector */}
           <div className="space-y-2 pt-1">
-            <label className="text-xs font-semibold text-slate-800 dark:text-gray-200 flex items-center gap-1.5">
+            <div className="text-xs font-semibold text-slate-800 dark:text-gray-200 flex items-center gap-1.5">
               <Palette className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-              Primary PDF Brand Color
-            </label>
+              <span>Primary PDF Brand Color</span>
+            </div>
 
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            <div role="radiogroup" aria-label="Primary PDF Brand Color" className="flex items-center gap-2 overflow-x-auto pb-1">
               {COLOR_PRESETS.map((color) => (
                 <button
                   type="button"
                   key={color.hex}
+                  role="radio"
+                  aria-checked={primaryColorHex === color.hex}
+                  aria-label={`${color.name} brand color`}
                   onClick={() => setPrimaryColorHex(color.hex)}
                   className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer border ${
                     primaryColorHex === color.hex

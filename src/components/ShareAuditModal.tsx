@@ -15,6 +15,7 @@ import {
   Target,
   FileText,
 } from 'lucide-react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface ShareAuditModalProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ export const ShareAuditModal: React.FC<ShareAuditModalProps> = ({
   targetKeyword,
   verdictHeadline,
 }) => {
+  const modalRef = useFocusTrap<HTMLDivElement>({ isOpen, onClose });
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedSummary, setCopiedSummary] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -44,19 +46,6 @@ export const ShareAuditModal: React.FC<ShareAuditModalProps> = ({
       setCanNativeShare(true);
     }
   }, []);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
 
   if (!isOpen || !mounted) return null;
 
@@ -148,10 +137,14 @@ export const ShareAuditModal: React.FC<ShareAuditModalProps> = ({
 
   const modalContent = (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="share-modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
+        ref={modalRef}
         className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-200/90 dark:border-white/10 shadow-2xl space-y-5 text-slate-800 dark:text-slate-100"
         onClick={(e) => e.stopPropagation()}
       >
@@ -162,7 +155,7 @@ export const ShareAuditModal: React.FC<ShareAuditModalProps> = ({
               <Share2 className="size-3" />
               <span>Shareable Audit Hub</span>
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h3 id="share-modal-title" className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               Share Competitor Benchmark Audit
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 truncate max-w-sm">
@@ -187,7 +180,7 @@ export const ShareAuditModal: React.FC<ShareAuditModalProps> = ({
 
         {/* Section 1: Copy Link Field */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between">
+          <label htmlFor="share-direct-url" className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between">
             <span>Direct Audit URL:</span>
             <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-normal">
               1-Click Shareable Link
@@ -195,6 +188,7 @@ export const ShareAuditModal: React.FC<ShareAuditModalProps> = ({
           </label>
           <div className="flex items-center gap-2">
             <input
+              id="share-direct-url"
               type="text"
               readOnly
               value={currentUrl}
@@ -204,6 +198,7 @@ export const ShareAuditModal: React.FC<ShareAuditModalProps> = ({
             <button
               type="button"
               onClick={handleCopyLink}
+              aria-label="Copy direct audit URL to clipboard"
               className={`px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
                 copiedLink
                   ? 'bg-emerald-600 text-white font-bold shadow-xs'
@@ -237,6 +232,7 @@ export const ShareAuditModal: React.FC<ShareAuditModalProps> = ({
               onClick={handleShareTwitter}
               className="p-2.5 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50/70 hover:bg-slate-100 dark:bg-white/[0.03] dark:hover:bg-white/[0.08] text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
               title="Share on X (Twitter)"
+              aria-label="Share on X (Twitter)"
             >
               <Twitter className="size-4 text-sky-500 shrink-0" />
               <span>X (Twitter)</span>
@@ -248,6 +244,7 @@ export const ShareAuditModal: React.FC<ShareAuditModalProps> = ({
               onClick={handleShareLinkedIn}
               className="p-2.5 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50/70 hover:bg-slate-100 dark:bg-white/[0.03] dark:hover:bg-white/[0.08] text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
               title="Share on LinkedIn"
+              aria-label="Share on LinkedIn"
             >
               <Linkedin className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
               <span>LinkedIn</span>
@@ -259,6 +256,7 @@ export const ShareAuditModal: React.FC<ShareAuditModalProps> = ({
               onClick={handleShareWhatsApp}
               className="p-2.5 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50/70 hover:bg-slate-100 dark:bg-white/[0.03] dark:hover:bg-white/[0.08] text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
               title="Send via WhatsApp"
+              aria-label="Send via WhatsApp"
             >
               <MessageSquare className="size-4 text-emerald-500 shrink-0" />
               <span>WhatsApp</span>
@@ -270,6 +268,7 @@ export const ShareAuditModal: React.FC<ShareAuditModalProps> = ({
               onClick={handleShareEmail}
               className="p-2.5 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50/70 hover:bg-slate-100 dark:bg-white/[0.03] dark:hover:bg-white/[0.08] text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
               title="Send via Email"
+              aria-label="Send via Email"
             >
               <Mail className="size-4 text-amber-500 shrink-0" />
               <span>Email</span>
@@ -280,6 +279,7 @@ export const ShareAuditModal: React.FC<ShareAuditModalProps> = ({
             <button
               type="button"
               onClick={handleNativeShare}
+              aria-label="Open system share options"
               className="w-full py-2 px-3 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-100/80 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <ExternalLink className="size-3.5 text-slate-500" />
@@ -297,6 +297,7 @@ export const ShareAuditModal: React.FC<ShareAuditModalProps> = ({
             <button
               type="button"
               onClick={handleCopySummary}
+              aria-label="Copy formatted audit summary to clipboard"
               className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
             >
               {copiedSummary ? (

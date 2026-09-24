@@ -125,8 +125,75 @@ function isBlockedIPv6(ip: string): boolean {
 }
 
 /**
+ * Parses obfuscated IPv4 formats (standard dotted-decimal, DWORD integer, octal, hex)
+ * into a canonical dotted-decimal IPv4 string, or null if the hostname is a regular domain.
+ */
+function parsePotentialIpAddress(hostname: string): string | null {
+  const cleaned = hostname.replace(/^\[|\]$/g, '').trim().toLowerCase();
+
+  // 1. Standard dotted-decimal IPv4 (e.g. 192.168.1.1)
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(cleaned)) {
+    const octets = cleaned.split('.').map(Number);
+    if (octets.every((o) => o >= 0 && o <= 255)) {
+      return cleaned;
+    }
+  }
+
+  // 2. Pure integer / DWORD IPv4 (e.g. 2130706433 -> 127.0.0.1, 0 -> 0.0.0.0)
+  if (/^\d+$/.test(cleaned)) {
+    const num = Number(cleaned);
+    if (!isNaN(num) && num >= 0 && num <= 0xffffffff) {
+      return [
+        (num >>> 24) & 255,
+        (num >>> 16) & 255,
+        (num >>> 8) & 255,
+        num & 255,
+      ].join('.');
+    }
+  }
+
+  // 3. Obfuscated hex or octal notation (e.g. 0x7f000001, 0177.0.0.1, 0x7f.0.0.1)
+  const parts = cleaned.split('.');
+  if (parts.length > 0 && parts.length <= 4) {
+    const numericParts: number[] = [];
+    for (const part of parts) {
+      let val: number;
+      if (part.startsWith('0x')) {
+        val = parseInt(part, 16);
+      } else if (part.startsWith('0') && part.length > 1 && /^[0-7]+$/.test(part)) {
+        val = parseInt(part, 8);
+      } else if (/^\d+$/.test(part)) {
+        val = parseInt(part, 10);
+      } else {
+        return null; // Contains non-numeric domain characters (e.g. example.com)
+      }
+      if (isNaN(val) || val < 0) return null;
+      numericParts.push(val);
+    }
+
+    if (numericParts.length === 4) {
+      if (numericParts.every((p) => p <= 255)) {
+        return numericParts.join('.');
+      }
+    } else if (numericParts.length === 1) {
+      const num = numericParts[0];
+      if (num <= 0xffffffff) {
+        return [
+          (num >>> 24) & 255,
+          (num >>> 16) & 255,
+          (num >>> 8) & 255,
+          num & 255,
+        ].join('.');
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
  * Validates that a URL is safe to fetch (not targeting private/internal infrastructure).
- * Performs DNS resolution and checks all returned IPs against blocked ranges.
+ * Performs IP normalization, blocked range comparison, and DNS resolution checks.
  *
  * @param url - The fully-qualified URL to validate
  * @throws Error if the URL targets a blocked/private address
@@ -154,20 +221,19 @@ export async function validateUrlSafety(url: string): Promise<void> {
     throw new Error(msg);
   }
 
-  // Check if hostname is a raw IP address (IPv4 or IPv6)
-  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
-  const isRawIPv4 = ipv4Regex.test(hostname);
-  const isRawIPv6 = hostname.startsWith('[') || hostname.includes(':');
-
-  if (isRawIPv4) {
-    if (isBlockedIPv4(hostname)) {
-      const msg = `Blocked request to private/reserved IPv4 address "${hostname}".`;
+  // Check if hostname is an obfuscated or raw IPv4 address (DWORD, octal, hex, or standard)
+  const potentialIpv4 = parsePotentialIpAddress(hostname);
+  if (potentialIpv4) {
+    if (isBlockedIPv4(potentialIpv4)) {
+      const msg = `Blocked request to private/reserved IPv4 address "${hostname}" (resolved: ${potentialIpv4}).`;
       recordSsrfIncident(url, msg);
       throw new Error(msg);
     }
     return; // Raw IP, no DNS needed
   }
 
+  // Check if hostname is a raw IPv6 address
+  const isRawIPv6 = hostname.startsWith('[') || hostname.includes(':');
   if (isRawIPv6) {
     const cleanIPv6 = hostname.replace(/^\[|\]$/g, '');
     if (isBlockedIPv6(cleanIPv6)) {
@@ -212,3 +278,55 @@ export async function validateUrlSafety(url: string): Promise<void> {
     // No AAAA records is fine — most domains are IPv4 only
   }
 }
+
+export interface SafeFetchOptions extends RequestInit {
+  maxRedirects?: number;
+}
+
+/**
+ * Hardened fetch client that prevents SSRF via HTTP 30x redirects:
+ * - Pre-validates target URL with validateUrlSafety()
+ * - Sets redirect: 'manual' to prevent native fetch from silently following redirects to private IPs
+ * - Re-validates each redirect hop destination before following (up to maxRedirects)
+ */
+export async function safeFetchWithSsrf(
+  targetUrl: string,
+  options: SafeFetchOptions = {}
+): Promise<Response> {
+  const maxRedirects = options.maxRedirects ?? 5;
+  let currentUrl = targetUrl;
+  let redirectCount = 0;
+
+  while (true) {
+    // 1. Validate safety of current hop URL
+    await validateUrlSafety(currentUrl);
+
+    // 2. Fetch using manual redirect mode
+    const fetchOptions: RequestInit = {
+      ...options,
+      redirect: 'manual',
+    };
+
+    const response = await fetch(currentUrl, fetchOptions);
+
+    // 3. Check for redirect response status codes
+    const isRedirect = [301, 302, 303, 307, 308].includes(response.status);
+    if (!isRedirect) {
+      return response;
+    }
+
+    redirectCount++;
+    if (redirectCount > maxRedirects) {
+      throw new Error(`Too many redirects (exceeded maximum limit of ${maxRedirects} hops).`);
+    }
+
+    const locationHeader = response.headers.get('location');
+    if (!locationHeader) {
+      return response;
+    }
+
+    // Resolve relative redirect location against current URL
+    currentUrl = new URL(locationHeader, currentUrl).toString();
+  }
+}
+

@@ -1,4 +1,3 @@
-import jsPDF from 'jspdf';
 import { SinglePageAudit } from '@/types/seo';
 
 export interface WhiteLabelOptions {
@@ -23,10 +22,11 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   };
 }
 
-export function generateWhiteLabelPdfReport(
+export async function generateWhiteLabelPdfReport(
   audit: SinglePageAudit,
   options: WhiteLabelOptions
-): void {
+): Promise<void> {
+  const { default: jsPDF } = await import('jspdf');
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const brandRgb = hexToRgb(options.primaryColorHex || '#059669');
 

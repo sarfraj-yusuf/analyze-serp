@@ -293,6 +293,14 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link
+                  href="/login"
+                  className="text-slate-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-block py-0.5 font-medium"
+                >
+                  Sign In to Workspace
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/rss.xml"
                   target="_blank"
                   className="text-slate-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors inline-flex items-center gap-1 py-0.5 font-medium"

@@ -260,7 +260,7 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                 <Download className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                 <span>Export</span>
                 <ChevronDown
-                  className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${
+                  className={`w-3 h-3 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${
                     isExportDropdownOpen ? 'rotate-180' : ''
                   }`}
                 />
@@ -306,7 +306,7 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                       {copiedMarkdown ? 'Copied Table!' : 'Copy Markdown'}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 px-1 py-0.5 rounded bg-slate-100 dark:bg-white/5">
+                  <span className="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400 px-1 py-0.5 rounded bg-slate-100 dark:bg-white/5">
                     MD
                   </span>
                 </button>
@@ -463,7 +463,7 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
 
           {/* Search Input with Result Count Badge */}
           <div className="relative w-full sm:w-64 shrink-0">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search phrases..."
@@ -474,7 +474,7 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
                 title="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
@@ -623,9 +623,9 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                   className="py-12 text-center text-slate-500 dark:text-slate-400 text-xs"
                 >
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <Search className="w-6 h-6 text-slate-400" />
+                    <Search className="w-6 h-6 text-slate-500 dark:text-slate-400" />
                     <span className="font-semibold">No keyword terms match this filter selection.</span>
-                    <span className="text-[11px] text-slate-400">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
                       Try selecting &quot;All Terms&quot; or clearing your search query.
                     </span>
                   </div>
@@ -704,7 +704,7 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                             </div>
                           </div>
                         ) : (
-                          <span className="text-slate-400 dark:text-slate-500 text-xs font-mono">
+                          <span className="text-slate-500 dark:text-slate-400 text-xs font-mono">
                             0%
                           </span>
                         )}

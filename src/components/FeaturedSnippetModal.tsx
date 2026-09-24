@@ -37,6 +37,7 @@ import {
   SnippetReadinessReport,
 } from '@/lib/snippet-optimizer-engine';
 import { AuthModal } from '@/components/AuthModal';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 export interface FeaturedSnippetModalProps {
   isOpen: boolean;
@@ -76,6 +77,7 @@ export function FeaturedSnippetModal({
   initialText = '',
   targetUrl = 'https://analyzeserp.com/blog/position-0-guide',
 }: FeaturedSnippetModalProps) {
+  const modalRef = useFocusTrap({ isOpen, onClose });
   const [mounted, setMounted] = useState(false);
   const [query, setQuery] = useState(initialQuery || 'what is competitor seo analysis');
   const [heading, setHeading] = useState(initialHeading || '## What is Competitor SEO Analysis?');
@@ -293,6 +295,7 @@ export function FeaturedSnippetModal({
   const modalContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto bg-slate-900/70 backdrop-blur-xs animate-in fade-in duration-150">
       <div
+        ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="snippet-modal-title"
@@ -329,7 +332,7 @@ export function FeaturedSnippetModal({
             <button
               onClick={onClose}
               aria-label="Close dialog"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -343,15 +346,16 @@ export function FeaturedSnippetModal({
             {/* Target Query Input Dock */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                <label htmlFor="snippet-target-query" className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
                   <span>Target Search Query</span>
-                  <span className="text-slate-400 text-[11px] font-normal">(The exact term triggering the snippet)</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-[11px] font-normal">(The exact term triggering the snippet)</span>
                 </label>
-                <span className="text-[11px] font-mono text-slate-400">Intent: {classification.format}</span>
+                <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400">Intent: {classification.format}</span>
               </div>
 
               <div className="flex items-center gap-2">
                 <input
+                  id="snippet-target-query"
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -364,6 +368,7 @@ export function FeaturedSnippetModal({
                   disabled={isGeneratingAi}
                   className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-xs shrink-0 cursor-pointer disabled:opacity-50"
                   title="Generate mathematically optimal Position 0 snippet bait with Gemini AI"
+                  aria-label="Draft optimal Position 0 snippet with AI"
                 >
                   <Sparkles className={`w-3.5 h-3.5 ${isGeneratingAi ? 'animate-spin' : ''}`} />
                   <span>{isGeneratingAi ? 'Drafting...' : 'AI Draft'}</span>
@@ -388,7 +393,7 @@ export function FeaturedSnippetModal({
               </div>
 
               {aiError && (
-                <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/25 text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+                <div role="alert" aria-live="polite" className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/25 text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{aiError}</span>
                 </div>
@@ -397,8 +402,8 @@ export function FeaturedSnippetModal({
 
             {/* Format Switcher Tabs */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Snippet Format</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <label id="snippet-format-label" className="text-xs font-bold text-slate-700 dark:text-slate-200">Snippet Format</label>
+              <div role="radiogroup" aria-labelledby="snippet-format-label" className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
                   { id: 'PARAGRAPH' as SnippetFormat, label: 'Paragraph', desc: '40–58 words', icon: FileText },
                   { id: 'NUMBERED_LIST' as SnippetFormat, label: 'Numbered', desc: 'Steps / Process', icon: ListOrdered },
@@ -411,6 +416,9 @@ export function FeaturedSnippetModal({
                     <button
                       key={tab.id}
                       type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      aria-label={`${tab.label} format (${tab.desc})`}
                       onClick={() => handleSelectFormat(tab.id)}
                       className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                         isSelected
@@ -419,12 +427,12 @@ export function FeaturedSnippetModal({
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <Icon className={`w-4 h-4 ${isSelected ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`} />
+                        <Icon className={`w-4 h-4 ${isSelected ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`} />
                         {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
                       </div>
                       <div className="mt-2">
                         <div className="text-xs font-bold">{tab.label}</div>
-                        <div className="text-[10px] text-slate-400">{tab.desc}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400">{tab.desc}</div>
                       </div>
                     </button>
                   );
@@ -435,9 +443,9 @@ export function FeaturedSnippetModal({
             {/* Preceding Heading (H2 / H3) Input */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                <label htmlFor="snippet-heading-input" className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
                   <span>Preceding Question Heading (H2 / H3)</span>
-                  <span className="text-slate-400 text-[11px] font-normal">(Crucial anchor Google extracts from)</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-[11px] font-normal">(Crucial anchor Google extracts from)</span>
                 </label>
                 <button
                   type="button"
@@ -448,6 +456,7 @@ export function FeaturedSnippetModal({
                 </button>
               </div>
               <input
+                id="snippet-heading-input"
                 type="text"
                 value={heading}
                 onChange={(e) => setHeading(e.target.value)}
@@ -460,7 +469,7 @@ export function FeaturedSnippetModal({
             {format === 'PARAGRAPH' && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                  <label htmlFor="snippet-paragraph-text" className="text-xs font-bold text-slate-700 dark:text-slate-200">
                     Paragraph Snippet Bait (Inverted Pyramid)
                   </label>
                   <div className="flex items-center gap-2 font-mono text-[11px]">
@@ -475,11 +484,12 @@ export function FeaturedSnippetModal({
                     >
                       {readiness.wordCount} words (Target: 40–58)
                     </span>
-                    <span className="text-slate-400">{readiness.charCount} chars</span>
+                    <span className="text-slate-500 dark:text-slate-400">{readiness.charCount} chars</span>
                   </div>
                 </div>
 
                 <textarea
+                  id="snippet-paragraph-text"
                   rows={4}
                   value={paragraphText}
                   onChange={(e) => setParagraphText(e.target.value)}
@@ -489,7 +499,7 @@ export function FeaturedSnippetModal({
 
                 {/* Fluff Alert Pill */}
                 {readiness.detectedFluff.length > 0 && (
-                  <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs text-rose-700 dark:text-rose-400 flex items-center justify-between gap-2">
+                  <div role="alert" className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs text-rose-700 dark:text-rose-400 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                       <span>Filler detected: <strong>&quot;{readiness.detectedFluff.join('&quot;, &quot;')}&quot;</strong></span>
@@ -519,12 +529,13 @@ export function FeaturedSnippetModal({
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                   {listItems.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-1.5">
-                      <span className="w-5 text-[11px] font-mono font-bold text-slate-400 text-center shrink-0">
+                      <span className="w-5 text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400 text-center shrink-0">
                         {format === 'NUMBERED_LIST' ? `${idx + 1}.` : '•'}
                       </span>
                       <input
                         type="text"
                         value={item}
+                        aria-label={`List item ${idx + 1}`}
                         onChange={(e) => handleUpdateListItem(idx, e.target.value)}
                         placeholder="**Step Action** - Detail instruction..."
                         className="flex-1 px-3 py-1.5 rounded-lg glass-input text-xs font-mono focus:outline-none transition-all"
@@ -533,8 +544,9 @@ export function FeaturedSnippetModal({
                         type="button"
                         onClick={() => handleMoveListItem(idx, 'up')}
                         disabled={idx === 0}
-                        className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 cursor-pointer"
+                        className="p-1 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white disabled:opacity-30 cursor-pointer"
                         title="Move Up"
+                        aria-label={`Move item ${idx + 1} up`}
                       >
                         <ArrowUp className="w-3.5 h-3.5" />
                       </button>
@@ -542,8 +554,9 @@ export function FeaturedSnippetModal({
                         type="button"
                         onClick={() => handleMoveListItem(idx, 'down')}
                         disabled={idx === listItems.length - 1}
-                        className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 cursor-pointer"
+                        className="p-1 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white disabled:opacity-30 cursor-pointer"
                         title="Move Down"
+                        aria-label={`Move item ${idx + 1} down`}
                       >
                         <ArrowDown className="w-3.5 h-3.5" />
                       </button>
@@ -551,8 +564,9 @@ export function FeaturedSnippetModal({
                         type="button"
                         onClick={() => handleDeleteListItem(idx)}
                         disabled={listItems.length <= 1}
-                        className="p-1 text-slate-400 hover:text-rose-500 disabled:opacity-30 cursor-pointer"
+                        className="p-1 text-slate-500 hover:text-rose-600 dark:text-slate-400 disabled:opacity-30 cursor-pointer"
                         title="Delete Item"
+                        aria-label={`Delete item ${idx + 1}`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -589,6 +603,7 @@ export function FeaturedSnippetModal({
                             <input
                               type="text"
                               value={h}
+                              aria-label={`Table header column ${colIdx + 1}`}
                               onChange={(e) => handleUpdateTableHeader(colIdx, e.target.value)}
                               className="w-full font-bold bg-transparent focus:outline-none focus:bg-white dark:focus:bg-slate-800 px-1.5 py-0.5 rounded"
                             />
@@ -605,6 +620,7 @@ export function FeaturedSnippetModal({
                               <input
                                 type="text"
                                 value={cell}
+                                aria-label={`Table cell row ${rowIdx + 1}, column ${colIdx + 1}`}
                                 onChange={(e) => handleUpdateTableCell(rowIdx, colIdx, e.target.value)}
                                 className="w-full bg-transparent focus:outline-none focus:bg-white dark:focus:bg-slate-800 px-1.5 py-0.5 rounded font-mono text-[11px]"
                               />
@@ -615,7 +631,9 @@ export function FeaturedSnippetModal({
                               type="button"
                               onClick={() => handleDeleteTableRow(rowIdx)}
                               disabled={tableData.rows.length <= 1}
-                              className="text-slate-400 hover:text-rose-500 disabled:opacity-30 cursor-pointer"
+                              className="text-slate-500 hover:text-rose-600 dark:text-slate-400 disabled:opacity-30 cursor-pointer"
+                              title={`Delete row ${rowIdx + 1}`}
+                              aria-label={`Delete table row ${rowIdx + 1}`}
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
@@ -633,9 +651,13 @@ export function FeaturedSnippetModal({
           <div className="lg:col-span-5 flex flex-col bg-slate-50/50 dark:bg-black/20">
             {/* Top Navigation Tabs */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 shrink-0">
-              <div className="flex items-center gap-1">
+              <div role="tablist" aria-label="SERP Position 0 Simulator options" className="flex items-center gap-1">
                 <button
                   type="button"
+                  role="tab"
+                  id="tab-snippet-preview"
+                  aria-selected={activeRightTab === 'preview'}
+                  aria-controls="panel-snippet-preview"
                   onClick={() => setActiveRightTab('preview')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     activeRightTab === 'preview'
@@ -647,6 +669,10 @@ export function FeaturedSnippetModal({
                 </button>
                 <button
                   type="button"
+                  role="tab"
+                  id="tab-snippet-checklist"
+                  aria-selected={activeRightTab === 'checklist'}
+                  aria-controls="panel-snippet-checklist"
                   onClick={() => setActiveRightTab('checklist')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                     activeRightTab === 'checklist'
@@ -659,6 +685,10 @@ export function FeaturedSnippetModal({
                 </button>
                 <button
                   type="button"
+                  role="tab"
+                  id="tab-snippet-export"
+                  aria-selected={activeRightTab === 'export'}
+                  aria-controls="panel-snippet-export"
                   onClick={() => setActiveRightTab('export')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     activeRightTab === 'export'
@@ -675,16 +705,20 @@ export function FeaturedSnippetModal({
                   <button
                     type="button"
                     onClick={() => setPreviewDevice('desktop')}
-                    className={`p-1 rounded cursor-pointer ${previewDevice === 'desktop' ? 'bg-white dark:bg-slate-800 text-emerald-600 shadow-xs' : 'text-slate-400'}`}
+                    className={`p-1 rounded cursor-pointer ${previewDevice === 'desktop' ? 'bg-white dark:bg-slate-800 text-emerald-600 shadow-xs' : 'text-slate-500 dark:text-slate-400'}`}
                     title="Desktop Preview"
+                    aria-label="Desktop Preview"
+                    aria-pressed={previewDevice === 'desktop'}
                   >
                     <Monitor className="w-3.5 h-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={() => setPreviewDevice('mobile')}
-                    className={`p-1 rounded cursor-pointer ${previewDevice === 'mobile' ? 'bg-white dark:bg-slate-800 text-emerald-600 shadow-xs' : 'text-slate-400'}`}
+                    className={`p-1 rounded cursor-pointer ${previewDevice === 'mobile' ? 'bg-white dark:bg-slate-800 text-emerald-600 shadow-xs' : 'text-slate-500 dark:text-slate-400'}`}
                     title="Mobile Preview"
+                    aria-label="Mobile Preview"
+                    aria-pressed={previewDevice === 'mobile'}
                   >
                     <Smartphone className="w-3.5 h-3.5" />
                   </button>
@@ -696,7 +730,7 @@ export function FeaturedSnippetModal({
             <div className="flex-1 p-5 overflow-y-auto space-y-4">
               {/* Tab 1: Live Google SERP Position 0 Preview */}
               {activeRightTab === 'preview' && (
-                <div className="space-y-3">
+                <div id="panel-snippet-preview" role="tabpanel" aria-labelledby="tab-snippet-preview" className="space-y-3">
                   <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                     <span>Google SERP · Position 0 Simulation</span>
                     <span>{previewDevice === 'desktop' ? '600px Desktop' : '360px Mobile'}</span>
@@ -799,13 +833,13 @@ export function FeaturedSnippetModal({
                   {/* Summary Metric Strip */}
                   <div className="grid grid-cols-2 gap-2 pt-2 text-center text-xs">
                     <div className="p-2 rounded-xl bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-white/10">
-                      <div className="text-[10px] text-slate-400 uppercase font-mono">Readiness</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono">Readiness</div>
                       <div className="text-base font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                         {readiness.score} / 100
                       </div>
                     </div>
                     <div className="p-2 rounded-xl bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-white/10">
-                      <div className="text-[10px] text-slate-400 uppercase font-mono">Volume</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono">Volume</div>
                       <div className="text-base font-bold text-slate-800 dark:text-slate-100 font-mono">
                         {format === 'PARAGRAPH' ? `${readiness.wordCount} words` : `${readiness.itemCount} items`}
                       </div>
@@ -816,7 +850,7 @@ export function FeaturedSnippetModal({
 
               {/* Tab 2: Position 0 Readiness Checklist */}
               {activeRightTab === 'checklist' && (
-                <div className="space-y-3">
+                <div id="panel-snippet-checklist" role="tabpanel" aria-labelledby="tab-snippet-checklist" className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
                       Position 0 Checklist
@@ -875,13 +909,16 @@ export function FeaturedSnippetModal({
 
               {/* Tab 3: Code & Markdown Export */}
               {activeRightTab === 'export' && (
-                <div className="space-y-3 text-left">
+                <div id="panel-snippet-export" role="tabpanel" aria-labelledby="tab-snippet-export" className="space-y-3 text-left">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
+                    <div role="radiogroup" aria-label="Export code format" className="flex items-center gap-1.5">
                       {(['html', 'markdown', 'plain'] as const).map((m) => (
                         <button
                           key={m}
                           type="button"
+                          role="radio"
+                          aria-checked={exportMode === m}
+                          aria-label={`${m} format`}
                           onClick={() => setExportMode(m)}
                           className={`px-2.5 py-1 rounded-md text-xs font-mono font-semibold uppercase cursor-pointer ${
                             exportMode === m

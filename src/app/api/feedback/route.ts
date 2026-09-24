@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { saveUserFeedback, getAllFeedback } from '@/lib/db';
+import { saveUserFeedback, getAllFeedback, logSecurityIncident } from '@/lib/db';
 import { getClientIp } from '@/lib/activity-logger';
 
 // Basic sliding window memory rate limiter for feedback submissions (5 per IP / 24h)
@@ -97,14 +97,19 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized. Admin authorization required.' }, { status: 401 });
     }
 
-    const providedBuf = Buffer.from(providedKey);
-    const adminBuf = Buffer.from(adminKey);
-
-    const isMatch =
-      providedBuf.length === adminBuf.length &&
-      crypto.timingSafeEqual(providedBuf, adminBuf);
+    const providedHash = crypto.createHash('sha256').update(providedKey).digest();
+    const adminHash = crypto.createHash('sha256').update(adminKey).digest();
+    const isMatch = crypto.timingSafeEqual(providedHash, adminHash);
 
     if (!isMatch) {
+      logSecurityIncident({
+        incident_type: 'UNAUTHORIZED_ADMIN_ATTEMPT',
+        severity: 'high',
+        ip_address: getClientIp(req),
+        target_endpoint: '/api/feedback',
+        details: 'Unauthorized feedback review list access attempt with invalid passkey',
+      }).catch(() => {});
+
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

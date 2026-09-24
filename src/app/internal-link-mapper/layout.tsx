@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Internal Link Topology & Anchor Text Distribution Mapper | AnalyzeSERP',
+  title: 'Internal Link Topology & Anchor Text Distribution Mapper',
   description:
     'Map internal link architecture, destination target hubs, and 5-tier anchor text distribution. Detect over-optimization and uncover competitor anchor gaps.',
   alternates: {

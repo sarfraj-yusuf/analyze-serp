@@ -388,7 +388,8 @@ export default function AdminPage() {
       }
       setIsAuthenticated(true);
       setLastSyncedTime(new Date());
-      localStorage.setItem('analyze_admin_key', keyToUse);
+      sessionStorage.setItem('analyze_admin_key', keyToUse);
+      try { localStorage.removeItem('analyze_admin_key'); } catch {}
     } catch (err: any) {
       setErrorMsg(err.message || 'An error occurred while loading admin panel.');
       setIsAuthenticated(false);
@@ -444,10 +445,12 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    const savedKey = localStorage.getItem('analyze_admin_key');
+    const savedKey = sessionStorage.getItem('analyze_admin_key') || localStorage.getItem('analyze_admin_key');
     if (savedKey) {
       setAdminKey(savedKey);
       fetchAdminData(savedKey);
+      sessionStorage.setItem('analyze_admin_key', savedKey);
+      try { localStorage.removeItem('analyze_admin_key'); } catch {}
     }
   }, []);
 
@@ -469,7 +472,8 @@ export default function AdminPage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('analyze_admin_key');
+    sessionStorage.removeItem('analyze_admin_key');
+    try { localStorage.removeItem('analyze_admin_key'); } catch {}
     setIsAuthenticated(false);
     setAdminData(null);
     setAdminKey('');

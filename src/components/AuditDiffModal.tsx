@@ -38,6 +38,7 @@ import {
 import { compareAudits, AuditDiffReport, calculateAuditScore } from '@/lib/audit-diff-engine';
 import { AuthModal } from './AuthModal';
 import { Tooltip } from './Tooltip';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 export interface AuditDiffModalProps {
   isOpen: boolean;
@@ -59,6 +60,7 @@ export const AuditDiffModal: React.FC<AuditDiffModalProps> = ({
   const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const modalRef = useFocusTrap({ isOpen, onClose });
 
   // Snapshots list & selection
   const [snapshots, setSnapshots] = useState<AuditSnapshot[]>([]);
@@ -211,7 +213,13 @@ export const AuditDiffModal: React.FC<AuditDiffModalProps> = ({
 
   const modalContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-white/10 flex flex-col max-h-[92vh] overflow-hidden">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="audit-diff-modal-title"
+        className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-white/10 flex flex-col max-h-[92vh] overflow-hidden"
+      >
         
         {/* Header Bar */}
         <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between gap-3 shrink-0 bg-slate-50/70 dark:bg-slate-900/60">
@@ -221,7 +229,7 @@ export const AuditDiffModal: React.FC<AuditDiffModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+                <h3 id="audit-diff-modal-title" className="text-base font-bold text-slate-800 dark:text-slate-100">
                   Audit Progress Tracker &amp; Delta Diff
                 </h3>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800">

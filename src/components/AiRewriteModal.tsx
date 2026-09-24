@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { AuthModal } from './AuthModal';
 import { MetaRewriteResult } from '@/lib/gemini';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface AiRewriteModalProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ export const AiRewriteModal: React.FC<AiRewriteModalProps> = ({
   onApplyTitle,
   onApplyDescription,
 }) => {
+  const modalRef = useFocusTrap<HTMLDivElement>({ isOpen, onClose });
   const { data: session, update: updateSession } = useSession();
   const [mounted, setMounted] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -150,6 +152,7 @@ export const AiRewriteModal: React.FC<AiRewriteModalProps> = ({
         onClick={onClose}
       >
         <div
+          ref={modalRef}
           className="relative w-full max-w-3xl rounded-2xl p-5 sm:p-7 border border-slate-200 dark:border-white/15 shadow-2xl space-y-6 bg-white dark:bg-slate-900 my-auto max-h-[92vh] overflow-y-auto modal-scroll text-slate-800 dark:text-slate-100 transition-all"
           onClick={(e) => e.stopPropagation()}
         >

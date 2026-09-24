@@ -47,14 +47,14 @@ export async function generateMetadata({ params }: SingleBlogPageProps): Promise
   const post = getBlogPostBySlug(slug);
 
   if (!post) {
-    return { title: 'Post Not Found | AnalyzeSERP' };
+    return { title: 'Post Not Found' };
   }
 
   const { meta } = post;
   const canonicalUrl = `https://analyzeserp.com/blog/${slug}`;
 
   return {
-    title: `${meta.title} | AnalyzeSERP Blog`,
+    title: meta.title,
     description: meta.description,
     authors: [{ name: meta.author, url: meta.authorTwitter }],
     alternates: { canonical: canonicalUrl },

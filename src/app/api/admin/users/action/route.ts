@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { getUserByEmail, adminUpdateUser, banIp, unbanIp, getBannedIps, updateSiteConfigurations } from '@/lib/db';
+import { getUserByEmail, adminUpdateUser, banIp, unbanIp, getBannedIps, updateSiteConfigurations, logSecurityIncident } from '@/lib/db';
 
 export async function POST(req: Request) {
   try {
+    const forwarded = req.headers.get('x-forwarded-for');
+    const clientIp = req.headers.get('cf-connecting-ip') ||
+      req.headers.get('x-real-ip') ||
+      (forwarded ? forwarded.split(',')[0].trim() : '127.0.0.1');
+
     const secretKey = process.env.ADMIN_SECRET_KEY;
     if (!secretKey) {
       return NextResponse.json(
@@ -20,14 +25,19 @@ export async function POST(req: Request) {
       );
     }
 
-    const authKeyBuf = Buffer.from(authKey);
-    const secretKeyBuf = Buffer.from(secretKey);
-
-    const isMatch =
-      authKeyBuf.length === secretKeyBuf.length &&
-      crypto.timingSafeEqual(authKeyBuf, secretKeyBuf);
+    const authKeyHash = crypto.createHash('sha256').update(authKey).digest();
+    const secretKeyHash = crypto.createHash('sha256').update(secretKey).digest();
+    const isMatch = crypto.timingSafeEqual(authKeyHash, secretKeyHash);
 
     if (!isMatch) {
+      logSecurityIncident({
+        incident_type: 'UNAUTHORIZED_ADMIN_ATTEMPT',
+        severity: 'critical',
+        ip_address: clientIp,
+        target_endpoint: '/api/admin/users/action',
+        details: 'Unauthorized admin mutation action attempt with invalid passkey',
+      }).catch(() => {});
+
       return NextResponse.json(
         { error: 'Unauthorized Admin Access. Invalid Key.' },
         { status: 401 }

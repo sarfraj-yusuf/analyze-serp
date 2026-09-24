@@ -488,7 +488,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
                         title={r.url}
                       >
                         <span className="truncate">{host}</span>
-                        <ExternalLink className="w-3 h-3 text-slate-400 hover:text-emerald-500 shrink-0" />
+                        <ExternalLink className="w-3 h-3 text-slate-500 hover:text-emerald-500 dark:text-slate-400 shrink-0" />
                       </a>
                     </div>
                     <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate font-mono mt-0.5" title={r.url}>
@@ -590,7 +590,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
                             </div>
                           </div>
                         ) : (
-                          <span className="text-slate-400">N/A</span>
+                          <span className="text-slate-500 dark:text-slate-400">N/A</span>
                         )}
                       </td>
                     );
@@ -741,7 +741,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
                             </div>
                           </div>
                         ) : (
-                          <span className="text-slate-400">N/A</span>
+                          <span className="text-slate-500 dark:text-slate-400">N/A</span>
                         )}
                       </td>
                     );
@@ -779,7 +779,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
                             ))}
                           </div>
                         ) : (
-                          <span className="text-slate-400">N/A</span>
+                          <span className="text-slate-500 dark:text-slate-400">N/A</span>
                         )}
                       </td>
                     );
@@ -1071,7 +1071,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
                             {affCount} Affiliate Links
                           </span>
                         ) : (
-                          <span className="text-slate-400 dark:text-slate-500 text-[11px]">None Detected</span>
+                          <span className="text-slate-500 dark:text-slate-400 text-[11px]">None Detected</span>
                         )}
                       </td>
                     );

@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'My SEO Workspace & Audit History | AnalyzeSERP',
+  title: 'My SEO Workspace & Audit History',
   description: 'Manage your saved SEO audits, cloud snapshots, AI credits, and account history.',
   robots: {
     index: false,

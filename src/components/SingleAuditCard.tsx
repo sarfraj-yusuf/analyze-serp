@@ -12,14 +12,37 @@ import { LinkInspectorCard } from './LinkInspectorCard';
 import { TechnicalHealthCard } from './TechnicalHealthCard';
 import { CoreWebVitalsCard } from './CoreWebVitalsCard';
 import { SearchIntentEntityCard } from './SearchIntentEntityCard';
-import { WhiteLabelPdfModal } from './WhiteLabelPdfModal';
-import { AiRewriteModal } from './AiRewriteModal';
-import { JsonLdSchemaModal } from './JsonLdSchemaModal';
-import { AuditDiffModal } from './AuditDiffModal';
-import { FeaturedSnippetModal } from './FeaturedSnippetModal';
-import { ContentScratchpadModal } from './ContentScratchpadModal';
-import { InternalLinkTopologyModal } from './InternalLinkTopologyModal';
+import dynamic from 'next/dynamic';
 import { Tooltip } from './Tooltip';
+
+const WhiteLabelPdfModal = dynamic(
+  () => import('./WhiteLabelPdfModal').then((mod) => mod.WhiteLabelPdfModal),
+  { ssr: false }
+);
+const AiRewriteModal = dynamic(
+  () => import('./AiRewriteModal').then((mod) => mod.AiRewriteModal),
+  { ssr: false }
+);
+const JsonLdSchemaModal = dynamic(
+  () => import('./JsonLdSchemaModal').then((mod) => mod.JsonLdSchemaModal),
+  { ssr: false }
+);
+const AuditDiffModal = dynamic(
+  () => import('./AuditDiffModal').then((mod) => mod.AuditDiffModal),
+  { ssr: false }
+);
+const FeaturedSnippetModal = dynamic(
+  () => import('./FeaturedSnippetModal').then((mod) => mod.FeaturedSnippetModal),
+  { ssr: false }
+);
+const ContentScratchpadModal = dynamic(
+  () => import('./ContentScratchpadModal').then((mod) => mod.ContentScratchpadModal),
+  { ssr: false }
+);
+const InternalLinkTopologyModal = dynamic(
+  () => import('./InternalLinkTopologyModal').then((mod) => mod.InternalLinkTopologyModal),
+  { ssr: false }
+);
 import {
   FileText,
   Clock,
@@ -246,7 +269,7 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           role="tab"
           aria-selected={activePillar === 'overview'}
           onClick={() => setActivePillar('overview')}
-          className={`py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+          className={`py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer ${
             activePillar === 'overview'
               ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-bold shadow-xs'
               : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/[0.05] font-medium'
@@ -261,7 +284,7 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           role="tab"
           aria-selected={activePillar === 'technical'}
           onClick={() => setActivePillar('technical')}
-          className={`py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+          className={`py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer ${
             activePillar === 'technical'
               ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-bold shadow-xs'
               : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/[0.05] font-medium'
@@ -276,7 +299,7 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           role="tab"
           aria-selected={activePillar === 'content'}
           onClick={() => setActivePillar('content')}
-          className={`py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+          className={`py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer ${
             activePillar === 'content'
               ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-bold shadow-xs'
               : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/[0.05] font-medium'
@@ -291,7 +314,7 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           role="tab"
           aria-selected={activePillar === 'links'}
           onClick={() => setActivePillar('links')}
-          className={`py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+          className={`py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer ${
             activePillar === 'links'
               ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-bold shadow-xs'
               : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/[0.05] font-medium'

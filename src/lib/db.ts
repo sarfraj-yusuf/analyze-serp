@@ -3,8 +3,17 @@ import mysql from 'mysql2/promise';
 /**
  * Hostinger MySQL Connection Pool Configuration
  * Strictly capped to 10 connections to respect Hostinger shared hosting limits.
+ * Global singleton pattern ensures zero connection pool multiplication across Next.js reloads.
  */
-let pool: mysql.Pool | null = null;
+const globalForDb = globalThis as unknown as {
+  analyzeSerpPool?: mysql.Pool | null;
+  analyzeSerpTablesInitPromise?: Promise<void> | null;
+  analyzeSerpTablesInitialized?: boolean;
+};
+
+let pool: mysql.Pool | null = globalForDb.analyzeSerpPool || null;
+let isTablesInitialized: boolean = globalForDb.analyzeSerpTablesInitialized || false;
+let tablesInitPromise: Promise<void> | null = globalForDb.analyzeSerpTablesInitPromise || null;
 
 function getPool(): mysql.Pool | null {
   const rawHost = process.env.MYSQL_HOST;
@@ -36,6 +45,7 @@ function getPool(): mysql.Pool | null {
       keepAliveInitialDelay: 0,
       idleTimeout: 60000,
     });
+    globalForDb.analyzeSerpPool = pool;
   }
 
   return pool;
@@ -124,12 +134,20 @@ let localSnapshotIdCounter = 1;
  * Ensures required DB tables exist on Hostinger MySQL
  */
 export async function initDatabaseTables(): Promise<void> {
+  if (isTablesInitialized || globalForDb.analyzeSerpTablesInitialized) {
+    return;
+  }
+  if (tablesInitPromise) {
+    return tablesInitPromise;
+  }
+
   const db = getPool();
   if (!db) return;
 
-  try {
-    const connection = await db.getConnection();
+  tablesInitPromise = (async () => {
     try {
+      const connection = await db.getConnection();
+      try {
       await connection.query(`
         CREATE TABLE IF NOT EXISTS users (
           id VARCHAR(255) PRIMARY KEY,
@@ -280,9 +298,17 @@ export async function initDatabaseTables(): Promise<void> {
     } finally {
       connection.release();
     }
+    isTablesInitialized = true;
+    globalForDb.analyzeSerpTablesInitialized = true;
   } catch (error) {
     console.error('[DB Init Warning] Failed to initialize MySQL tables:', error);
+    tablesInitPromise = null;
+    globalForDb.analyzeSerpTablesInitPromise = null;
   }
+})();
+
+  globalForDb.analyzeSerpTablesInitPromise = tablesInitPromise;
+  return tablesInitPromise;
 }
 
 /**

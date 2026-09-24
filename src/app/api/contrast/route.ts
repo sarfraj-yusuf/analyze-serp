@@ -3,7 +3,7 @@ import * as cheerio from 'cheerio';
 import { scrapeURL } from '@/lib/scraper';
 import { analyzePageContrast } from '@/lib/contrast-analyzer';
 import { auditRateLimiter } from '@/lib/rate-limiter';
-import { validateUrlSafety } from '@/lib/ssrf-protection';
+import { validateUrlSafety, safeFetchWithSsrf } from '@/lib/ssrf-protection';
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,16 +52,16 @@ export async function POST(req: NextRequest) {
       try {
         const fetchedStyles = await Promise.allSettled(
           stylesheetHrefs.map(async (sheetUrl) => {
-            await validateUrlSafety(sheetUrl);
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), 2500);
-            const res = await fetch(sheetUrl, {
+            const res = await safeFetchWithSsrf(sheetUrl, {
               signal: controller.signal,
               headers: {
                 'User-Agent':
                   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 SEOCompetitorAnalyzer/1.0',
                 Accept: 'text/css,*/*;q=0.1',
               },
+              maxRedirects: 3,
             });
             clearTimeout(timer);
             if (res.ok) {

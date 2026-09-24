@@ -144,6 +144,30 @@ function AuditWorkspaceClient() {
     []
   );
 
+  // Dynamic client document title based on active audit URLs
+  useEffect(() => {
+    const validUrls = urls.map((u) => u.trim()).filter(Boolean);
+    if (validUrls.length > 1) {
+      const displayUrls = validUrls.map((u) => {
+        try {
+          return new URL(normalizeUrl(u)).hostname.replace(/^www\./, '');
+        } catch {
+          return u;
+        }
+      });
+      document.title = `Audit: ${displayUrls.join(' vs ')} | AnalyzeSERP`;
+    } else if (validUrls.length === 1) {
+      try {
+        const host = new URL(normalizeUrl(validUrls[0])).hostname.replace(/^www\./, '');
+        document.title = `Audit: ${host} | AnalyzeSERP`;
+      } catch {
+        document.title = `Audit: ${validUrls[0]} | AnalyzeSERP`;
+      }
+    } else {
+      document.title = 'Competitor SEO Audit Report | AnalyzeSERP';
+    }
+  }, [urls]);
+
   // Initialize from Query Params or LocalStorage on mount
   useEffect(() => {
     if (isInitialized) return;
@@ -319,14 +343,14 @@ function AuditWorkspaceClient() {
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-slate-900 dark:text-gray-100 selection:bg-emerald-500 selection:text-black transition-colors duration-200">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* Navigation Breadcrumb Bar with Action Buttons */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200/80 dark:border-white/[0.08] text-xs">
-          <nav aria-label="Breadcrumbs" className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+          <nav aria-label="Breadcrumbs" className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
             <Link href="/" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
               Home
             </Link>
-            <ChevronRight className="size-3.5 text-slate-400 dark:text-slate-600" />
+            <ChevronRight className="size-3.5 text-slate-500 dark:text-slate-500" />
             <span className="font-semibold text-slate-800 dark:text-slate-200">
               Competitor SEO Audit Report
             </span>
@@ -347,7 +371,7 @@ function AuditWorkspaceClient() {
               <button
                 type="button"
                 onClick={handleClearAndNew}
-                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 text-xs font-medium flex items-center gap-1.5 transition-all border border-slate-200 dark:border-white/10 cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 text-xs font-medium flex items-center gap-1.5 transition-all border border-slate-200 dark:border-white/10 cursor-pointer"
               >
                 <RotateCcw className="size-3.5" />
                 <span>New Audit</span>
@@ -368,7 +392,7 @@ function AuditWorkspaceClient() {
                 <span className="font-mono text-indigo-700 dark:text-indigo-300">
                   {viewingSnapshotInfo.label} ({viewingSnapshotInfo.date})
                 </span>
-                <span className="hidden md:inline ml-2 text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                <span className="hidden md:inline ml-2 text-[11px] font-mono text-slate-600 dark:text-slate-400">
                   • 0s Instant Restoration • 0 Quota Used
                 </span>
               </div>
@@ -402,7 +426,7 @@ function AuditWorkspaceClient() {
                   <Sparkles className="size-4 text-emerald-500" />
                   <span>Adjust Competitor URLs &amp; Re-run Benchmark</span>
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                   Update your target page or competitor list. The workspace will recalculate all keyword gaps and matrix signals.
                 </p>
               </div>
@@ -410,10 +434,11 @@ function AuditWorkspaceClient() {
 
             <form onSubmit={handleFormSubmit} className="space-y-3 pt-1">
               <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                <label htmlFor="audit-edit-keyword" className="block text-[11px] font-mono uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                   Optional Focus Keyword
                 </label>
                 <input
+                  id="audit-edit-keyword"
                   type="text"
                   placeholder="e.g. seo competitor analysis tool"
                   value={targetKeyword}
@@ -423,16 +448,23 @@ function AuditWorkspaceClient() {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <span className="block text-[11px] font-mono uppercase tracking-wider text-slate-600 dark:text-slate-400">
                   Target Page &amp; Competitor URLs (Max 5)
-                </label>
+                </span>
                 {urls.map((url, idx) => (
                   <div key={idx} className="flex items-center gap-2">
-                    <span className="px-2.5 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 w-24 text-center shrink-0">
+                    <span className="px-2.5 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300 w-24 text-center shrink-0">
                       {idx === 0 ? 'TARGET' : `COMP #${idx}`}
                     </span>
+                    <label htmlFor={`audit-edit-url-${idx}`} className="sr-only">
+                      {idx === 0 ? 'Target Page URL' : `Competitor ${idx} Page URL`}
+                    </label>
                     <input
+                      id={`audit-edit-url-${idx}`}
                       type="text"
+                      aria-label={idx === 0 ? 'Target Page URL' : `Competitor ${idx} Page URL`}
+                      aria-invalid={!!errorMsg}
+                      aria-describedby={errorMsg ? 'audit-edit-error-msg' : undefined}
                       value={url}
                       onChange={(e) => handleUrlChange(idx, e.target.value)}
                       onBlur={() => handleUrlBlur(idx)}
@@ -447,8 +479,9 @@ function AuditWorkspaceClient() {
                       <button
                         type="button"
                         onClick={() => removeUrlInput(idx)}
-                        className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                        title="Remove URL"
+                        aria-label={`Remove URL ${idx + 1}`}
+                        className="p-2 rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-500/10 dark:text-slate-400 dark:hover:text-red-400 transition-colors"
+                        title={`Remove URL ${idx + 1}`}
                       >
                         <Trash2 className="size-3.5" />
                       </button>
@@ -458,7 +491,7 @@ function AuditWorkspaceClient() {
               </div>
 
               {errorMsg && (
-                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/25 text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+                <div id="audit-edit-error-msg" role="alert" aria-live="polite" className="p-3 rounded-xl bg-red-500/10 border border-red-500/25 text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
                   <AlertCircle className="size-4 shrink-0" />
                   <span>{errorMsg}</span>
                 </div>

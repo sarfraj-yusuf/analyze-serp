@@ -36,12 +36,9 @@ export async function GET(req: Request) {
       );
     }
 
-    const authKeyBuf = Buffer.from(authKey);
-    const secretKeyBuf = Buffer.from(secretKey);
-
-    const isMatch =
-      authKeyBuf.length === secretKeyBuf.length &&
-      crypto.timingSafeEqual(authKeyBuf, secretKeyBuf);
+    const authKeyHash = crypto.createHash('sha256').update(authKey).digest();
+    const secretKeyHash = crypto.createHash('sha256').update(secretKey).digest();
+    const isMatch = crypto.timingSafeEqual(authKeyHash, secretKeyHash);
 
     if (!isMatch) {
       logSecurityIncident({

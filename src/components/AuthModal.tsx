@@ -12,6 +12,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { Logo } from './Logo';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -26,21 +27,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 }) => {
   const [loadingProvider, setLoadingProvider] = useState<'google' | 'github' | null>(null);
   const [mounted, setMounted] = useState(false);
+  const modalRef = useFocusTrap<HTMLDivElement>({ isOpen, onClose });
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Close on Escape key press
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
 
   if (!isOpen || !mounted) return null;
 
@@ -89,6 +80,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       onClick={onClose}
     >
       <div
+        ref={modalRef}
         className="relative w-full max-w-[430px] bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-7 border border-slate-200 dark:border-white/10 shadow-2xl space-y-5 text-slate-800 dark:text-slate-100 my-auto max-h-[92vh] overflow-y-auto modal-scroll animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
@@ -127,6 +119,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             type="button"
             disabled={loadingProvider !== null}
             onClick={() => handleSignIn('google')}
+            aria-label="Continue with Google"
             className="w-full py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white hover:bg-slate-50 dark:bg-slate-800/90 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-semibold text-xs flex items-center justify-between gap-3 transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
           >
             <div className="flex items-center gap-3">
@@ -164,6 +157,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             type="button"
             disabled={loadingProvider !== null}
             onClick={() => handleSignIn('github')}
+            aria-label="Continue with GitHub"
             className="w-full py-3 px-4 rounded-xl border border-slate-900/10 dark:border-white/10 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-between gap-3 transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
           >
             <div className="flex items-center gap-3">

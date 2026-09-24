@@ -7,18 +7,33 @@ import { getAllBlogPosts, getAllBlogCategories } from '@/lib/blog';
 import { Sparkles, BookOpen, ShieldCheck } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'SEO Knowledge Base & Actionable Guides | AnalyzeSERP Blog',
+  title: 'SEO Knowledge Base & Actionable Guides',
   description:
     'Learn how to perform competitor keyword gap analysis, optimize title tag pixel lengths, audit affiliate links, and boost organic search rankings with guides by Sarfraj Yusuf.',
   alternates: {
     canonical: 'https://analyzeserp.com/blog',
   },
   openGraph: {
-    title: 'SEO Knowledge Base & Actionable Guides | AnalyzeSERP Blog',
+    title: 'SEO Knowledge Base & Actionable Guides | AnalyzeSERP',
     description:
       'Competitor SEO audit guides, keyword gap strategies, and technical performance tutorials.',
     url: 'https://analyzeserp.com/blog',
     type: 'website',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'AnalyzeSERP SEO Knowledge Base & Guides',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SEO Knowledge Base & Actionable Guides | AnalyzeSERP',
+    description:
+      'Competitor SEO audit guides, keyword gap strategies, and technical performance tutorials.',
+    images: ['/og-image.jpg'],
   },
 };
 

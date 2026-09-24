@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Live SEO Content Scratchpad & Real-Time Content Scorer | AnalyzeSERP',
+  title: 'Live SEO Content Scratchpad & Real-Time Content Scorer',
   description:
     'Real-time lexical scoring studio with competitor keyword checklist, keyword density guard, and Flesch reading ease analyzer. Write rank-ready content fast.',
   alternates: {

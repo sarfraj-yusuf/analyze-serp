@@ -13,6 +13,7 @@ import {
   BarChart3,
   MessageSquarePlus,
 } from 'lucide-react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -44,6 +45,7 @@ const RATING_DESCRIPTIONS: Record<number, string> = {
 };
 
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
+  const modalRef = useFocusTrap<HTMLDivElement>({ isOpen, onClose });
   const [rating, setRating] = useState<number>(5);
   const [category, setCategory] = useState<string>('Feature Request');
   const [userType, setUserType] = useState<string>('SEO Specialist');
@@ -108,7 +110,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200"
     >
       {/* Outer Card with Rounded Corners and Subtle Elevation */}
-      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[92vh] text-slate-800 dark:text-slate-100">
+      <div
+        ref={modalRef}
+        className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[92vh] text-slate-800 dark:text-slate-100"
+      >
         {/* Top Close Button */}
         <button
           onClick={onClose}
@@ -174,11 +179,11 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
               {/* Category Pill Selection */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
                   <span>Feedback Type</span>
                   <span className="text-[11px] font-normal text-slate-400">Select one</span>
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                </div>
+                <div role="radiogroup" aria-label="Feedback Type" className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                   {CATEGORIES.map((cat) => {
                     const Icon = cat.icon;
                     const isSelected = category === cat.id;
@@ -186,6 +191,9 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                       <button
                         key={cat.id}
                         type="button"
+                        role="radio"
+                        aria-checked={isSelected}
+                        aria-label={cat.label}
                         onClick={() => setCategory(cat.id)}
                         className={`px-2.5 py-2 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                           isSelected
@@ -212,11 +220,13 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1">
+                <div role="radiogroup" aria-label="Overall Experience rating" className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
                       type="button"
+                      role="radio"
+                      aria-checked={rating === star}
                       onClick={() => setRating(star)}
                       aria-label={`Rate ${star} of 5 stars`}
                       className="p-1 text-amber-400 hover:scale-115 transition-transform focus:outline-none cursor-pointer"
@@ -233,15 +243,18 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
               {/* Message Input with Dynamic Placeholder */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                <label htmlFor="feedback-message" className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
                   <span>Your Message</span>
                   <span className="text-[11px] font-normal text-slate-400">Minimum 5 characters</span>
                 </label>
                 <textarea
+                  id="feedback-message"
                   required
                   rows={3}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
+                  aria-invalid={!!errorMsg}
+                  aria-describedby={errorMsg ? 'feedback-error-msg' : undefined}
                   placeholder={
                     category === 'Bug Report'
                       ? 'What happened, which tool or URL failed, and what did you expect to see?'
@@ -258,10 +271,11 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
               {/* Role & Email Compact Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <label htmlFor="feedback-user-type" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Your Role
                   </label>
                   <select
+                    id="feedback-user-type"
                     value={userType}
                     onChange={(e) => setUserType(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-500 transition-all cursor-pointer"
@@ -275,11 +289,12 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                  <label htmlFor="feedback-email" className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
                     <span>Email</span>
                     <span className="text-[11px] font-normal text-slate-400">Optional</span>
                   </label>
                   <input
+                    id="feedback-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -290,7 +305,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
               </div>
 
               {errorMsg && (
-                <div className="text-xs text-red-600 dark:text-red-400 flex items-center justify-center gap-1.5 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
+                <div id="feedback-error-msg" role="alert" aria-live="polite" className="text-xs text-red-600 dark:text-red-400 flex items-center justify-center gap-1.5 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{errorMsg}</span>
                 </div>

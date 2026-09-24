@@ -75,6 +75,9 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: "https://analyzeserp.com",
+    types: {
+      'application/rss+xml': 'https://analyzeserp.com/rss.xml',
+    },
   },
 };
 
@@ -103,7 +106,7 @@ const jsonLdSchema = [
     "@type": "Organization",
     "name": "AnalyzeSERP",
     "url": "https://analyzeserp.com",
-    "logo": "https://analyzeserp.com/og-image.jpg",
+    "logo": "https://analyzeserp.com/logo.svg",
     "sameAs": [
       "https://twitter.com/analyzeserp",
       "https://twitter.com/sarfrajyusuf"
@@ -116,7 +119,7 @@ const jsonLdSchema = [
     "url": "https://analyzeserp.com",
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "https://analyzeserp.com/?q={search_term_string}",
+      "target": "https://analyzeserp.com/blog?search={search_term_string}",
       "query-input": "required name=search_term_string"
     }
   }

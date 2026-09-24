@@ -164,25 +164,50 @@ class RateLimiter {
   }
 
   /**
-   * Extract client IP address from request headers
+   * Extract client IP address securely from request headers.
+   * Prioritizes tamper-proof edge headers (cf-connecting-ip, x-real-ip) over
+   * client-controllable x-forwarded-for to prevent IP spoofing and rate limit evasion.
    */
   public getClientIp(req: NextRequest | Request): string {
-    const forwardedFor = req.headers.get('x-forwarded-for');
-    if (forwardedFor) {
-      return forwardedFor.split(',')[0].trim();
-    }
-
-    const realIp = req.headers.get('x-real-ip');
-    if (realIp) {
-      return realIp.trim();
-    }
-
+    // 1. Cloudflare Edge header (tamper-proof when behind Cloudflare)
     const cfIp = req.headers.get('cf-connecting-ip');
-    if (cfIp) {
+    if (cfIp && this.isValidIp(cfIp.trim())) {
       return cfIp.trim();
     }
 
+    // 2. Direct Reverse Proxy header (Nginx / Caddy / Traefik)
+    const realIp = req.headers.get('x-real-ip');
+    if (realIp && this.isValidIp(realIp.trim())) {
+      return realIp.trim();
+    }
+
+    // 3. Fallback to X-Forwarded-For (sanitized)
+    const forwardedFor = req.headers.get('x-forwarded-for');
+    if (forwardedFor) {
+      const parts = forwardedFor.split(',').map((p) => p.trim()).filter(Boolean);
+      for (let i = parts.length - 1; i >= 0; i--) {
+        if (this.isValidIp(parts[i])) {
+          return parts[i];
+        }
+      }
+    }
+
     return '127.0.0.1';
+  }
+
+  /**
+   * Validate that the extracted string is syntactically a valid IPv4 or IPv6 address
+   */
+  private isValidIp(ip: string): boolean {
+    if (!ip || ip.length > 45) return false;
+    if (/^(\d{1,3}\.){3}\d{1,3}$/.test(ip)) {
+      const octets = ip.split('.').map(Number);
+      return octets.every((o) => o >= 0 && o <= 255);
+    }
+    if (ip.includes(':') && /^[0-9a-fA-F:]+$/.test(ip)) {
+      return true;
+    }
+    return false;
   }
 
   /**

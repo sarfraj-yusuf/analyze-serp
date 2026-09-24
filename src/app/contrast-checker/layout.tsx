@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Color Contrast Checker & WCAG Accessibility Auditor | AnalyzeSERP',
+  title: 'Color Contrast Checker & WCAG Accessibility Auditor',
   description:
     'Test foreground and background text color contrast ratios against WCAG 2.1 AA and AAA standards. Free online color contrast checker for web accessibility.',
   alternates: {

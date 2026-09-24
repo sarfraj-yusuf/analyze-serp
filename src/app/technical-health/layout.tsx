@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Technical SEO Audit Tool & Speed Health Inspector | AnalyzeSERP',
+  title: 'Technical SEO Audit Tool & Speed Health Inspector',
   description:
     'Audit server response time (TTFB), HTML payload size, DOM node depth, and SSL security. Free technical SEO health checker for developers & agencies.',
   alternates: {

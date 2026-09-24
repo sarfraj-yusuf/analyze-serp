@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Google Featured Snippet Optimizer & Position 0 Bait Studio | AnalyzeSERP',
+  title: 'Google Featured Snippet Optimizer & Position 0 Bait Studio',
   description:
     'Audit Google Position 0 featured snippet opportunities, generate high-converting snippet bait definitions (paragraphs, lists, tables), and classify search intent.',
   alternates: {

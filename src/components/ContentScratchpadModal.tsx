@@ -36,6 +36,7 @@ import {
 } from '@/lib/scratchpad-scorer';
 import { AuthModal } from './AuthModal';
 import { Tooltip } from './Tooltip';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 export interface ContentScratchpadModalProps {
   isOpen: boolean;
@@ -60,6 +61,7 @@ export function ContentScratchpadModal({
   suggestedHeadings = [],
   targetUrl = '',
 }: ContentScratchpadModalProps) {
+  const modalRef = useFocusTrap({ isOpen, onClose });
   const [mounted, setMounted] = useState(false);
   const [title, setTitle] = useState(initialTitle);
   const [body, setBody] = useState(initialContent);
@@ -315,7 +317,13 @@ export function ContentScratchpadModal({
 
   const modalContent = (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-[1580px] h-[94vh] flex flex-col bg-white dark:bg-slate-950 border border-slate-200/90 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden text-slate-800 dark:text-slate-100">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="scratchpad-modal-title"
+        className="relative w-full max-w-[1580px] h-[94vh] flex flex-col bg-white dark:bg-slate-950 border border-slate-200/90 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden text-slate-800 dark:text-slate-100"
+      >
         
         {/* Top Header Bar */}
         <header className="flex flex-wrap items-center justify-between px-4 sm:px-6 py-3 border-b border-slate-200/80 dark:border-white/10 bg-slate-50/80 dark:bg-slate-900/60 backdrop-blur-md gap-3">
@@ -325,7 +333,7 @@ export function ContentScratchpadModal({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
+                <h2 id="scratchpad-modal-title" className="text-sm font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
                   Live SEO Content Scratchpad
                 </h2>
                 <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
@@ -340,22 +348,26 @@ export function ContentScratchpadModal({
 
           {/* Center Target & Word count config */}
           <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-lg text-xs">
-            <span className="text-slate-500 flex items-center gap-1 font-medium">
+            <label htmlFor="scratchpad-focus-keyword" className="text-slate-500 flex items-center gap-1 font-medium cursor-pointer">
               <Key className="w-3.5 h-3.5 text-emerald-500" /> Focus:
-            </span>
+            </label>
             <input
+              id="scratchpad-focus-keyword"
               type="text"
+              aria-label="Target Focus Keyword"
               value={focusKeyword}
               onChange={(e) => setFocusKeyword(e.target.value)}
               placeholder="e.g. Technical SEO Audit"
               className="bg-transparent text-xs font-semibold text-slate-900 dark:text-slate-100 focus:outline-none w-32 sm:w-44 placeholder:text-slate-400"
             />
             <span className="text-slate-300 dark:text-slate-700">|</span>
-            <span className="text-slate-500 flex items-center gap-1 font-medium">
+            <label htmlFor="scratchpad-word-target" className="text-slate-500 flex items-center gap-1 font-medium cursor-pointer">
               <Target className="w-3.5 h-3.5 text-blue-500" /> Target:
-            </span>
+            </label>
             <input
+              id="scratchpad-word-target"
               type="number"
+              aria-label="Target Word Count"
               value={wordCountTarget}
               onChange={(e) => setWordCountTarget(Math.max(100, parseInt(e.target.value) || 100))}
               step={100}
@@ -373,8 +385,10 @@ export function ContentScratchpadModal({
             )}
 
             <button
+              type="button"
               onClick={handleCopyMarkdown}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-white/10 transition-colors"
+              aria-label="Copy draft as Markdown"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-white/10 transition-colors cursor-pointer"
               title="Copy Draft as Markdown"
             >
               {isCopiedMd ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -382,8 +396,10 @@ export function ContentScratchpadModal({
             </button>
 
             <button
+              type="button"
               onClick={handleCopyHtml}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-white/10 transition-colors"
+              aria-label="Copy draft as semantic HTML"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-white/10 transition-colors cursor-pointer"
               title="Copy Draft as Semantic HTML"
             >
               {isCopiedHtml ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <FileCode className="w-3.5 h-3.5" />}
@@ -391,8 +407,10 @@ export function ContentScratchpadModal({
             </button>
 
             <button
+              type="button"
               onClick={handleDownloadMd}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-white/10 transition-colors"
+              aria-label="Download draft as Markdown file"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-white/10 transition-colors cursor-pointer"
               title="Download as .md file"
             >
               <Download className="w-3.5 h-3.5" />
@@ -401,6 +419,7 @@ export function ContentScratchpadModal({
 
             <Tooltip content="Clear Draft" side="bottom">
               <button
+                type="button"
                 onClick={handleClearDraft}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
                 aria-label="Clear Draft"
@@ -413,6 +432,7 @@ export function ContentScratchpadModal({
 
             <Tooltip content="Close (Esc)" side="bottom">
               <button
+                type="button"
                 onClick={onClose}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors cursor-pointer"
                 aria-label="Close Scratchpad"
@@ -431,11 +451,13 @@ export function ContentScratchpadModal({
             
             {/* Title / H1 Input */}
             <div className="px-4 sm:px-6 pt-4 pb-2 border-b border-slate-100 dark:border-white/5 flex items-center gap-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded border border-slate-200 dark:border-white/10">
+              <label htmlFor="scratchpad-title-h1" className="text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded border border-slate-200 dark:border-white/10 cursor-pointer">
                 H1
-              </span>
+              </label>
               <input
+                id="scratchpad-title-h1"
                 type="text"
+                aria-label="Article Title / Primary H1 Headline"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter Article Title / Primary H1 Headline..."
@@ -456,11 +478,12 @@ export function ContentScratchpadModal({
             </div>
 
             {/* Quick Markdown Formatting Strip */}
-            <div className="flex items-center flex-wrap gap-1 px-4 sm:px-6 py-2 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/30 text-xs">
+            <div role="toolbar" aria-label="Markdown formatting toolbar" className="flex items-center flex-wrap gap-1 px-4 sm:px-6 py-2 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/30 text-xs">
               <button
                 type="button"
                 onClick={() => insertFormatting('## ')}
-                className="px-2 py-1 rounded font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Format as Heading 2"
+                className="px-2 py-1 rounded font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="Heading 2"
               >
                 H2
@@ -468,7 +491,8 @@ export function ContentScratchpadModal({
               <button
                 type="button"
                 onClick={() => insertFormatting('### ')}
-                className="px-2 py-1 rounded font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Format as Heading 3"
+                className="px-2 py-1 rounded font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="Heading 3"
               >
                 H3
@@ -477,7 +501,8 @@ export function ContentScratchpadModal({
               <button
                 type="button"
                 onClick={() => insertFormatting('**', '**')}
-                className="px-2 py-1 rounded font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Format as Bold text"
+                className="px-2 py-1 rounded font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="Bold (**text**)"
               >
                 B
@@ -485,7 +510,8 @@ export function ContentScratchpadModal({
               <button
                 type="button"
                 onClick={() => insertFormatting('*', '*')}
-                className="px-2 py-1 rounded italic text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Format as Italic text"
+                className="px-2 py-1 rounded italic text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="Italic (*text*)"
               >
                 I
@@ -493,7 +519,8 @@ export function ContentScratchpadModal({
               <button
                 type="button"
                 onClick={() => insertFormatting('- ')}
-                className="px-2 py-1 rounded text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Insert bulleted list"
+                className="px-2 py-1 rounded text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="Bulleted List (- item)"
               >
                 • List
@@ -501,7 +528,8 @@ export function ContentScratchpadModal({
               <button
                 type="button"
                 onClick={() => insertFormatting('1. ')}
-                className="px-2 py-1 rounded text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Insert numbered list"
+                className="px-2 py-1 rounded text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="Numbered List (1. item)"
               >
                 1. Steps
@@ -509,7 +537,8 @@ export function ContentScratchpadModal({
               <button
                 type="button"
                 onClick={() => insertFormatting('> ')}
-                className="px-2 py-1 rounded text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Insert quote block"
+                className="px-2 py-1 rounded text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="Quote Block (> quote)"
               >
                 “ Quote
@@ -517,7 +546,8 @@ export function ContentScratchpadModal({
               <button
                 type="button"
                 onClick={() => insertFormatting('`', '`')}
-                className="px-2 py-1 rounded font-mono text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Insert inline code"
+                className="px-2 py-1 rounded font-mono text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="Inline Code (`code`)"
               >
                 `code`
@@ -530,7 +560,10 @@ export function ContentScratchpadModal({
 
             {/* Textarea writing area */}
             <div className="flex-1 relative p-4 sm:p-6 flex flex-col min-h-0">
+              <label htmlFor="scratchpad-body-textarea" className="sr-only">Article Content Body</label>
               <textarea
+                id="scratchpad-body-textarea"
+                aria-label="Article Content Body"
                 ref={textareaRef}
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
@@ -566,14 +599,14 @@ export function ContentScratchpadModal({
                 </div>
 
                 <span className="hidden sm:flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                   ~{analysis.metrics.readingTimeMinutes} min read
                 </span>
               </div>
 
               <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400 text-[11px]">
                 <span className="flex items-center gap-1">
-                  <BookOpen className="w-3.5 h-3.5 text-slate-400" />
+                  <BookOpen className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                   {analysis.metrics.gradeLabel}
                 </span>
                 <span>•</span>
@@ -622,7 +655,7 @@ export function ContentScratchpadModal({
                     <span className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight tabular-nums">
                       {analysis.scoreBreakdown.totalScore}
                     </span>
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 -mt-0.5">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 -mt-0.5">
                       / 100
                     </span>
                   </div>
@@ -699,7 +732,7 @@ export function ContentScratchpadModal({
 
             {/* Quick Placement Checklist */}
             <div className="px-4 py-3 border-b border-slate-200/80 dark:border-white/10 bg-slate-100/50 dark:bg-slate-900/30">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-2">
                 Primary Keyword Placement ({focusKeyword || 'Focus'})
               </span>
               <div className="grid grid-cols-2 gap-2 text-xs">
@@ -707,9 +740,9 @@ export function ContentScratchpadModal({
                   {analysis.placement.inTitle ? (
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                   ) : (
-                    <AlertTriangle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <AlertTriangle className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                   )}
-                  <span className={analysis.placement.inTitle ? 'text-slate-800 dark:text-slate-200 font-medium' : 'text-slate-400'}>
+                  <span className={analysis.placement.inTitle ? 'text-slate-800 dark:text-slate-200 font-medium' : 'text-slate-500 dark:text-slate-400'}>
                     In Title
                   </span>
                 </div>
@@ -718,9 +751,9 @@ export function ContentScratchpadModal({
                   {analysis.placement.inH1 ? (
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                   ) : (
-                    <AlertTriangle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <AlertTriangle className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                   )}
-                  <span className={analysis.placement.inH1 ? 'text-slate-800 dark:text-slate-200 font-medium' : 'text-slate-400'}>
+                  <span className={analysis.placement.inH1 ? 'text-slate-800 dark:text-slate-200 font-medium' : 'text-slate-500 dark:text-slate-400'}>
                     In H1 Tag
                   </span>
                 </div>
@@ -729,9 +762,9 @@ export function ContentScratchpadModal({
                   {analysis.placement.inFirst100 ? (
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                   ) : (
-                    <AlertTriangle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <AlertTriangle className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                   )}
-                  <span className={analysis.placement.inFirst100 ? 'text-slate-800 dark:text-slate-200 font-medium' : 'text-slate-400'}>
+                  <span className={analysis.placement.inFirst100 ? 'text-slate-800 dark:text-slate-200 font-medium' : 'text-slate-500 dark:text-slate-400'}>
                     First 100 Words
                   </span>
                 </div>
@@ -740,9 +773,9 @@ export function ContentScratchpadModal({
                   {analysis.placement.inH2 ? (
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                   ) : (
-                    <AlertTriangle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <AlertTriangle className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                   )}
-                  <span className={analysis.placement.inH2 ? 'text-slate-800 dark:text-slate-200 font-medium' : 'text-slate-400'}>
+                  <span className={analysis.placement.inH2 ? 'text-slate-800 dark:text-slate-200 font-medium' : 'text-slate-500 dark:text-slate-400'}>
                     In at least 1 H2
                   </span>
                 </div>
@@ -750,10 +783,15 @@ export function ContentScratchpadModal({
             </div>
 
             {/* Companion Nav Tabs: Keywords | Headings | AI Polish */}
-            <div className="flex items-center border-b border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 px-2 pt-1">
+            <div role="tablist" aria-label="Scratchpad tools and keyword radar" className="flex items-center border-b border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 px-2 pt-1">
               <button
+                type="button"
+                role="tab"
+                id="tab-scratchpad-keywords"
+                aria-selected={activeRightTab === 'keywords'}
+                aria-controls="panel-scratchpad-keywords"
                 onClick={() => setActiveRightTab('keywords')}
-                className={`flex-1 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
                   activeRightTab === 'keywords'
                     ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
                     : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
@@ -764,8 +802,13 @@ export function ContentScratchpadModal({
               </button>
 
               <button
+                type="button"
+                role="tab"
+                id="tab-scratchpad-headings"
+                aria-selected={activeRightTab === 'headings'}
+                aria-controls="panel-scratchpad-headings"
                 onClick={() => setActiveRightTab('headings')}
-                className={`flex-1 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
                   activeRightTab === 'headings'
                     ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
                     : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
@@ -776,8 +819,13 @@ export function ContentScratchpadModal({
               </button>
 
               <button
+                type="button"
+                role="tab"
+                id="tab-scratchpad-ai"
+                aria-selected={activeRightTab === 'ai'}
+                aria-controls="panel-scratchpad-ai"
                 onClick={() => setActiveRightTab('ai')}
-                className={`flex-1 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
                   activeRightTab === 'ai'
                     ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
                     : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
@@ -790,13 +838,16 @@ export function ContentScratchpadModal({
 
             {/* TAB CONTENT 1: Keywords Radar */}
             {activeRightTab === 'keywords' && (
-              <div className="flex-1 flex flex-col p-4 min-h-0">
+              <div id="panel-scratchpad-keywords" role="tabpanel" aria-labelledby="tab-scratchpad-keywords" className="flex-1 flex flex-col p-4 min-h-0">
                 
                 {/* Filter Pills */}
-                <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 text-[11px]">
+                <div role="radiogroup" aria-label="Keyword coverage filter" className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 text-[11px]">
                   <button
+                    type="button"
+                    role="radio"
+                    aria-checked={keywordFilter === 'all'}
                     onClick={() => setKeywordFilter('all')}
-                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 ${
+                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 cursor-pointer ${
                       keywordFilter === 'all'
                         ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
@@ -806,8 +857,11 @@ export function ContentScratchpadModal({
                   </button>
 
                   <button
+                    type="button"
+                    role="radio"
+                    aria-checked={keywordFilter === 'missing'}
                     onClick={() => setKeywordFilter('missing')}
-                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 ${
+                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 cursor-pointer ${
                       keywordFilter === 'missing'
                         ? 'bg-rose-500 text-white'
                         : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
@@ -817,8 +871,11 @@ export function ContentScratchpadModal({
                   </button>
 
                   <button
+                    type="button"
+                    role="radio"
+                    aria-checked={keywordFilter === 'optimal'}
                     onClick={() => setKeywordFilter('optimal')}
-                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 ${
+                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 cursor-pointer ${
                       keywordFilter === 'optimal'
                         ? 'bg-emerald-500 text-white'
                         : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
@@ -828,8 +885,11 @@ export function ContentScratchpadModal({
                   </button>
 
                   <button
+                    type="button"
+                    role="radio"
+                    aria-checked={keywordFilter === 'over'}
                     onClick={() => setKeywordFilter('over')}
-                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 ${
+                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 cursor-pointer ${
                       keywordFilter === 'over'
                         ? 'bg-amber-500 text-white'
                         : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
@@ -842,7 +902,7 @@ export function ContentScratchpadModal({
                 {/* Keyword Checklist List */}
                 <div className="flex-1 overflow-y-auto space-y-2 pr-1">
                   {filteredKeywords.length === 0 ? (
-                    <div className="text-center py-8 text-slate-400 text-xs">
+                    <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-xs">
                       No keywords matching &quot;{keywordFilter}&quot; filter.
                     </div>
                   ) : (
@@ -905,8 +965,10 @@ export function ContentScratchpadModal({
 
                             {/* + Insert Button */}
                             <button
+                              type="button"
                               onClick={() => insertAtCursor(` ${kw.phrase} `)}
-                              className="p-1 rounded text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                              aria-label={`Insert keyword "${kw.phrase}" into draft`}
+                              className="p-1 rounded text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors cursor-pointer"
                               title="Insert keyword into draft"
                             >
                               <Plus className="w-3.5 h-3.5" />
@@ -922,13 +984,13 @@ export function ContentScratchpadModal({
 
             {/* TAB CONTENT 2: Competitor Headings Outline */}
             {activeRightTab === 'headings' && (
-              <div className="flex-1 flex flex-col p-4 min-h-0">
+              <div id="panel-scratchpad-headings" role="tabpanel" aria-labelledby="tab-scratchpad-headings" className="flex-1 flex flex-col p-4 min-h-0">
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
                   Top ranking competitor subheadings synthesized from your SERP audit. Click <strong>+ Insert</strong> to add any section into your outline.
                 </p>
                 <div className="flex-1 overflow-y-auto space-y-2 pr-1">
                   {formattedHeadings.length === 0 ? (
-                    <div className="text-center py-8 text-slate-400 text-xs">
+                    <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-xs">
                       No competitor headings provided in this session.
                     </div>
                   ) : (
@@ -946,8 +1008,10 @@ export function ContentScratchpadModal({
                           </span>
                         </div>
                         <button
+                          type="button"
                           onClick={() => insertAtCursor(`\n\n## ${h.text}\n\n`)}
-                          className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors shrink-0"
+                          aria-label={`Insert heading "${h.text}" into draft`}
+                          className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors shrink-0 cursor-pointer"
                           title="Insert heading into draft"
                         >
                           <Plus className="w-3 h-3" />
@@ -962,7 +1026,7 @@ export function ContentScratchpadModal({
 
             {/* TAB CONTENT 3: AI Assistant Polish */}
             {activeRightTab === 'ai' && (
-              <div className="flex-1 flex flex-col p-4 min-h-0 overflow-y-auto space-y-4">
+              <div id="panel-scratchpad-ai" role="tabpanel" aria-labelledby="tab-scratchpad-ai" className="flex-1 flex flex-col p-4 min-h-0 overflow-y-auto space-y-4">
                 <div className="p-3 rounded-lg border border-amber-500/20 bg-amber-500/[0.04] text-xs">
                   <span className="font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1.5 mb-1">
                     <Sparkles className="w-3.5 h-3.5" />
@@ -1038,7 +1102,7 @@ export function ContentScratchpadModal({
 
                 {/* AI Error */}
                 {aiError && (
-                  <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs">
+                  <div role="alert" aria-live="polite" className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs">
                     {aiError}
                   </div>
                 )}

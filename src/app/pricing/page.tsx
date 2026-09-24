@@ -137,27 +137,63 @@ export default function PricingPage() {
     setOpenFaqIndex(openFaqIndex === idx ? null : idx);
   };
 
-  const pricingFaqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: PRICING_FAQS.map((faq) => ({
-      '@type': 'Question',
-      name: faq.q,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: faq.a,
-      },
-    })),
-  };
+  const pricingSchemas = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: PRICING_FAQS.map((faq) => ({
+        '@type': 'Question',
+        name: faq.q,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: faq.a,
+        },
+      })),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      name: 'AnalyzeSERP Competitor SEO Suite',
+      url: 'https://analyzeserp.com/pricing',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'All',
+      offers: [
+        {
+          '@type': 'Offer',
+          name: 'Free Public Beta',
+          price: '0.00',
+          priceCurrency: 'USD',
+          availability: 'https://schema.org/InStock',
+          description: 'Unlimited competitor SEO audits, Core Web Vitals checks, and white-label vector PDF exports.',
+        },
+        {
+          '@type': 'Offer',
+          name: 'Pro Auditor Plan',
+          price: '19.00',
+          priceCurrency: 'USD',
+          availability: 'https://schema.org/PreOrder',
+          description: '5 competitor URLs, unlimited audit history, and priority crawling.',
+        },
+        {
+          '@type': 'Offer',
+          name: 'Agency Scale Plan',
+          price: '49.00',
+          priceCurrency: 'USD',
+          availability: 'https://schema.org/PreOrder',
+          description: 'Up to 25 competitor URLs, unbranded client reporting, and dedicated crawler queue.',
+        },
+      ],
+    },
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-slate-900 dark:text-gray-100 selection:bg-emerald-500 selection:text-black transition-colors duration-200">
       <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
 
-      {/* FAQPage JSON-LD Schema Script */}
+      {/* Pricing JSON-LD Schema Script */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingFaqSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingSchemas) }}
       />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-16 sm:space-y-20">

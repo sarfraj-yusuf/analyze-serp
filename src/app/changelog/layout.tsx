@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Changelog & Product Release Notes | AnalyzeSERP',
+  title: 'Changelog & Product Release Notes',
   description:
     'Stay updated with the latest releases, performance improvements, advanced SEO tools, and architecture updates shipped to AnalyzeSERP.',
   alternates: {

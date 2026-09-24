@@ -35,6 +35,7 @@ import {
 } from '@/lib/link-topology-engine';
 import { TopicClusterStrategyResult } from '@/lib/gemini';
 import { AuthModal } from './AuthModal';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 export interface InternalLinkTopologyModalProps {
   isOpen: boolean;
@@ -59,6 +60,7 @@ export function InternalLinkTopologyModal({
   pageTitle = '',
   headings = [],
 }: InternalLinkTopologyModalProps) {
+  const modalRef = useFocusTrap({ isOpen, onClose });
   const [mounted, setMounted] = useState(false);
   const [keyword, setKeyword] = useState(initialKeyword);
   const [activeMainTab, setActiveMainTab] = useState<'hubs' | 'all-links' | 'benchmarks'>('hubs');
@@ -205,7 +207,13 @@ export function InternalLinkTopologyModal({
 
   const modalContent = (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-[1580px] h-[94vh] flex flex-col bg-white dark:bg-slate-950 border border-slate-200/90 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden text-slate-800 dark:text-slate-100">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="topology-modal-title"
+        className="relative w-full max-w-[1580px] h-[94vh] flex flex-col bg-white dark:bg-slate-950 border border-slate-200/90 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden text-slate-800 dark:text-slate-100"
+      >
         
         {/* Top Header Bar */}
         <header className="flex flex-wrap items-center justify-between px-4 sm:px-6 py-3 border-b border-slate-200/80 dark:border-white/10 bg-slate-50/80 dark:bg-slate-900/60 backdrop-blur-md gap-3">
@@ -215,7 +223,7 @@ export function InternalLinkTopologyModal({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
+                <h2 id="topology-modal-title" className="text-sm font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
                   Internal Linking Topology &amp; Anchor Text Distribution
                 </h2>
                 <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
@@ -230,11 +238,13 @@ export function InternalLinkTopologyModal({
 
           {/* Keyword and Target Focus input */}
           <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-lg text-xs">
-            <span className="text-slate-500 flex items-center gap-1 font-medium">
+            <label htmlFor="topology-focus-keyword" className="text-slate-500 flex items-center gap-1 font-medium cursor-pointer">
               <Key className="w-3.5 h-3.5 text-indigo-500" /> Focus Keyword:
-            </span>
+            </label>
             <input
+              id="topology-focus-keyword"
               type="text"
+              aria-label="Focus Keyword"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               placeholder="e.g. Technical SEO Audit"
@@ -245,9 +255,11 @@ export function InternalLinkTopologyModal({
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={handleExportCsv}
               disabled={topology.detailedLinks.length === 0}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-white/10 transition-colors disabled:opacity-50"
+              aria-label="Export all internal links and anchors to CSV"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-white/10 transition-colors disabled:opacity-50 cursor-pointer"
               title="Export all internal links and anchors to CSV"
             >
               <Download className="w-3.5 h-3.5" />
@@ -255,8 +267,10 @@ export function InternalLinkTopologyModal({
             </button>
 
             <button
+              type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
+              aria-label="Close internal link topology dialog"
+              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors cursor-pointer"
               title="Close Topology Studio (Esc)"
             >
               <X className="w-4 h-4" />
@@ -274,7 +288,7 @@ export function InternalLinkTopologyModal({
               <div className="text-[11px] text-slate-500 dark:text-slate-400">Total Internal Links</div>
               <div className="text-base font-bold text-slate-900 dark:text-slate-100 tabular-nums">
                 {topology.internalCount}
-                <span className="text-xs text-slate-400 font-normal ml-1">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-normal ml-1">
                   ({Math.round((topology.internalCount / (topology.totalLinks || 1)) * 100)}% of total)
                 </span>
               </div>
@@ -289,7 +303,7 @@ export function InternalLinkTopologyModal({
               <div className="text-[11px] text-slate-500 dark:text-slate-400">Unique Target Hubs</div>
               <div className="text-base font-bold text-slate-900 dark:text-slate-100 tabular-nums">
                 {topology.targetHubs.length}
-                <span className="text-xs text-slate-400 font-normal ml-1">clusters</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-normal ml-1">clusters</span>
               </div>
             </div>
           </div>
@@ -302,7 +316,7 @@ export function InternalLinkTopologyModal({
               <div className="text-[11px] text-slate-500 dark:text-slate-400">Link Density (per 1k words)</div>
               <div className="text-base font-bold text-slate-900 dark:text-slate-100 tabular-nums">
                 {topology.internalDensityPer1kWords}
-                <span className="text-xs text-slate-400 font-normal ml-1">links / 1k</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-normal ml-1">links / 1k</span>
               </div>
             </div>
           </div>
@@ -322,7 +336,7 @@ export function InternalLinkTopologyModal({
                         100
                     )}%`
                   : '100%'}
-                <span className="text-xs text-slate-400 font-normal ml-1">pass equity</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-normal ml-1">pass equity</span>
               </div>
             </div>
           </div>
@@ -336,10 +350,15 @@ export function InternalLinkTopologyModal({
             
             {/* Main Tabs Strip */}
             <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 px-4 sm:px-6 bg-slate-50/50 dark:bg-slate-900/30">
-              <div className="flex items-center gap-1 sm:gap-2">
+              <div role="tablist" aria-label="Internal link topology views" className="flex items-center gap-1 sm:gap-2">
                 <button
+                  type="button"
+                  role="tab"
+                  id="tab-topology-hubs"
+                  aria-selected={activeMainTab === 'hubs'}
+                  aria-controls="panel-topology-hubs"
                   onClick={() => setActiveMainTab('hubs')}
-                  className={`py-3 px-3 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
+                  className={`py-3 px-3 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer ${
                     activeMainTab === 'hubs'
                       ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
                       : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
@@ -350,8 +369,13 @@ export function InternalLinkTopologyModal({
                 </button>
 
                 <button
+                  type="button"
+                  role="tab"
+                  id="tab-topology-all-links"
+                  aria-selected={activeMainTab === 'all-links'}
+                  aria-controls="panel-topology-all-links"
                   onClick={() => setActiveMainTab('all-links')}
-                  className={`py-3 px-3 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
+                  className={`py-3 px-3 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer ${
                     activeMainTab === 'all-links'
                       ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
                       : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
@@ -362,8 +386,13 @@ export function InternalLinkTopologyModal({
                 </button>
 
                 <button
+                  type="button"
+                  role="tab"
+                  id="tab-topology-benchmarks"
+                  aria-selected={activeMainTab === 'benchmarks'}
+                  aria-controls="panel-topology-benchmarks"
                   onClick={() => setActiveMainTab('benchmarks')}
-                  className={`py-3 px-3 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
+                  className={`py-3 px-3 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer ${
                     activeMainTab === 'benchmarks'
                       ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
                       : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
@@ -378,9 +407,12 @@ export function InternalLinkTopologyModal({
               {activeMainTab === 'all-links' && (
                 <div className="flex items-center gap-1.5 py-1.5">
                   <div className="relative">
-                    <Search className="w-3 h-3 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <label htmlFor="topology-search-query" className="sr-only">Search anchor or URL</label>
+                    <Search className="w-3 h-3 text-slate-500 dark:text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                     <input
+                      id="topology-search-query"
                       type="text"
+                      aria-label="Search anchor or URL"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search anchor or URL..."
@@ -393,7 +425,7 @@ export function InternalLinkTopologyModal({
 
             {/* TAB 1: Destination Hubs */}
             {activeMainTab === 'hubs' && (
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+              <div id="panel-topology-hubs" role="tabpanel" aria-labelledby="tab-topology-hubs" className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
                 <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                   <p>
                     Target destination silos that receive the highest internal link equity from this page:
@@ -418,7 +450,7 @@ export function InternalLinkTopologyModal({
                       <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                         {topology.targetHubs.length === 0 ? (
                           <tr>
-                            <td colSpan={5} className="py-8 text-center text-slate-400 text-xs">
+                            <td colSpan={5} className="py-8 text-center text-slate-500 dark:text-slate-400 text-xs">
                               No internal destination hubs discovered.
                             </td>
                           </tr>
@@ -464,7 +496,7 @@ export function InternalLinkTopologyModal({
                                     </span>
                                   ))}
                                   {hub.uniqueAnchors.length > 3 && (
-                                    <span className="text-[10px] text-slate-400">
+                                    <span className="text-[10px] text-slate-500 dark:text-slate-400">
                                       +{hub.uniqueAnchors.length - 3} more
                                     </span>
                                   )}
@@ -494,12 +526,15 @@ export function InternalLinkTopologyModal({
 
             {/* TAB 2: All Internal Links & Anchor Filters */}
             {activeMainTab === 'all-links' && (
-              <div className="flex-1 flex flex-col p-4 sm:p-6 min-h-0">
+              <div id="panel-topology-all-links" role="tabpanel" aria-labelledby="tab-topology-all-links" className="flex-1 flex flex-col p-4 sm:p-6 min-h-0">
                 {/* Filter Pills */}
-                <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 text-[11px]">
+                <div role="radiogroup" aria-label="Anchor text category filter" className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 text-[11px]">
                   <button
+                    type="button"
+                    role="radio"
+                    aria-checked={anchorFilter === 'all'}
                     onClick={() => setAnchorFilter('all')}
-                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 ${
+                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 cursor-pointer ${
                       anchorFilter === 'all'
                         ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
@@ -509,8 +544,11 @@ export function InternalLinkTopologyModal({
                   </button>
 
                   <button
+                    type="button"
+                    role="radio"
+                    aria-checked={anchorFilter === 'exact-match'}
                     onClick={() => setAnchorFilter('exact-match')}
-                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 ${
+                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 cursor-pointer ${
                       anchorFilter === 'exact-match'
                         ? 'bg-purple-600 text-white'
                         : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20'
@@ -520,8 +558,11 @@ export function InternalLinkTopologyModal({
                   </button>
 
                   <button
+                    type="button"
+                    role="radio"
+                    aria-checked={anchorFilter === 'partial-match'}
                     onClick={() => setAnchorFilter('partial-match')}
-                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 ${
+                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 cursor-pointer ${
                       anchorFilter === 'partial-match'
                         ? 'bg-emerald-600 text-white'
                         : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
@@ -531,8 +572,11 @@ export function InternalLinkTopologyModal({
                   </button>
 
                   <button
+                    type="button"
+                    role="radio"
+                    aria-checked={anchorFilter === 'branded'}
                     onClick={() => setAnchorFilter('branded')}
-                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 ${
+                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 cursor-pointer ${
                       anchorFilter === 'branded'
                         ? 'bg-blue-600 text-white'
                         : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20'
@@ -542,8 +586,11 @@ export function InternalLinkTopologyModal({
                   </button>
 
                   <button
+                    type="button"
+                    role="radio"
+                    aria-checked={anchorFilter === 'generic'}
                     onClick={() => setAnchorFilter('generic')}
-                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 ${
+                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 cursor-pointer ${
                       anchorFilter === 'generic'
                         ? 'bg-slate-600 text-white'
                         : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-300'
@@ -553,8 +600,11 @@ export function InternalLinkTopologyModal({
                   </button>
 
                   <button
+                    type="button"
+                    role="radio"
+                    aria-checked={anchorFilter === 'naked-url'}
                     onClick={() => setAnchorFilter('naked-url')}
-                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 ${
+                    className={`px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 cursor-pointer ${
                       anchorFilter === 'naked-url'
                         ? 'bg-amber-600 text-white'
                         : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
@@ -580,7 +630,7 @@ export function InternalLinkTopologyModal({
                       <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                         {filteredLinks.length === 0 ? (
                           <tr>
-                            <td colSpan={5} className="py-8 text-center text-slate-400 text-xs">
+                            <td colSpan={5} className="py-8 text-center text-slate-500 dark:text-slate-400 text-xs">
                               No internal links match current filters.
                             </td>
                           </tr>
@@ -622,8 +672,10 @@ export function InternalLinkTopologyModal({
 
                               <td className="py-3 px-3 text-right">
                                 <button
+                                  type="button"
                                   onClick={() => handleCopyText(link.text)}
-                                  className="p-1 rounded text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                  aria-label={`Copy anchor text "${link.text || 'empty'}"`}
+                                  className="p-1 rounded text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors cursor-pointer"
                                   title="Copy Anchor Text"
                                 >
                                   {copiedAnchor === link.text ? (
@@ -645,7 +697,7 @@ export function InternalLinkTopologyModal({
 
             {/* TAB 3: Competitor Comparison */}
             {activeMainTab === 'benchmarks' && (
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+              <div id="panel-topology-benchmarks" role="tabpanel" aria-labelledby="tab-topology-benchmarks" className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
                 <div className="text-xs text-slate-500 dark:text-slate-400">
                   Side-by-side internal linking architecture comparison across all audited URLs in this SERP:
                 </div>
@@ -666,7 +718,7 @@ export function InternalLinkTopologyModal({
                       <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                         {topology.competitorBenchmarks.length === 0 ? (
                           <tr>
-                            <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                            <td colSpan={6} className="py-8 text-center text-slate-500 dark:text-slate-400 text-xs">
                               No competitor audit results available to benchmark.
                             </td>
                           </tr>
@@ -691,7 +743,7 @@ export function InternalLinkTopologyModal({
                                       {comp.host}
                                     </span>
                                   </div>
-                                  <div className="text-[11px] font-mono text-slate-400 truncate">
+                                  <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate">
                                     {comp.url}
                                   </div>
                                 </td>
@@ -779,7 +831,7 @@ export function InternalLinkTopologyModal({
                     <span className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight tabular-nums">
                       {topology.healthScore.score}
                     </span>
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 -mt-0.5">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 -mt-0.5">
                       Health
                     </span>
                   </div>
@@ -802,7 +854,7 @@ export function InternalLinkTopologyModal({
 
               {/* Anchor Distribution Stacked Bar */}
               <div className="mt-4 pt-3 border-t border-slate-200/80 dark:border-white/10 space-y-2 text-xs">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
                   Anchor Text Distribution Breakdown
                 </span>
 
@@ -836,7 +888,7 @@ export function InternalLinkTopologyModal({
                 </div>
 
                 {/* Legend */}
-                <div className="grid grid-cols-2 gap-y-1 gap-x-2 text-[11px] text-slate-500 pt-1">
+                <div className="grid grid-cols-2 gap-y-1 gap-x-2 text-[11px] text-slate-600 dark:text-slate-400 pt-1">
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-purple-500" />
                     <span>Exact: {topology.anchorBreakdown.exactPct}% ({topology.anchorBreakdown.exactCount})</span>
@@ -850,7 +902,7 @@ export function InternalLinkTopologyModal({
                     <span>Branded: {topology.anchorBreakdown.brandedPct}% ({topology.anchorBreakdown.brandedCount})</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-slate-400" />
+                    <span className="w-2 h-2 rounded-full bg-slate-500 dark:bg-slate-400" />
                     <span>Generic: {topology.anchorBreakdown.genericPct}% ({topology.anchorBreakdown.genericCount})</span>
                   </div>
                 </div>
@@ -860,11 +912,11 @@ export function InternalLinkTopologyModal({
             {/* Anchor Gaps (Competitor Opportunities) */}
             {topology.anchorGaps.length > 0 && (
               <div className="p-4 border-b border-slate-200/80 dark:border-white/10 bg-slate-100/40 dark:bg-slate-900/30 space-y-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                   Competitor Anchor Opportunities (Gaps)
                 </span>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-600 dark:text-slate-400">
                   Descriptive anchors competitors use to pass topical relevance that your page currently lacks:
                 </p>
                 <div className="flex flex-wrap gap-1.5 pt-1">
@@ -876,7 +928,7 @@ export function InternalLinkTopologyModal({
                       title="Click to copy recommended anchor"
                     >
                       <span>&quot;{gap}&quot;</span>
-                      <Copy className="w-2.5 h-2.5 text-slate-400" />
+                      <Copy className="w-2.5 h-2.5 text-slate-500 dark:text-slate-400" />
                     </button>
                   ))}
                 </div>
@@ -954,7 +1006,7 @@ export function InternalLinkTopologyModal({
                       >
                         <div className="flex items-center justify-between font-semibold text-indigo-600 dark:text-indigo-400">
                           <span>&quot;{rec.anchorText}&quot;</span>
-                          <span className="text-[10px] font-mono text-slate-400">
+                          <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
                             {rec.suggestedUrlPath}
                           </span>
                         </div>

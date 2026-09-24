@@ -23,13 +23,26 @@ import {
   FileEdit,
   ChevronDown,
 } from 'lucide-react';
-import jsPDF from 'jspdf';
+import dynamic from 'next/dynamic';
 import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
-import { AiSectionWriterModal } from './AiSectionWriterModal';
-import { JsonLdSchemaModal } from './JsonLdSchemaModal';
-import { FeaturedSnippetModal } from './FeaturedSnippetModal';
-import { ContentScratchpadModal } from './ContentScratchpadModal';
 import { Tooltip } from './Tooltip';
+
+const AiSectionWriterModal = dynamic(
+  () => import('./AiSectionWriterModal').then((mod) => mod.AiSectionWriterModal),
+  { ssr: false }
+);
+const JsonLdSchemaModal = dynamic(
+  () => import('./JsonLdSchemaModal').then((mod) => mod.JsonLdSchemaModal),
+  { ssr: false }
+);
+const FeaturedSnippetModal = dynamic(
+  () => import('./FeaturedSnippetModal').then((mod) => mod.FeaturedSnippetModal),
+  { ssr: false }
+);
+const ContentScratchpadModal = dynamic(
+  () => import('./ContentScratchpadModal').then((mod) => mod.ContentScratchpadModal),
+  { ssr: false }
+);
 
 interface ContentBriefGeneratorProps {
   results: SinglePageAudit[];
@@ -298,7 +311,8 @@ ${aggregatedHeadings
     URL.revokeObjectURL(url);
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
+    const { default: jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     doc.setFont('Helvetica', 'bold');
     doc.setFontSize(18);

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { AuthModal } from './AuthModal';
 import { ReadabilityRewriteResult } from '@/lib/gemini';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface AiSimplifyModalProps {
   isOpen: boolean;
@@ -44,6 +45,7 @@ export const AiSimplifyModal: React.FC<AiSimplifyModalProps> = ({
   );
   const [copied, setCopied] = useState(false);
   const [applied, setApplied] = useState(false);
+  const modalRef = useFocusTrap({ isOpen, onClose });
 
   useEffect(() => {
     setMounted(true);
@@ -129,13 +131,14 @@ export const AiSimplifyModal: React.FC<AiSimplifyModalProps> = ({
   const modalContent = (
     <>
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="ai-simplify-title"
         className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-black/75 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto"
         onClick={onClose}
       >
         <div
+          ref={modalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ai-simplify-title"
           className="relative w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-5 sm:p-7 space-y-5 my-8 max-h-[90vh] overflow-y-auto modal-scroll"
           onClick={(e) => e.stopPropagation()}
         >

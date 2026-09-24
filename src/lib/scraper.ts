@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import { MetaData, HeadingItem, ImageAudit, ImageItem, LinkAudit, LinkItem, SpaDiagnostic } from '@/types/seo';
 import { enhanceLinkAudit } from './link-inspector';
-import { validateUrlSafety } from './ssrf-protection';
+import { validateUrlSafety, safeFetchWithSsrf } from './ssrf-protection';
 import { performSpaFallbackExtraction } from './spa-extractor';
 
 export interface ScrapedRawDOM {
@@ -175,9 +175,10 @@ export async function scrapePage(targetUrl: string, profileIndex?: number): Prom
   const ttfbStart = Date.now();
   let response: Response;
   try {
-    response = await fetch(formattedUrl, {
+    response = await safeFetchWithSsrf(formattedUrl, {
       signal: controller.signal,
       headers: browserHeaders,
+      maxRedirects: 5,
     });
   } catch (fetchErr: any) {
     // If the 8-second timer aborted the request, do NOT retry; fail immediately
@@ -188,11 +189,11 @@ export async function scrapePage(targetUrl: string, profileIndex?: number): Prom
     // If https connection failed (e.g. SSL/TLS handshake error) and user entered bare domain without protocol, try http fallback
     if (formattedUrl.startsWith('https://') && !/^https:\/\//i.test(targetUrl.trim())) {
       const fallbackUrl = `http://${targetUrl.trim().replace(/^https?:\/\//i, '')}`;
-      await validateUrlSafety(fallbackUrl);
       try {
-        response = await fetch(fallbackUrl, {
+        response = await safeFetchWithSsrf(fallbackUrl, {
           signal: controller.signal,
           headers: browserHeaders,
+          maxRedirects: 5,
         });
       } catch (fallbackErr: any) {
         throw formatNetworkError(fallbackErr, formattedUrl);

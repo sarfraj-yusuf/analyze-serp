@@ -11,15 +11,35 @@ import { ActionMatrixRoadmap } from './ActionMatrixRoadmap';
 import { DontTouchStrengthsCard } from './DontTouchStrengthsCard';
 import { KeywordGapMatrix } from './KeywordGapMatrix';
 import { ComparisonMatrix } from './ComparisonMatrix';
-import { ContentBriefGenerator } from './ContentBriefGenerator';
+import dynamic from 'next/dynamic';
 import { SingleAuditCard } from './SingleAuditCard';
-import { WhiteLabelPdfModal } from './WhiteLabelPdfModal';
 import { ExportDropdown } from './ExportDropdown';
-import { ShareAuditModal } from './ShareAuditModal';
-import { AuditDiffModal } from './AuditDiffModal';
-import { InternalLinkTopologyModal } from './InternalLinkTopologyModal';
-import { AuthModal } from './AuthModal';
 import { Tooltip } from './Tooltip';
+
+const ContentBriefGenerator = dynamic(
+  () => import('./ContentBriefGenerator').then((mod) => mod.ContentBriefGenerator),
+  { ssr: false }
+);
+const WhiteLabelPdfModal = dynamic(
+  () => import('./WhiteLabelPdfModal').then((mod) => mod.WhiteLabelPdfModal),
+  { ssr: false }
+);
+const AuditDiffModal = dynamic(
+  () => import('./AuditDiffModal').then((mod) => mod.AuditDiffModal),
+  { ssr: false }
+);
+const InternalLinkTopologyModal = dynamic(
+  () => import('./InternalLinkTopologyModal').then((mod) => mod.InternalLinkTopologyModal),
+  { ssr: false }
+);
+const ShareAuditModal = dynamic(
+  () => import('./ShareAuditModal').then((mod) => mod.ShareAuditModal),
+  { ssr: false }
+);
+const AuthModal = dynamic(
+  () => import('./AuthModal').then((mod) => mod.AuthModal),
+  { ssr: false }
+);
 import {
   Activity,
   Target,
@@ -131,7 +151,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             <button
               type="button"
               onClick={onEditUrls}
-              className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-2"
+              className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 text-xs font-bold transition-colors shadow-xs cursor-pointer inline-flex items-center gap-2"
             >
               <SlidersHorizontal className="size-3.5" />
               <span>Adjust Competitor URLs</span>
@@ -151,11 +171,44 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
   const competitorUrls = validResults.filter((r) => r.url !== effectiveTargetUrl).map((r) => r.url);
   const competitorCount = competitorUrls.length;
 
+  const availableTabs: WorkspaceTab[] = useMemo(() => {
+    const tabs: WorkspaceTab[] = ['overview'];
+    if (validResults.length >= 2) tabs.push('keywords', 'matrix');
+    tabs.push('inspector', 'brief');
+    return tabs;
+  }, [validResults.length]);
+
   const handleTabSwitch = (tab: WorkspaceTab) => {
     setActiveTab(tab);
     const el = document.getElementById('workspace-tabs-bar');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  };
+
+  const handleTabsKeyDown = (e: React.KeyboardEvent) => {
+    const currentIndex = availableTabs.indexOf(activeTab);
+    if (currentIndex === -1) return;
+
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextTab = availableTabs[(currentIndex + 1) % availableTabs.length];
+      handleTabSwitch(nextTab);
+      document.getElementById(`tab-${nextTab}`)?.focus();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prevTab = availableTabs[(currentIndex - 1 + availableTabs.length) % availableTabs.length];
+      handleTabSwitch(prevTab);
+      document.getElementById(`tab-${prevTab}`)?.focus();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      handleTabSwitch(availableTabs[0]);
+      document.getElementById(`tab-${availableTabs[0]}`)?.focus();
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      const lastTab = availableTabs[availableTabs.length - 1];
+      handleTabSwitch(lastTab);
+      document.getElementById(`tab-${lastTab}`)?.focus();
     }
   };
 
@@ -364,7 +417,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                   title={effectiveTargetUrl}
                 >
                   <span className="truncate">{effectiveTargetUrl}</span>
-                  <ExternalLink className="size-3.5 shrink-0 text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                  <ExternalLink className="size-3.5 shrink-0 text-slate-500 group-hover:text-emerald-500 dark:text-slate-400 transition-colors" />
                 </a>
               </div>
 
@@ -416,12 +469,12 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                           • {compAudit.technicalAudit.ttfbMs}ms
                         </span>
                       ) : null}
-                      <ExternalLink className="size-3 text-slate-400 group-hover:text-emerald-500 shrink-0 transition-colors" />
+                      <ExternalLink className="size-3 text-slate-500 group-hover:text-emerald-500 dark:text-slate-400 shrink-0 transition-colors" />
                     </a>
                   );
                 })
               ) : (
-                <span className="font-mono text-xs text-slate-400">Single URL baseline audit (no competitors added)</span>
+                <span className="font-mono text-xs text-slate-600 dark:text-slate-400">Single URL baseline audit (no competitors added)</span>
               )}
             </div>
           </div>
@@ -526,14 +579,22 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
       {/* 2. STICKY WORKSPACE NAVIGATION TABS (Mobile-friendly horizontal touch carousel) */}
       <div
         id="workspace-tabs-bar"
+        role="tablist"
+        aria-label="Competitor audit workspace sections"
+        onKeyDown={handleTabsKeyDown}
         className="sticky top-16 z-30 p-1.5 rounded-2xl glass-panel border border-slate-200/80 dark:border-white/[0.08] shadow-sm backdrop-blur-xl flex items-center gap-1.5 overflow-x-auto scrollbar-none"
       >
         {/* Tab 1: Overview */}
         <Tooltip content="Overview & Action Roadmap" side="bottom">
           <button
+            id="tab-overview"
+            role="tab"
+            aria-selected={activeTab === 'overview'}
+            aria-controls="panel-overview"
+            tabIndex={activeTab === 'overview' ? 0 : -1}
             type="button"
             onClick={() => handleTabSwitch('overview')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
               activeTab === 'overview'
                 ? 'bg-emerald-600 text-white shadow-xs font-bold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
@@ -548,9 +609,14 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
         {validResults.length >= 2 && (
           <Tooltip content="Competitor Gap Matrix" side="bottom">
             <button
+              id="tab-keywords"
+              role="tab"
+              aria-selected={activeTab === 'keywords'}
+              aria-controls="panel-keywords"
+              tabIndex={activeTab === 'keywords' ? 0 : -1}
               type="button"
               onClick={() => handleTabSwitch('keywords')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 activeTab === 'keywords'
                   ? 'bg-emerald-600 text-white shadow-xs font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
@@ -566,9 +632,14 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
         {validResults.length >= 2 && (
           <Tooltip content={`${validResults.length} Audited URLs`} side="bottom">
             <button
+              id="tab-matrix"
+              role="tab"
+              aria-selected={activeTab === 'matrix'}
+              aria-controls="panel-matrix"
+              tabIndex={activeTab === 'matrix' ? 0 : -1}
               type="button"
               onClick={() => handleTabSwitch('matrix')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 activeTab === 'matrix'
                   ? 'bg-emerald-600 text-white shadow-xs font-bold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
@@ -583,9 +654,14 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
         {/* Tab 4: Single URL Inspector */}
         <Tooltip content="Interactive Page Inspector" side="bottom">
           <button
+            id="tab-inspector"
+            role="tab"
+            aria-selected={activeTab === 'inspector'}
+            aria-controls="panel-inspector"
+            tabIndex={activeTab === 'inspector' ? 0 : -1}
             type="button"
             onClick={() => handleTabSwitch('inspector')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
               activeTab === 'inspector'
                 ? 'bg-emerald-600 text-white shadow-xs font-bold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
@@ -599,9 +675,14 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
         {/* Tab 5: Content Brief */}
         <Tooltip content="Editorial Outline Brief" side="bottom">
           <button
+            id="tab-brief"
+            role="tab"
+            aria-selected={activeTab === 'brief'}
+            aria-controls="panel-brief"
+            tabIndex={activeTab === 'brief' ? 0 : -1}
             type="button"
             onClick={() => handleTabSwitch('brief')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
               activeTab === 'brief'
                 ? 'bg-emerald-600 text-white shadow-xs font-bold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
@@ -620,7 +701,13 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
         {/* TAB 1: OVERVIEW & ROADMAP                  */}
         {/* ========================================== */}
         {activeTab === 'overview' && (
-          <div className="space-y-8 animate-in fade-in duration-200">
+          <div
+            id="panel-overview"
+            role="tabpanel"
+            aria-labelledby="tab-overview"
+            tabIndex={0}
+            className="space-y-8 animate-in fade-in duration-200 outline-none"
+          >
             {/* Executive Verdict Header Card */}
             <div id="decision-hero-section">
               <SerpHeroHeader
@@ -686,7 +773,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                 <button
                   type="button"
                   onClick={() => handleTabSwitch('keywords')}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shrink-0 shadow-sm shadow-emerald-600/20 cursor-pointer active:scale-95 transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shrink-0 shadow-sm shadow-emerald-600/20 cursor-pointer active:scale-95 transition-[color,background-color,transform]"
                 >
                   <span>Explore Keyword Gaps</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -700,7 +787,13 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
         {/* TAB 2: KEYWORD & TOPIC GAPS               */}
         {/* ========================================== */}
         {activeTab === 'keywords' && validResults.length >= 2 && (
-          <div className="space-y-4 animate-in fade-in duration-200">
+          <div
+            id="panel-keywords"
+            role="tabpanel"
+            aria-labelledby="tab-keywords"
+            tabIndex={0}
+            className="space-y-4 animate-in fade-in duration-200 outline-none"
+          >
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 pb-2 border-b border-slate-200/80 dark:border-white/[0.08]">
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 mb-1.5">
@@ -723,7 +816,13 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
         {/* TAB 3: MULTI-URL BENCHMARK MATRIX          */}
         {/* ========================================== */}
         {activeTab === 'matrix' && validResults.length >= 2 && (
-          <div className="space-y-4 animate-in fade-in duration-200">
+          <div
+            id="panel-matrix"
+            role="tabpanel"
+            aria-labelledby="tab-matrix"
+            tabIndex={0}
+            className="space-y-4 animate-in fade-in duration-200 outline-none"
+          >
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 pb-2 border-b border-slate-200/80 dark:border-white/[0.08]">
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 mb-1.5">
@@ -746,7 +845,13 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
         {/* TAB 4: INTERACTIVE SINGLE URL INSPECTOR    */}
         {/* ========================================== */}
         {activeTab === 'inspector' && (
-          <div className="space-y-5 animate-in fade-in duration-200">
+          <div
+            id="panel-inspector"
+            role="tabpanel"
+            aria-labelledby="tab-inspector"
+            tabIndex={0}
+            className="space-y-5 animate-in fade-in duration-200 outline-none"
+          >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200/80 dark:border-white/[0.08]">
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 mb-1.5">
@@ -786,7 +891,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                       key={idx}
                       type="button"
                       onClick={() => setActiveUrlIndex(idx)}
-                      className={`px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all shrink-0 cursor-pointer ${
+                      className={`px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-colors shrink-0 cursor-pointer ${
                         isSelected
                           ? isFailed
                             ? 'bg-rose-600 text-white shadow-xs font-bold'
@@ -840,7 +945,13 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
         {/* TAB 5: STRATEGIC CONTENT BRIEF             */}
         {/* ========================================== */}
         {activeTab === 'brief' && (
-          <div className="space-y-4 animate-in fade-in duration-200">
+          <div
+            id="panel-brief"
+            role="tabpanel"
+            aria-labelledby="tab-brief"
+            tabIndex={0}
+            className="space-y-4 animate-in fade-in duration-200 outline-none"
+          >
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 pb-2 border-b border-slate-200/80 dark:border-white/[0.08]">
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 mb-1.5">

@@ -137,7 +137,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
               zIndex: 999999,
             }}
             role="tooltip"
-            className={`pointer-events-none transition-all duration-100 ease-out transform ${
+            className={`pointer-events-none transition-[opacity,transform] duration-100 ease-out will-change-transform transform ${
               coords.actualSide === 'top'
                 ? '-translate-x-1/2 -translate-y-full'
                 : coords.actualSide === 'bottom'

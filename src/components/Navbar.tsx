@@ -256,6 +256,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
 
   return (
     <div className="sticky top-0 z-50">
+      {/* WCAG 2.4.1 Bypass Blocks: Skip to Main Content Link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[99999] focus:px-4 focus:py-2 focus:bg-emerald-500 focus:text-slate-950 focus:font-bold focus:text-xs focus:rounded-xl focus:shadow-xl focus:outline-none focus:ring-2 focus:ring-slate-950 transition-all"
+      >
+        Skip to main content
+      </a>
+
       <LiveAnnouncementBanner />
       <header className="glass-panel border-b border-slate-200/80 dark:border-white/10 px-4 lg:px-8 py-3 shadow-xs backdrop-blur-md">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
@@ -579,14 +587,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
               )}
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => setIsAuthModalOpen(true)}
+            <Link
+              href="/login"
               className="h-[38px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-xs shadow-emerald-600/20 active:scale-95 shrink-0"
             >
               <User className="w-4 h-4 text-white" />
               <span>Sign In</span>
-            </button>
+            </Link>
           )}
 
           {/* Mobile Hamburger Toggle Button */}
@@ -775,17 +782,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
                 </div>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  setIsAuthModalOpen(true);
-                }}
+              <Link
+                href="/login"
+                onClick={() => setIsMobileMenuOpen(false)}
                 className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
               >
                 <User className="w-4 h-4" />
                 <span>Sign In to Unlock AI (Free)</span>
-              </button>
+              </Link>
             )}
           </div>
         </nav>

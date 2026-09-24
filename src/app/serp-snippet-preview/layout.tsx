@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Google SERP Snippet Preview Tool & Pixel Checker | AnalyzeSERP',
+  title: 'Google SERP Snippet Preview Tool & Pixel Checker',
   description:
     'Test title tag pixel width (600px limit) and meta description truncation in real-time. Free Google search & social card simulator for SEO.',
   alternates: {

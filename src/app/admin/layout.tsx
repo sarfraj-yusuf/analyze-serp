@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Admin Console | AnalyzeSERP',
+  title: 'Admin Console',
   description: 'Internal administration and analytics dashboard.',
   robots: {
     index: false,

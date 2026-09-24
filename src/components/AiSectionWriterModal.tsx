@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { AuthModal } from './AuthModal';
 import { ContentSectionResult } from '@/lib/gemini';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface AiSectionWriterModalProps {
   isOpen: boolean;
@@ -46,6 +47,7 @@ export const AiSectionWriterModal: React.FC<AiSectionWriterModalProps> = ({
     session?.user?.credits?.remainingCredits ?? null
   );
   const [copied, setCopied] = useState(false);
+  const modalRef = useFocusTrap({ isOpen, onClose });
 
   useEffect(() => {
     setMounted(true);
@@ -127,13 +129,14 @@ export const AiSectionWriterModal: React.FC<AiSectionWriterModalProps> = ({
   const modalContent = (
     <>
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="ai-writer-title"
         className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-black/75 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto"
         onClick={onClose}
       >
         <div
+          ref={modalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ai-writer-title"
           className="relative w-full max-w-3xl rounded-2xl p-5 sm:p-7 border border-slate-200 dark:border-white/15 shadow-2xl space-y-6 bg-white dark:bg-slate-900 my-auto max-h-[92vh] overflow-y-auto modal-scroll text-slate-800 dark:text-slate-100 transition-all"
           onClick={(e) => e.stopPropagation()}
         >
