@@ -54,7 +54,7 @@ export default function PrivacyPage() {
           </h1>
 
           <p className="text-xs text-slate-500 dark:text-gray-400 font-mono">
-            Last Updated: September 2026 • Effective Version 2.4
+            Last Updated: September 2026 • Effective Version 2.5
           </p>
         </div>
 

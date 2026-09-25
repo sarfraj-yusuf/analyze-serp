@@ -38,19 +38,58 @@ interface ChangelogEntry {
 
 const CHANGELOG_RELEASES: ChangelogEntry[] = [
   {
-    version: 'v2.4.0',
+    version: 'v2.5.0',
     badge: 'LATEST',
+    date: 'September 2026',
+    title: '11 Standalone Diagnostic Engines, Dedicated /audit Route & 60fps GPU Compositing',
+    summary:
+      'A major platform expansion delivering 3 brand-new diagnostic engines, dedicated workspace routing, and critical infrastructure hardening. Scaled the suite from 8 to 11 specialized tools with the launch of the Featured Snippet Optimizer, Live Content Scratchpad, and Internal Link Topology Mapper. Refactored the core multi-competitor comparison into a dedicated /audit workspace route, hardened MySQL connection pools, eliminated layout thrashing, and slashed initial JS bundles by ~500KB+ via on-demand code-splitting.',
+    categories: [
+      {
+        label: 'New Diagnostic Engines (11-Tool Suite Expansion)',
+        icon: Sparkles,
+        color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+        items: [
+          'Featured Snippet (Pos 0) Optimizer (/featured-snippet-optimizer): Position 0 snippet bait studio, question intent classifier, 40–58 word paragraph boundaries, ordered step lists, and comparison table formatting.',
+          'Live SEO Content Scratchpad (/content-scratchpad): Real-time drafting canvas with live keyword coverage (Title, H1, First 100 words, H2), heading hierarchy distribution, word count benchmarks, and 100% client-side privacy.',
+          'Internal Link Topology Mapper (/internal-link-mapper): Topology graph visualizer, destination hubs, 5-tier anchor text diversity classifier (Exact Match, Partial Match, Branded, Generic, Naked URL), and internal PageRank flow diagnostics.',
+        ],
+      },
+      {
+        label: 'Dedicated Workspace Routing & Auth Hub',
+        icon: Layers,
+        color: 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
+        items: [
+          'Dedicated /audit Workspace Route: Isolated audit workspace with persistent breadcrumb controls (Edit URLs, New Audit), URL batching up to 5 competitors, and automated snapshot management.',
+          'Dedicated /login Hub: Split-screen sign-in experience with 1-click Google and GitHub OAuth, workspace persistence, and theme synchronization.',
+        ],
+      },
+      {
+        label: 'Performance, Motion & Database Hardening (Pillars 4–7)',
+        icon: Zap,
+        color: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20',
+        items: [
+          'Hostinger Connection Pool Guard & Table Memoization: Attached connection pool to globalThis and memoized initDatabaseTables() singleton promise, eliminating connection starvation and redundant DDL checks.',
+          'Dynamic Code-Splitting & jsPDF Lazy Loading: Converted jsPDF (~400KB) into on-demand dynamic imports (await import) and lazy-loaded inactive modals via next/dynamic, saving ~500KB+ from initial client payload.',
+          '60fps GPU Compositing & Anti-Thrashing: Fixed Tooltip layout coordinate thrashing (scoped to transform/opacity), reduced heavy backdrop blurs, and replaced generic transition-all with targeted transition-colors.',
+          'WCAG 2.2 Accessibility Compliance: Added full keyboard focus trapping (useFocusTrap), complete ARIA attribute bindings, and high-contrast anti-glare typography.',
+        ],
+      },
+    ],
+  },
+  {
+    version: 'v2.4.0',
     date: 'September 2026',
     title: 'Enterprise Header Architecture, Mega-Menu & Operational Trust Directory',
     summary:
-      'A major UX and information architecture overhaul. Shipped a 2-column "Tools ▾" mega flyout menu organizing all 8 specialized utilities, introduced a "Resources ▾" knowledge hub, engineered a pixel-perfect 38px synchronized right utility cluster, and launched a comprehensive 5-column footer with real-time operational status signals.',
+      'A major UX and information architecture overhaul. Shipped a 2-column "Tools ▾" mega flyout menu organizing specialized utilities, introduced a "Resources ▾" knowledge hub, engineered a pixel-perfect 38px synchronized right utility cluster, and launched a comprehensive 5-column footer with real-time operational status signals.',
     categories: [
       {
         label: 'New Capabilities & Architecture',
         icon: Sparkles,
         color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
         items: [
-          'Tools ▾ 2-Column Mega-Flyout: Unifies all 8 specialized SEO audit tools into SERP & Content Intelligence vs Technical Health & Performance.',
+          'Tools ▾ 2-Column Mega-Flyout: Unifies specialized SEO audit tools into SERP & Content Intelligence vs Technical Health & Performance.',
           'Resources ▾ Knowledge Directory: Instant access to SEO Guides, Methodology, SERP Pixel Specs, and Product Changelog.',
           'Hover Bridge & Keyboard Accessibility: Integrated 8px invisible pointer bridge and full ESC/Tab keyboard navigation.',
           '5-Column Enterprise Footer: Modernized sitemap layout with Pre-Footer conversion banner and dedicated Sub-Footer legal baseline.',
@@ -73,7 +112,7 @@ const CHANGELOG_RELEASES: ChangelogEntry[] = [
     date: 'September 2026',
     title: 'Anti-Glare Typography, 4-Pillar Bento Grids & Ergonomic Containers',
     summary:
-      'Standardized below-the-fold content across all 8 single-purpose tool pages. Replaced stretched 1280px text walls with an ergonomic max-w-5xl (1024px) container, calibrated heading color tokens to eliminate harsh halation in dark mode, and converted unstructured text into structured 2x2 Bento grids with authoritative W3C citations.',
+      'Standardized below-the-fold content across all single-purpose tool pages. Replaced stretched 1280px text walls with an ergonomic max-w-5xl (1024px) container, calibrated heading color tokens to eliminate harsh halation in dark mode, and converted unstructured text into structured 2x2 Bento grids with authoritative W3C citations.',
     categories: [
       {
         label: 'Typographic & Reading Ergonomics',

@@ -159,7 +159,7 @@ const RESOURCE_ITEMS: ResourceItem[] = [
     href: '/changelog',
     description: 'Weekly release notes, engine optimizations & milestones',
     icon: History,
-    badge: 'v2.4',
+    badge: 'v2.5',
   },
   {
     title: 'Google SERP & Pixel Standards',
@@ -368,7 +368,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
                 <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2 text-slate-500 dark:text-gray-400 text-[11px]">
                     <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span>All 8 tools are <strong>100% Free</strong> during Public Beta.</span>
+                    <span>All 11 tools are <strong>100% Free</strong> during Public Beta.</span>
                   </div>
                   <Link
                     href="/pricing"

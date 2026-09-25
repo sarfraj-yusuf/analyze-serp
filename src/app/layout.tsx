@@ -87,7 +87,7 @@ const jsonLdSchema = [
     "@type": "WebApplication",
     "name": "AnalyzeSERP",
     "url": "https://analyzeserp.com",
-    "description": "High-speed non-AI competitor SEO auditor and SERP intelligence suite.",
+    "description": "High-speed deterministic competitor SEO auditor with an on-demand AI writing co-pilot.",
     "applicationCategory": "BusinessApplication",
     "operatingSystem": "All",
     "offers": {

@@ -49,7 +49,7 @@ export const Footer: React.FC = () => {
             </Link>
 
             <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed">
-              <strong>AnalyzeSERP.com</strong> is a high-speed non-AI competitor SEO auditor and SERP intelligence suite. Built for content writers, SEO specialists, developers, and digital marketing agencies.
+              <strong>AnalyzeSERP.com</strong> is a high-speed deterministic competitor SEO auditor with an on-demand AI writing co-pilot. Built for content writers, SEO specialists, developers, and digital marketing agencies.
             </p>
 
             {/* Live Operational Status Badge */}
@@ -243,7 +243,7 @@ export const Footer: React.FC = () => {
                 >
                   <span>Product Changelog</span>
                   <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                    v2.4
+                    v2.5
                   </span>
                 </Link>
               </li>

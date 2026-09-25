@@ -36,7 +36,7 @@ const SUGGESTED_TOOLS = [
   {
     title: 'SERP Preview Simulator',
     description: 'Simulate exact Google desktop and mobile search snippets with pixel truncations.',
-    href: '/serp-simulator',
+    href: '/serp-snippet-preview',
     icon: EyeIcon,
     badge: 'Visual',
   },

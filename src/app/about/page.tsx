@@ -37,9 +37,9 @@ interface FaqItem {
 
 const FAQ_ITEMS: FaqItem[] = [
   {
-    question: 'Why does AnalyzeSERP avoid using generative AI for core SEO audits?',
+    question: 'How does AnalyzeSERP combine non-AI auditing with on-demand AI writing?',
     answer:
-      'Generative LLMs (like GPT-4 or Claude) are statistical text predictors, not web crawlers. When asked to audit a webpage, they summarize, approximate, and frequently hallucinate missing headings, word counts, and meta tags. Furthermore, LLM API calls take 20 to 45 seconds. AnalyzeSERP inspects the real raw DOM using Cheerio in under 500ms, returning 100% mathematical facts without guessing.',
+      'We strictly separate empirical measurement from creative generation. Our core auditing and crawling engine is 100% non-AI and deterministic—it inspects the raw DOM using Cheerio in under 500ms to guarantee 0% hallucinations for titles, headings, and keyword n-grams. Once your audit facts are proven, you can optionally invoke our on-demand AI co-pilot to rewrite meta descriptions, simplify sentences, or draft section outlines.',
   },
   {
     question: 'How are the Core Web Vitals and performance benchmarks measured?',
@@ -75,7 +75,7 @@ export default function AboutPage() {
         <div className="text-center space-y-5 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>The Anti-AI SEO Intelligence Suite</span>
+            <span>Deterministic Auditing • Optional AI Writing Co-Pilot</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-tight">
@@ -84,7 +84,7 @@ export default function AboutPage() {
           </h1>
 
           <p className="text-sm sm:text-base text-slate-600 dark:text-gray-300 leading-relaxed">
-            AnalyzeSERP was created for technical SEO specialists, content directors, and digital agencies who are tired of waiting 30 seconds for AI tools to guess and hallucinate search ranking data. We extract real HTML facts in under 500 milliseconds.
+            AnalyzeSERP was created for technical SEO specialists, content directors, and digital agencies who demand verifiable search data. Our core auditing crawler is 100% non-AI and deterministic—extracting real DOM facts in under 500ms—paired with an on-demand AI co-pilot whenever you need to rewrite meta tags or draft outlines.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
@@ -100,7 +100,7 @@ export default function AboutPage() {
               className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300 font-semibold text-xs transition-all cursor-pointer flex items-center gap-1.5"
             >
               <History className="w-3.5 h-3.5 text-slate-500" />
-              <span>Explore Changelog (v2.4)</span>
+              <span>Explore Changelog (v2.5)</span>
             </Link>
           </div>
         </div>
@@ -429,7 +429,7 @@ export default function AboutPage() {
                 <span>4. Democratizing Technical Truth</span>
               </h4>
               <p>
-                Essential SEO diagnostics (canonical checks, status codes, readability) should not be hidden behind \$200/month paywalls. Our complete 8-tool diagnostic suite remains 100% free during our Public Beta.
+                Essential SEO diagnostics (canonical checks, status codes, readability) should not be hidden behind \$200/month paywalls. Our complete 11-tool diagnostic suite remains 100% free during our Public Beta.
               </p>
             </div>
           </div>

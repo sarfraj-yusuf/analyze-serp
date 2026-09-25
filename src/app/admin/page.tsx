@@ -13,6 +13,7 @@ import {
   Zap,
   Star,
   MessageSquare,
+  Mail,
   Search,
   RefreshCw,
   CheckCircle2,
@@ -93,6 +94,29 @@ interface FeedbackRow {
   email: string | null;
   ip_address: string;
   created_at: string;
+}
+
+function parseContactMessage(rawMessage: string) {
+  let senderName = 'Anonymous';
+  let targetUrl: string | null = null;
+  let cleanMessage = rawMessage;
+
+  const nameMatch = rawMessage.match(/^Name:\s*([^\n]+)/i);
+  if (nameMatch) {
+    senderName = nameMatch[1].trim();
+  }
+
+  const urlMatch = rawMessage.match(/Target URL:\s*([^\n]+)/i);
+  if (urlMatch) {
+    targetUrl = urlMatch[1].trim();
+  }
+
+  const messageMatch = rawMessage.match(/Message:\s*([\s\S]+)$/i);
+  if (messageMatch) {
+    cleanMessage = messageMatch[1].trim();
+  }
+
+  return { senderName, targetUrl, cleanMessage };
 }
 
 interface ChartToolItem {
@@ -324,6 +348,7 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'pro' | 'free' | 'suspended'>('all');
   const [selectedToolFilter, setSelectedToolFilter] = useState('All');
+  const [feedbackSubTab, setFeedbackSubTab] = useState<'all' | 'contact' | 'feedback'>('all');
   const [actionInProgressEmail, setActionInProgressEmail] = useState<string | null>(null);
 
   // User Management Role Menu & Custom Credit Modal State
@@ -564,18 +589,36 @@ export default function AdminPage() {
     });
   }, [adminData?.userTable, searchQuery, selectedToolFilter]);
 
-  // Filter Feedback Table
-  const filteredFeedbackTable = useMemo(() => {
-    if (!adminData?.feedbackTable) return [];
-    return adminData.feedbackTable.filter((fb) => {
-      const q = searchQuery.toLowerCase();
-      return (
-        fb.message.toLowerCase().includes(q) ||
-        fb.category.toLowerCase().includes(q) ||
-        fb.user_type.toLowerCase().includes(q) ||
-        (fb.email && fb.email.toLowerCase().includes(q))
-      );
+  // Filter & Separate Contact Inquiries vs User Reviews
+  const { contactInquiries, userFeedbackList } = useMemo(() => {
+    if (!adminData?.feedbackTable) return { contactInquiries: [], userFeedbackList: [] };
+    const q = searchQuery.toLowerCase();
+
+    const contact: FeedbackRow[] = [];
+    const feedback: FeedbackRow[] = [];
+
+    adminData.feedbackTable.forEach((row) => {
+      const isContact =
+        row.user_type === 'Contact Inquiry' ||
+        row.category.toLowerCase().startsWith('[contact]');
+
+      const matchesSearch =
+        !q ||
+        row.message.toLowerCase().includes(q) ||
+        row.category.toLowerCase().includes(q) ||
+        row.user_type.toLowerCase().includes(q) ||
+        (row.email && row.email.toLowerCase().includes(q));
+
+      if (matchesSearch) {
+        if (isContact) {
+          contact.push(row);
+        } else {
+          feedback.push(row);
+        }
+      }
     });
+
+    return { contactInquiries: contact, userFeedbackList: feedback };
   }, [adminData?.feedbackTable, searchQuery]);
 
   // Filter Market Intelligence (Domains, Keywords, Snapshots)
@@ -984,7 +1027,7 @@ export default function AdminPage() {
                       },
                       { id: 'controls' as const, label: 'Site Controls', icon: Settings2, badge: null, badgeVariant: 'normal' },
                       { id: 'usage' as const, label: 'Tool Logs', icon: Activity, badge: adminData.userTable?.length || 0, badgeVariant: 'normal' },
-                      { id: 'feedback' as const, label: 'Reviews', icon: MessageSquare, badge: adminData.feedbackTable?.length || 0, badgeVariant: 'normal' },
+                      { id: 'feedback' as const, label: 'Inquiries & Feedback', icon: MessageSquare, badge: adminData.feedbackTable?.length || 0, badgeVariant: 'normal' },
                     ].map((item) => {
                       const Icon = item.icon;
                       const isActive = activeTab === item.id;
@@ -1175,7 +1218,7 @@ export default function AdminPage() {
                         {activeTab === 'security' && `System Health & Threat Radar (${adminData.securityIncidents?.length || 0})`}
                         {activeTab === 'controls' && 'Live Site Controls & Announcements'}
                         {activeTab === 'usage' && `Tool Activity & Session Logs (${adminData.userTable?.length || 0})`}
-                        {activeTab === 'feedback' && `Community Reviews & Suggestions (${adminData.feedbackTable?.length || 0})`}
+                        {activeTab === 'feedback' && `Contact Inquiries & Feedback (${adminData.feedbackTable?.length || 0})`}
                       </h2>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                         {activeTab === 'overview' && 'Real-time performance metrics, tool breakdown, and tier distribution'}
@@ -1184,7 +1227,7 @@ export default function AdminPage() {
                         {activeTab === 'security' && 'Infrastructure diagnostics, suspicious bot radar, and IP blacklist'}
                         {activeTab === 'controls' && 'Live maintenance alert, top banner, and default credits controller'}
                         {activeTab === 'usage' && 'Audit sessions, client IPs, and tool invocation history'}
-                        {activeTab === 'feedback' && 'Community ratings, feedback submissions, and bug reports'}
+                        {activeTab === 'feedback' && 'Contact messages, feature suggestions, and community ratings'}
                       </p>
                     </div>
                   </div>
@@ -3039,78 +3082,280 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* TAB 3: USER REVIEWS & SUGGESTIONS TABLE */}
+              {/* TAB 3: CONTACT INQUIRIES & USER REVIEWS TABLES */}
               {activeTab === 'feedback' && (
-                <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 overflow-hidden shadow-sm space-y-4">
-                  <div className="p-4 sm:px-6 sm:py-4 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                        <MessageSquare className="size-4 text-indigo-500" />
-                        <span>Community Feedback &amp; Feature Suggestions</span>
-                      </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Ratings and ideas submitted via the in-app feedback trigger
-                      </p>
+                <div className="space-y-6">
+                  {/* Sub-navigation Pills */}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="inline-flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setFeedbackSubTab('all')}
+                        className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                          feedbackSubTab === 'all'
+                            ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-slate-100 shadow-sm'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                        }`}
+                      >
+                        <Layers className="size-3.5" />
+                        <span>All Messages</span>
+                        <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 dark:bg-white/10 font-mono">
+                          {contactInquiries.length + userFeedbackList.length}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setFeedbackSubTab('contact')}
+                        className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                          feedbackSubTab === 'contact'
+                            ? 'bg-cyan-600 text-white shadow-sm shadow-cyan-600/25'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-300'
+                        }`}
+                      >
+                        <Mail className="size-3.5" />
+                        <span>Contact Inquiries</span>
+                        <span
+                          className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                            feedbackSubTab === 'contact'
+                              ? 'bg-cyan-700 text-white'
+                              : 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300'
+                          }`}
+                        >
+                          {contactInquiries.length}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setFeedbackSubTab('feedback')}
+                        className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                          feedbackSubTab === 'feedback'
+                            ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/25'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300'
+                        }`}
+                      >
+                        <Star className="size-3.5" />
+                        <span>Community Feedback</span>
+                        <span
+                          className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                            feedbackSubTab === 'feedback'
+                              ? 'bg-emerald-700 text-white'
+                              : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                          }`}
+                        >
+                          {userFeedbackList.length}
+                        </span>
+                      </button>
+                    </div>
+
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      Showing{' '}
+                      <strong className="text-slate-800 dark:text-slate-200">
+                        {feedbackSubTab === 'all'
+                          ? `${contactInquiries.length} inquiries + ${userFeedbackList.length} reviews`
+                          : feedbackSubTab === 'contact'
+                          ? `${contactInquiries.length} direct inquiries`
+                          : `${userFeedbackList.length} user reviews`}
+                      </strong>
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-100 dark:bg-white/5 uppercase text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 tracking-wider">
-                        <tr>
-                          <th className="px-6 py-3">Rating</th>
-                          <th className="px-6 py-3">Category</th>
-                          <th className="px-6 py-3">User Role</th>
-                          <th className="px-6 py-3">Message / Feature Idea</th>
-                          <th className="px-6 py-3">Email Contact</th>
-                          <th className="px-6 py-3">Submitted</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200/80 dark:divide-white/5">
-                        {filteredFeedbackTable.length > 0 ? (
-                          filteredFeedbackTable.map((row) => (
-                            <tr key={row.id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
-                              <td className="px-6 py-4">
-                                <div className="flex items-center gap-1 text-amber-400 font-bold font-mono">
-                                  <span>{row.rating}</span>
-                                  <Star className="size-3.5 fill-amber-400" />
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/20 font-mono">
-                                  {row.category}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 font-semibold text-slate-700 dark:text-gray-300">
-                                {row.user_type}
-                              </td>
-                              <td className="px-6 py-4 text-slate-800 dark:text-gray-200 max-w-md whitespace-pre-line leading-relaxed">
-                                {row.message}
-                              </td>
-                              <td className="px-6 py-4 font-mono text-cyan-600 dark:text-cyan-400">
-                                {row.email ? (
-                                  <a href={`mailto:${row.email}`} className="hover:underline">
-                                    {row.email}
-                                  </a>
-                                ) : (
-                                  <span className="text-slate-400 italic">None provided</span>
-                                )}
-                              </td>
-                              <td className="px-6 py-4 text-slate-500 dark:text-gray-400 text-[11px] whitespace-nowrap">
-                                {new Date(row.created_at).toLocaleString()}
-                              </td>
+                  {/* TABLE 1: CONTACT INQUIRIES */}
+                  {(feedbackSubTab === 'all' || feedbackSubTab === 'contact') && (
+                    <div className="glass-panel rounded-2xl border border-cyan-500/20 overflow-hidden shadow-sm space-y-4">
+                      <div className="p-4 sm:px-6 sm:py-4 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between bg-cyan-500/5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center border border-cyan-500/20 shrink-0">
+                            <Mail className="size-4" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                              <span>Direct Contact Inquiries</span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20 font-mono">
+                                {contactInquiries.length} Active
+                              </span>
+                            </h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                              Messages, client briefs, and technical support requests dispatched from /contact
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-100 dark:bg-white/5 uppercase text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 tracking-wider">
+                            <tr>
+                              <th className="px-6 py-3">Sender Details</th>
+                              <th className="px-6 py-3">Subject / Topic</th>
+                              <th className="px-6 py-3">Target URL</th>
+                              <th className="px-6 py-3">Inquiry Message</th>
+                              <th className="px-6 py-3">Received At</th>
+                              <th className="px-6 py-3 text-right">Quick Action</th>
                             </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td colSpan={6} className="px-6 py-8 text-center text-slate-500 dark:text-gray-400">
-                              No feedback submissions match your search query.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200/80 dark:divide-white/5">
+                            {contactInquiries.length > 0 ? (
+                              contactInquiries.map((row) => {
+                                const { senderName, targetUrl, cleanMessage } = parseContactMessage(row.message);
+                                const cleanSubject = row.category.replace(/^\[Contact\]\s*/i, '');
+                                return (
+                                  <tr key={row.id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                                    <td className="px-6 py-4">
+                                      <div className="space-y-0.5">
+                                        <div className="font-bold text-slate-800 dark:text-slate-100">
+                                          {senderName}
+                                        </div>
+                                        {row.email ? (
+                                          <a
+                                            href={`mailto:${row.email}`}
+                                            className="text-[11px] font-mono text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1"
+                                          >
+                                            <Mail className="size-3" />
+                                            <span>{row.email}</span>
+                                          </a>
+                                        ) : (
+                                          <span className="text-slate-400 italic text-[11px]">No email</span>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                      <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20 font-mono">
+                                        {cleanSubject}
+                                      </span>
+                                    </td>
+                                    <td className="px-6 py-4 font-mono text-[11px]">
+                                      {targetUrl ? (
+                                        <a
+                                          href={targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 max-w-[160px] truncate"
+                                          title={targetUrl}
+                                        >
+                                          <Globe className="size-3 shrink-0" />
+                                          <span className="truncate">{targetUrl.replace(/^https?:\/\//, '')}</span>
+                                          <ExternalLink className="size-2.5 shrink-0 opacity-70" />
+                                        </a>
+                                      ) : (
+                                        <span className="text-slate-400 italic">None specified</span>
+                                      )}
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-800 dark:text-gray-200 max-w-md whitespace-pre-line leading-relaxed text-xs">
+                                      {cleanMessage}
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-500 dark:text-gray-400 text-[11px] whitespace-nowrap">
+                                      {new Date(row.created_at).toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                      {row.email && (
+                                        <a
+                                          href={`mailto:${row.email}?subject=Re: AnalyzeSERP Support - ${encodeURIComponent(cleanSubject)}`}
+                                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 text-xs font-semibold transition-all cursor-pointer"
+                                        >
+                                          <Mail className="size-3" />
+                                          <span>Reply</span>
+                                        </a>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            ) : (
+                              <tr>
+                                <td colSpan={6} className="px-6 py-8 text-center text-slate-500 dark:text-gray-400">
+                                  No direct contact inquiries match your search query.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TABLE 2: COMMUNITY REVIEWS & FEEDBACK */}
+                  {(feedbackSubTab === 'all' || feedbackSubTab === 'feedback') && (
+                    <div className="glass-panel rounded-2xl border border-emerald-500/20 overflow-hidden shadow-sm space-y-4">
+                      <div className="p-4 sm:px-6 sm:py-4 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between bg-emerald-500/5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 shrink-0">
+                            <Star className="size-4" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                              <span>Community Feedback &amp; Tool Ratings</span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 font-mono">
+                                {userFeedbackList.length} Submissions
+                              </span>
+                            </h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                              In-app star ratings, feature ideas, and feedback submitted by users during audits
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-100 dark:bg-white/5 uppercase text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 tracking-wider">
+                            <tr>
+                              <th className="px-6 py-3">Rating</th>
+                              <th className="px-6 py-3">Feedback Category</th>
+                              <th className="px-6 py-3">User Role</th>
+                              <th className="px-6 py-3">Review &amp; Suggestion</th>
+                              <th className="px-6 py-3">Email Contact</th>
+                              <th className="px-6 py-3">Submitted</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200/80 dark:divide-white/5">
+                            {userFeedbackList.length > 0 ? (
+                              userFeedbackList.map((row) => (
+                                <tr key={row.id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-1 text-amber-400 font-bold font-mono">
+                                      <span>{row.rating}</span>
+                                      <Star className="size-3.5 fill-amber-400" />
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 font-mono">
+                                      {row.category}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4 font-semibold text-slate-700 dark:text-gray-300">
+                                    {row.user_type}
+                                  </td>
+                                  <td className="px-6 py-4 text-slate-800 dark:text-gray-200 max-w-md whitespace-pre-line leading-relaxed">
+                                    {row.message}
+                                  </td>
+                                  <td className="px-6 py-4 font-mono text-cyan-600 dark:text-cyan-400">
+                                    {row.email ? (
+                                      <a href={`mailto:${row.email}`} className="hover:underline">
+                                        {row.email}
+                                      </a>
+                                    ) : (
+                                      <span className="text-slate-400 italic">None provided</span>
+                                    )}
+                                  </td>
+                                  <td className="px-6 py-4 text-slate-500 dark:text-gray-400 text-[11px] whitespace-nowrap">
+                                    {new Date(row.created_at).toLocaleString()}
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={6} className="px-6 py-8 text-center text-slate-500 dark:text-gray-400">
+                                  No community reviews match your search query.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

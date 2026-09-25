@@ -22,6 +22,8 @@ import {
   HelpCircle,
   Activity,
   Check,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 
 interface FaqItem {
@@ -51,6 +53,9 @@ const SUPPORT_FAQS: FaqItem[] = [
 export default function ContactPage() {
   const [isProModalOpen, setIsProModalOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [hpWebsite, setHpWebsite] = useState('');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [formData, setFormData] = useState({
     name: '',
@@ -64,9 +69,39 @@ export default function ContactPage() {
     setOpenFaqIndex(openFaqIndex === idx ? null : idx);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setIsSubmitting(true);
+    setErrorMsg(null);
+
+    try {
+      const payload = {
+        rating: 5,
+        category: `[Contact] ${formData.subject}`,
+        message: `Name: ${formData.name.trim()}${formData.targetUrl ? `\nTarget URL: ${formData.targetUrl.trim()}` : ''}\n\nMessage:\n${formData.message.trim()}`,
+        email: formData.email.trim(),
+        user_type: 'Contact Inquiry',
+        hp_website: hpWebsite,
+      };
+
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to dispatch message. Please try again.');
+      }
+
+      setSubmitted(true);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'An unexpected network error occurred. Please try again or email us directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactJsonLd = {
@@ -248,6 +283,8 @@ export default function ContactPage() {
                         targetUrl: '',
                         message: '',
                       });
+                      setErrorMsg(null);
+                      setHpWebsite('');
                     }}
                     className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-xs font-bold text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-white/10 transition-all cursor-pointer"
                   >
@@ -264,6 +301,26 @@ export default function ContactPage() {
                   <p className="text-xs text-slate-500 dark:text-gray-400">
                     Fill out the form below and we'll get back to you promptly.
                   </p>
+                </div>
+
+                {errorMsg && (
+                  <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2.5 animate-in fade-in">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{errorMsg}</span>
+                  </div>
+                )}
+
+                {/* Hidden Honeypot anti-spam field */}
+                <div className="hidden" aria-hidden="true">
+                  <label htmlFor="contact_hp_website">Leave this field blank</label>
+                  <input
+                    id="contact_hp_website"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={hpWebsite}
+                    onChange={(e) => setHpWebsite(e.target.value)}
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -344,10 +401,20 @@ export default function ContactPage() {
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm shadow-emerald-600/25 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={isSubmitting}
+                  className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-xs shadow-sm shadow-emerald-600/25 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Send className="w-4 h-4" />
-                  <span>Send Message to Support Team</span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Dispatching Message...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Send Message to Support Team</span>
+                    </>
+                  )}
                 </button>
               </form>
             )}

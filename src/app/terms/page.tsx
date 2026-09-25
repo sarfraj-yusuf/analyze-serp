@@ -44,7 +44,7 @@ export default function TermsPage() {
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
             <FileText className="w-3.5 h-3.5" />
-            <span>ENTERPRISE SERVICE AGREEMENT • VERSION 2.4</span>
+            <span>ENTERPRISE SERVICE AGREEMENT • VERSION 2.5</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-tight">
@@ -52,7 +52,7 @@ export default function TermsPage() {
           </h1>
 
           <p className="text-xs text-slate-500 dark:text-gray-400 font-mono">
-            Effective Date: September 2026 • Platform Release v2.4
+            Effective Date: September 2026 • Platform Release v2.5
           </p>
         </div>
 
@@ -72,7 +72,7 @@ export default function TermsPage() {
                 <span>100% Free Public Beta</span>
               </div>
               <p className="text-[11px] text-slate-600 dark:text-gray-400 leading-relaxed">
-                All 8 diagnostic tools, multi-URL batching, and vector PDF exports are free. No credit card required and no surprise recurring charges.
+                All 11 diagnostic tools, multi-URL batching, and vector PDF exports are free. No credit card required and no surprise recurring charges.
               </p>
             </div>
 
@@ -154,7 +154,7 @@ export default function TermsPage() {
             </p>
             <ul className="list-disc pl-5 space-y-1.5 text-slate-600 dark:text-gray-400">
               <li>
-                <strong>No Credit Card Required:</strong> Access to all 8 diagnostic engines, competitor multi-URL batching (up to 5 URLs), and unbranded White-Label PDF exports is available at $0/month.
+                <strong>No Credit Card Required:</strong> Access to all 11 diagnostic engines, competitor multi-URL batching (up to 5 URLs), and unbranded White-Label PDF exports is available at $0/month.
               </li>
               <li>
                 <strong>Early Adopter Grandfathering Guarantee:</strong> Users who create accounts and test our tooling during the Public Beta lock in an exclusive, permanent <strong>50% lifetime discount</strong> on all future paid subscription plans (regularly $19/mo Pro and $49/mo Agency).
