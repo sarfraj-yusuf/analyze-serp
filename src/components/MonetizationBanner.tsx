@@ -29,7 +29,10 @@ export const MonetizationBanner: React.FC<MonetizationBannerProps> = ({ type }) 
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-800 dark:text-cyan-300">
-                Recommended Hosting
+                Partner Recommendation
+              </span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                (Sponsored)
               </span>
             </div>
             <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-1">
@@ -38,13 +41,16 @@ export const MonetizationBanner: React.FC<MonetizationBannerProps> = ({ type }) 
             <p className="text-xs text-slate-600 dark:text-gray-300">
               Upgrade your hosting to high-speed NVMe cloud infrastructure for faster SERP rankings.
             </p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 italic">
+              Disclosure: We may earn a partner commission if you purchase through this link at no extra cost to you.
+            </p>
           </div>
         </div>
 
         <a
           href="https://hostinger.com"
           target="_blank"
-          rel="noopener noreferrer"
+          rel="sponsored noopener noreferrer"
           className="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs flex items-center gap-2 shrink-0 transition-all shadow-md shadow-cyan-500/20"
         >
           <span>Explore Fast Hosting</span>
@@ -63,7 +69,10 @@ export const MonetizationBanner: React.FC<MonetizationBannerProps> = ({ type }) 
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-800 dark:text-emerald-300">
-              Copywriting AI Assistant
+              Partner Recommendation
+            </span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400">
+              (Sponsored)
             </span>
           </div>
           <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-1">
@@ -72,13 +81,16 @@ export const MonetizationBanner: React.FC<MonetizationBannerProps> = ({ type }) 
           <p className="text-xs text-slate-600 dark:text-gray-300">
             Generate long-form articles matching your competitor's heading structure in minutes.
           </p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 italic">
+            Disclosure: We may earn a partner commission if you purchase through this link at no extra cost to you.
+          </p>
         </div>
       </div>
 
       <a
         href="https://copy.ai"
         target="_blank"
-        rel="noopener noreferrer"
+        rel="sponsored noopener noreferrer"
         className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-2 shrink-0 transition-all shadow-md shadow-emerald-500/20"
       >
         <span>Try Copywriter Assistant</span>

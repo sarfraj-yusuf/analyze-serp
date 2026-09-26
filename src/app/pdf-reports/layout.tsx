@@ -31,6 +31,33 @@ export const metadata: Metadata = {
   },
 };
 
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: 'https://analyzeserp.com',
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'PDF Reports',
+      item: 'https://analyzeserp.com/pdf-reports',
+    },
+  ],
+};
+
 export default function PdfReportsLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      {children}
+    </>
+  );
 }
