@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { AuthModal } from '@/components/AuthModal';
@@ -22,6 +22,8 @@ import {
   Check,
   Clock,
   ShieldCheck,
+  ShieldAlert,
+  LogOut,
   FileText,
   Activity,
   Target,
@@ -56,6 +58,7 @@ interface DashboardSnapshotItem {
 }
 
 interface DashboardHistoryData {
+  isSuspended?: boolean;
   user: {
     name?: string | null;
     email: string;
@@ -86,6 +89,7 @@ export default function DashboardPage() {
   const [copiedId, setCopiedId] = useState<string | number | null>(null);
   const [deletingAuditId, setDeletingAuditId] = useState<number | null>(null);
   const [deletingSnapshotId, setDeletingSnapshotId] = useState<number | null>(null);
+  const [isSuspended, setIsSuspended] = useState(false);
 
   // Enhancement 1: Instant URL Audit Bar state
   const [quickUrl, setQuickUrl] = useState('');
@@ -125,6 +129,8 @@ export default function DashboardPage() {
         .then((json) => {
           if (json.success) {
             setData(json);
+          } else if (json.isSuspended) {
+            setIsSuspended(true);
           }
         })
         .catch((err) => console.error('Failed to load dashboard data:', err))
@@ -424,6 +430,60 @@ export default function DashboardPage() {
           onClose={() => setShowAuthModal(false)}
           featureTitle="SEO Dashboard Access"
         />
+      </div>
+    );
+  }
+
+  // Suspended User Screen
+  if (session?.user?.status === 'suspended' || isSuspended) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-[var(--text-primary)]">
+        <Navbar />
+
+        <main className="flex-1 flex items-center justify-center px-4 py-16">
+          <div className="glass-panel w-full max-w-xl rounded-3xl p-8 sm:p-10 border border-rose-500/20 dark:border-rose-500/30 shadow-2xl text-center space-y-6 animate-in fade-in duration-200">
+            <div className="flex justify-center">
+              <div className="w-14 h-14 rounded-2xl bg-rose-500/10 dark:bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-500">
+                <ShieldAlert className="w-7 h-7" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20">
+                <ShieldAlert className="w-3.5 h-3.5" />
+                <span>Account Suspended</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                Access Temporarily Restricted
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                Your account ({session?.user?.email}) has been suspended by an administrator. Feature access, competitor audits, and AI generation credits are locked.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 text-left text-xs text-slate-600 dark:text-slate-400 space-y-2">
+              <p>
+                If you believe this suspension is in error or need assistance resolving this issue, please contact support at{' '}
+                <a href="mailto:contact@analyzeserp.com" className="text-emerald-600 dark:text-emerald-400 underline font-medium">
+                  contact@analyzeserp.com
+                </a>.
+              </p>
+            </div>
+
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="px-6 py-3 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-xs transition-all cursor-pointer flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </main>
+
+        <Footer />
       </div>
     );
   }

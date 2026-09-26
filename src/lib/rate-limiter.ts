@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { isIpBannedFast, logSecurityIncident } from '@/lib/db';
+import { getTrustedClientIp } from '@/lib/client-ip';
 
 export interface SuspiciousBotRecord {
   ip: string;
@@ -164,58 +165,22 @@ class RateLimiter {
   }
 
   /**
-   * Extract client IP address securely from request headers.
-   * Prioritizes tamper-proof edge headers (cf-connecting-ip, x-real-ip) over
-   * client-controllable x-forwarded-for to prevent IP spoofing and rate limit evasion.
+   * Extract client IP address securely using canonical trusted IP resolver.
    */
   public getClientIp(req: NextRequest | Request): string {
-    // 1. Cloudflare Edge header (tamper-proof when behind Cloudflare)
-    const cfIp = req.headers.get('cf-connecting-ip');
-    if (cfIp && this.isValidIp(cfIp.trim())) {
-      return cfIp.trim();
-    }
-
-    // 2. Direct Reverse Proxy header (Nginx / Caddy / Traefik)
-    const realIp = req.headers.get('x-real-ip');
-    if (realIp && this.isValidIp(realIp.trim())) {
-      return realIp.trim();
-    }
-
-    // 3. Fallback to X-Forwarded-For (sanitized)
-    const forwardedFor = req.headers.get('x-forwarded-for');
-    if (forwardedFor) {
-      const parts = forwardedFor.split(',').map((p) => p.trim()).filter(Boolean);
-      for (let i = parts.length - 1; i >= 0; i--) {
-        if (this.isValidIp(parts[i])) {
-          return parts[i];
-        }
-      }
-    }
-
-    return '127.0.0.1';
-  }
-
-  /**
-   * Validate that the extracted string is syntactically a valid IPv4 or IPv6 address
-   */
-  private isValidIp(ip: string): boolean {
-    if (!ip || ip.length > 45) return false;
-    if (/^(\d{1,3}\.){3}\d{1,3}$/.test(ip)) {
-      const octets = ip.split('.').map(Number);
-      return octets.every((o) => o >= 0 && o <= 255);
-    }
-    if (ip.includes(':') && /^[0-9a-fA-F:]+$/.test(ip)) {
-      return true;
-    }
-    return false;
+    return getTrustedClientIp(req);
   }
 
   /**
    * Check if an IP address has exceeded the rate limit or is banned
+   * @param ip Client IP address
+   * @param endpoint Target endpoint string for logging
+   * @param weight Number of units to consume (e.g. multi-URL batch size). Defaults to 1.
    */
   public check(
     ip: string,
-    endpoint?: string
+    endpoint?: string,
+    weight: number = 1
   ): {
     success: boolean;
     limit: number;
@@ -225,6 +190,8 @@ class RateLimiter {
     suspiciousBot?: boolean;
     callsInWindow?: number;
   } {
+    const cost = Math.max(1, Math.floor(weight));
+
     // 1. Instant check for blacklisted IPs
     if (isIpBannedFast(ip)) {
       return {
@@ -267,8 +234,8 @@ class RateLimiter {
     // Filter out timestamps outside current window
     record.timestamps = record.timestamps.filter((ts) => ts > windowStart);
 
-    if (record.timestamps.length >= this.maxRequests) {
-      const oldestInWindow = record.timestamps[0];
+    if (record.timestamps.length + cost > this.maxRequests) {
+      const oldestInWindow = record.timestamps[0] || now;
       const resetMs = oldestInWindow + this.windowMs - now;
 
       // Log security incident asynchronously
@@ -277,19 +244,21 @@ class RateLimiter {
         severity: 'medium',
         ip_address: ip,
         target_endpoint: endpoint || null,
-        details: `Exceeded request limit (${this.maxRequests} req / ${Math.round(this.windowMs / 1000)}s)`,
+        details: `Exceeded request limit (${this.maxRequests} units / ${Math.round(this.windowMs / 1000)}s, attempted ${cost})`,
       }).catch(() => {});
 
       return {
         success: false,
         limit: this.maxRequests,
-        remaining: 0,
+        remaining: Math.max(0, this.maxRequests - record.timestamps.length),
         resetMs: Math.max(1000, resetMs),
       };
     }
 
-    record.timestamps.push(now);
-    const remaining = this.maxRequests - record.timestamps.length;
+    for (let i = 0; i < cost; i++) {
+      record.timestamps.push(now);
+    }
+    const remaining = Math.max(0, this.maxRequests - record.timestamps.length);
 
     return {
       success: true,
@@ -313,8 +282,14 @@ class RateLimiter {
   }
 }
 
-// Global rate limiter instance: max 10 audit requests per IP per 1 minute
-export const auditRateLimiter = new RateLimiter(60 * 1000, 10);
+// 1. Audit Rate Limiter: max 15 URL scrapes per IP per 1 minute (weighted by batch size)
+export const auditRateLimiter = new RateLimiter(60 * 1000, 15);
 
-// AI generation rate limiter: max 10 requests per IP per 1 minute
+// 2. PageSpeed API Rate Limiter: max 6 requests per IP per 1 minute (safeguards upstream Google API quota)
+export const pageSpeedRateLimiter = new RateLimiter(60 * 1000, 6);
+
+// 3. Diagnostic Utilities Rate Limiter: max 20 requests per IP per 1 minute (contrast, redirect tracing)
+export const diagnosticRateLimiter = new RateLimiter(60 * 1000, 20);
+
+// 4. AI Generation Rate Limiter: max 10 requests per IP per 1 minute
 export const aiRateLimiter = new RateLimiter(60 * 1000, 10);

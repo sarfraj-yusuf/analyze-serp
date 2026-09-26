@@ -131,7 +131,7 @@ const CHANGELOG_RELEASES: ChangelogEntry[] = [
         items: [
           '4-Pillar Technical Bento Grid: Structured technical breakdowns with target threshold badges (< 400ms, 4.5:1 AA, 1.91:1 Ratio).',
           'Authoritative Citations: Embedded direct reference links to Google Search Central, W3C WCAG 2.2, RFC 9110, and Chrome Developers.',
-          'Interactive FAQ Accordions: Clean animated toggles with 100% compliant FAQPage JSON-LD schema preserved for Google Rich Results.',
+          'Interactive FAQ Accordions: Clean animated toggles with 100% compliant FAQPage JSON-LD schema preserved for semantic clarity.',
         ],
       },
     ],

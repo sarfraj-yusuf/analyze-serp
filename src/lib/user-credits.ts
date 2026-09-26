@@ -1,10 +1,28 @@
-import { upsertUser, getUserByEmail, updateUserCredits, DbUser } from './db';
+import {
+  upsertUser,
+  getUserByEmail,
+  atomicReserveUserAiCredit,
+  atomicRefundUserAiCredit,
+  atomicReserveUserAuditCredits,
+  atomicRefundUserAuditCredits,
+  DbUser,
+} from './db';
 
 export interface UserCreditsInfo {
   remainingCredits: number;
   limit: number;
   usedCredits: number;
   resetInHours: number;
+}
+
+export interface UserAuditQuotaInfo {
+  allowed: boolean;
+  remainingCredits: number;
+  limit: number;
+  usedCredits: number;
+  resetInHours: number;
+  role: 'user' | 'pro' | 'admin';
+  isUnlimited: boolean;
 }
 
 /**
@@ -34,25 +52,24 @@ export async function syncUserOnLogin(data: {
 export async function getUserCredits(email: string): Promise<UserCreditsInfo> {
   const user = await getUserByEmail(email);
 
-  // Default fallback if user not found
+  // Security guard: Only registered users present in DB receive AI credits
   if (!user) {
     return {
-      remainingCredits: 5,
-      limit: 5,
+      remainingCredits: 0,
+      limit: 0,
       usedCredits: 0,
-      resetInHours: 24,
+      resetInHours: 0,
     };
   }
 
   const now = Date.now();
-  const lastResetTime = new Date(user.last_credit_reset).getTime();
+  const lastResetTime = user.last_credit_reset ? new Date(user.last_credit_reset).getTime() : 0;
   const diffMs = now - lastResetTime;
   const twentyFourHoursMs = 24 * 60 * 60 * 1000;
 
-  // If more than 24 hours have passed, reset used credits
-  if (diffMs >= twentyFourHoursMs) {
-    const resetDate = new Date();
-    await updateUserCredits(email, 0, resetDate);
+  // Read-only virtual reset calculation if 24 hours have elapsed
+  // (Actual atomic DB state update is handled atomically on consumption via atomicReserveUserAiCredit)
+  if (diffMs >= twentyFourHoursMs || !lastResetTime) {
     return {
       remainingCredits: user.daily_ai_credits_limit,
       limit: user.daily_ai_credits_limit,
@@ -73,35 +90,155 @@ export async function getUserCredits(email: string): Promise<UserCreditsInfo> {
 }
 
 /**
- * Consumes 1 AI credit for a user if available.
+ * Atomically reserves 1 AI credit before calling Gemini to eliminate race conditions.
+ */
+export async function reserveUserCredit(
+  email: string
+): Promise<{ success: boolean; remainingCredits: number; limit: number; error?: string }> {
+  return await atomicReserveUserAiCredit(email);
+}
+
+/**
+ * Atomically refunds 1 AI credit if Gemini generation fails.
+ */
+export async function refundUserCredit(email: string): Promise<boolean> {
+  return await atomicRefundUserAiCredit(email);
+}
+
+/**
+ * Atomically reserves audit quota before execution to eliminate batch flood race conditions.
+ */
+export async function reserveUserAuditQuota(
+  email: string,
+  count: number
+): Promise<{ success: boolean; remainingCredits: number; limit: number; error?: string }> {
+  return await atomicReserveUserAuditCredits(email, count);
+}
+
+/**
+ * Atomically refunds audit credits if scraping fails.
+ */
+export async function refundUserAuditQuota(email: string, count: number): Promise<boolean> {
+  return await atomicRefundUserAuditCredits(email, count);
+}
+
+/**
+ * Consumes 1 AI credit for a user if available (atomic database-level increment).
  */
 export async function consumeUserCredit(
   email: string
 ): Promise<{ success: boolean; remainingCredits: number; error?: string }> {
+  return await atomicReserveUserAiCredit(email);
+}
+
+/**
+ * Retrieves remaining daily audit quota for an authenticated user, resetting every 24 hours.
+ */
+export async function getUserAuditQuota(
+  email: string,
+  requestedCount: number = 1
+): Promise<UserAuditQuotaInfo> {
   const user = await getUserByEmail(email);
-  if (user?.status === 'suspended') {
+
+  // Security guard: Only registered users present in DB receive an authenticated audit quota
+  // (Unregistered / guest users are handled by the IP-based freemium limiter in /api/audit)
+  if (!user) {
     return {
-      success: false,
+      allowed: false,
       remainingCredits: 0,
-      error: 'Your account has been suspended by an administrator. Please contact support.',
+      limit: 0,
+      usedCredits: 0,
+      resetInHours: 0,
+      role: 'user',
+      isUnlimited: false,
     };
   }
 
-  const creditsInfo = await getUserCredits(email);
+  const role: 'user' | 'pro' | 'admin' = (user.role as any) || 'user';
 
-  if (creditsInfo.remainingCredits <= 0) {
+  // Suspended users have zero quota
+  if (user.status === 'suspended') {
     return {
-      success: false,
+      allowed: false,
       remainingCredits: 0,
-      error: `Daily free AI limit reached (${creditsInfo.limit} credits). Resets in ${creditsInfo.resetInHours}h.`,
+      limit: user.daily_audit_credits_limit || 20,
+      usedCredits: user.daily_audit_credits_used || 0,
+      resetInHours: 0,
+      role,
+      isUnlimited: false,
     };
   }
 
-  const newUsed = creditsInfo.usedCredits + 1;
-  await updateUserCredits(email, newUsed);
+  // Admins have virtually unlimited audits
+  if (role === 'admin') {
+    return {
+      allowed: true,
+      remainingCredits: 9999,
+      limit: 9999,
+      usedCredits: user.daily_audit_credits_used || 0,
+      resetInHours: 24,
+      role: 'admin',
+      isUnlimited: true,
+    };
+  }
+
+  // Pro users have high volume / unlimited batch capability
+  if (role === 'pro') {
+    const proLimit = Math.max(200, user.daily_audit_credits_limit || 200);
+    const used = user.daily_audit_credits_used || 0;
+    return {
+      allowed: true,
+      remainingCredits: Math.max(0, proLimit - used),
+      limit: proLimit,
+      usedCredits: used,
+      resetInHours: 24,
+      role: 'pro',
+      isUnlimited: true,
+    };
+  }
+
+  // Standard registered free user
+  const effectiveLimit = user.daily_audit_credits_limit || 20;
+  const now = Date.now();
+  const lastResetTime = user.last_audit_reset ? new Date(user.last_audit_reset).getTime() : 0;
+  const diffMs = now - lastResetTime;
+  const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+
+  // Read-only virtual reset calculation if 24 hours have passed or first audit
+  // (Actual atomic DB state update is handled atomically on consumption via atomicReserveUserAuditCredits)
+  if (diffMs >= twentyFourHoursMs || !lastResetTime) {
+    return {
+      allowed: requestedCount <= effectiveLimit,
+      remainingCredits: effectiveLimit,
+      limit: effectiveLimit,
+      usedCredits: 0,
+      resetInHours: 24,
+      role: 'user',
+      isUnlimited: false,
+    };
+  }
+
+  const used = user.daily_audit_credits_used || 0;
+  const remainingCredits = Math.max(0, effectiveLimit - used);
+  const remainingHours = Math.max(1, Math.ceil((twentyFourHoursMs - diffMs) / (60 * 60 * 1000)));
 
   return {
-    success: true,
-    remainingCredits: creditsInfo.remainingCredits - 1,
+    allowed: used + requestedCount <= effectiveLimit,
+    remainingCredits,
+    limit: effectiveLimit,
+    usedCredits: used,
+    resetInHours: remainingHours,
+    role,
+    isUnlimited: false,
   };
+}
+
+/**
+ * Consumes audit credits for an authenticated user (atomic database-level increment).
+ */
+export async function consumeUserAuditQuota(
+  email: string,
+  count: number
+): Promise<{ success: boolean; remainingCredits: number; limit: number }> {
+  return await atomicReserveUserAuditCredits(email, count);
 }

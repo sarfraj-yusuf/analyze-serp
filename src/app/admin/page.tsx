@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { Tooltip } from '@/components/Tooltip';
 import {
   Lock,
+  LogIn,
   Key,
   Users,
   Activity,
@@ -312,6 +314,7 @@ export interface SuspiciousBotInfo {
 export type AdminTab = 'overview' | 'users' | 'market' | 'security' | 'controls' | 'usage' | 'feedback';
 
 export default function AdminPage() {
+  const { data: session, status: authStatus } = useSession();
   const [adminKey, setAdminKey] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -470,6 +473,9 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
+    if (authStatus === 'loading') return;
+    if (!session?.user?.email) return;
+
     const savedKey = sessionStorage.getItem('analyze_admin_key') || localStorage.getItem('analyze_admin_key');
     if (savedKey) {
       setAdminKey(savedKey);
@@ -477,7 +483,7 @@ export default function AdminPage() {
       sessionStorage.setItem('analyze_admin_key', savedKey);
       try { localStorage.removeItem('analyze_admin_key'); } catch {}
     }
-  }, []);
+  }, [session, authStatus]);
 
   // 15-second background auto-refresh interval for telemetry & threat radar
   useEffect(() => {
@@ -907,46 +913,82 @@ export default function AdminPage() {
           )}
         </div>
 
-        {/* Authentication Login Screen */}
+        {/* Dual-Layer Authentication Login Screen */}
         {!isAuthenticated ? (
           <div className="max-w-md mx-auto py-12">
             <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-2xl space-y-6 text-center">
-              <div className="size-14 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center mx-auto shadow-inner">
-                <Key className="size-7" />
-              </div>
-
-              <div className="space-y-1.5">
-                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">Admin Authentication</h3>
-                <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed">
-                  Enter your Secret Admin Passkey (`ADMIN_SECRET_KEY`) to manage registered accounts and access telemetry.
-                </p>
-              </div>
-
-              <form onSubmit={handleLogin} className="space-y-4">
-                <input
-                  type="password"
-                  required
-                  placeholder="Enter Secret Admin Passkey"
-                  value={adminKey}
-                  onChange={(e) => setAdminKey(e.target.value)}
-                  className="w-full p-3 rounded-xl glass-input text-xs text-center font-mono focus:outline-none"
-                />
-
-                {errorMsg && (
-                  <div className="text-xs text-red-600 dark:text-red-400 flex items-center justify-center gap-1.5">
-                    <AlertCircle className="size-4 shrink-0" />
-                    <span>{errorMsg}</span>
+              {authStatus === 'loading' ? (
+                <div className="py-8 space-y-3">
+                  <RefreshCw className="size-8 text-emerald-500 animate-spin mx-auto" />
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Verifying administrator clearance...</p>
+                </div>
+              ) : !session?.user?.email ? (
+                <div className="space-y-5">
+                  <div className="size-14 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center mx-auto shadow-inner">
+                    <ShieldAlert className="size-7" />
                   </div>
-                )}
 
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {isLoading ? 'Verifying Admin Key...' : 'Unlock Management Panel'}
-                </button>
-              </form>
+                  <div className="space-y-1.5">
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">Administrator Sign-In Required</h3>
+                    <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed">
+                      Dual-Layer Security Enforcement: You must first authenticate with an authorized Google or GitHub account before accessing management telemetry.
+                    </p>
+                  </div>
+
+                  <div className="pt-2">
+                    <Link
+                      href="/login?callbackUrl=/admin"
+                      className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <LogIn className="size-4" />
+                      <span>Sign In to Admin Console</span>
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <div className="size-14 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center mx-auto shadow-inner">
+                    <Key className="size-7" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-semibold">
+                      <UserCheck className="size-3.5" />
+                      <span>{session.user.email}</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mt-2">Security Key Verification</h3>
+                    <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed">
+                      Enter your Master Admin Passkey (`ADMIN_SECRET_KEY`) to complete 2FA clearance and unlock telemetry.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <input
+                      type="password"
+                      required
+                      placeholder="Enter Secret Admin Passkey"
+                      value={adminKey}
+                      onChange={(e) => setAdminKey(e.target.value)}
+                      className="w-full p-3 rounded-xl glass-input text-xs text-center font-mono focus:outline-none"
+                    />
+
+                    {errorMsg && (
+                      <div className="text-xs text-red-600 dark:text-red-400 flex items-center justify-center gap-1.5">
+                        <AlertCircle className="size-4 shrink-0" />
+                        <span>{errorMsg}</span>
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      {isLoading ? 'Verifying Admin Key...' : 'Unlock Management Panel'}
+                    </button>
+                  </form>
+                </div>
+              )}
             </div>
           </div>
         ) : (

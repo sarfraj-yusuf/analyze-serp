@@ -542,26 +542,39 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
                   className="absolute right-0 mt-2 top-full w-64 rounded-2xl glass-panel p-3 border border-slate-200 dark:border-white/10 shadow-xl bg-white dark:bg-slate-900 space-y-3 z-50 animate-in fade-in zoom-in-95 duration-150"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="pb-2 border-b border-slate-200/80 dark:border-white/10">
-                    <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
-                      {session.user.name || 'Signed In User'}
-                    </p>
-                    <p className="text-[11px] text-slate-500 dark:text-gray-400 font-mono truncate">
-                      {session.user.email}
-                    </p>
+                  <div className="pb-2 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+                        {session.user.name || 'Signed In User'}
+                      </p>
+                      <p className="text-[11px] text-slate-500 dark:text-gray-400 font-mono truncate">
+                        {session.user.email}
+                      </p>
+                    </div>
+                    {session.user.status === 'suspended' && (
+                      <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20 shrink-0">
+                        Suspended
+                      </span>
+                    )}
                   </div>
 
-                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5 space-y-1">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-slate-600 dark:text-slate-400 font-medium">Daily AI Credits:</span>
-                      <strong className="text-emerald-600 dark:text-emerald-400 font-bold">
-                        {session.user.credits?.remainingCredits ?? 5} / {session.user.credits?.limit ?? 5}
-                      </strong>
+                  {session.user.status === 'suspended' ? (
+                    <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-700 dark:text-rose-400">
+                      Account suspended by administrator.
                     </div>
-                    <p className="text-[9px] text-slate-500 dark:text-gray-400 leading-tight">
-                      Resets automatically every 24 hours.
-                    </p>
-                  </div>
+                  ) : (
+                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5 space-y-1">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-slate-600 dark:text-slate-400 font-medium">Daily AI Credits:</span>
+                        <strong className="text-emerald-600 dark:text-emerald-400 font-bold">
+                          {session.user.credits?.remainingCredits ?? 5} / {session.user.credits?.limit ?? 5}
+                        </strong>
+                      </div>
+                      <p className="text-[9px] text-slate-500 dark:text-gray-400 leading-tight">
+                        Resets automatically every 24 hours.
+                      </p>
+                    </div>
+                  )}
 
                   <Link
                     href="/dashboard"

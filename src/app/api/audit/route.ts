@@ -8,13 +8,40 @@ import { auditCache } from '@/lib/lru-cache';
 import { freemiumLimiter } from '@/lib/freemium-limiter';
 import { logToolUsage } from '@/lib/activity-logger';
 import { auth } from '@/auth';
-import { saveUserAudit, saveUserAuditSnapshot } from '@/lib/db';
+import { saveUserAudit, saveUserAuditSnapshot, getUserByEmail } from '@/lib/db';
+import { reserveUserAuditQuota, refundUserAuditQuota } from '@/lib/user-credits';
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. IP Rate Limiting Check (burst limit)
     const clientIp = auditRateLimiter.getClientIp(req);
-    const rateLimit = auditRateLimiter.check(clientIp);
+
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON request payload' }, { status: 400 });
+    }
+
+    const { urls } = body as { urls: string[] };
+
+    if (!urls || !Array.isArray(urls) || urls.length === 0) {
+      return NextResponse.json(
+        { error: 'Please provide at least one valid URL to analyze.' },
+        { status: 400 }
+      );
+    }
+
+    // Limit to maximum 5 URLs per request
+    const targetUrls = urls.slice(0, 5).map((u) => (typeof u === 'string' ? u.trim() : '')).filter(Boolean);
+    if (targetUrls.length === 0) {
+      return NextResponse.json(
+        { error: 'Please provide at least one valid URL string.' },
+        { status: 400 }
+      );
+    }
+
+    // 1. IP Rate Limiting Check (weighted by batch size to protect scraping engine)
+    const rateLimit = auditRateLimiter.check(clientIp, '/api/audit', targetUrls.length);
 
     if (!rateLimit.success) {
       return NextResponse.json(
@@ -30,44 +57,75 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
-    const { urls } = body as { urls: string[] };
-
-    if (!urls || !Array.isArray(urls) || urls.length === 0) {
-      return NextResponse.json(
-        { error: 'Please provide at least one valid URL to analyze.' },
-        { status: 400 }
-      );
-    }
-
-    // Limit to maximum 5 URLs per request
-    const targetUrls = urls.slice(0, 5).map((u) => u.trim()).filter(Boolean);
-
     // Log tool usage to DB activity log
     logToolUsage(req, 'Competitor Audit', targetUrls[0] || undefined);
 
-    // 2. Server-side Quota & Cooldown Check (5 audits per batch, 120s cooldown)
-    const quotaCheck = freemiumLimiter.check(clientIp, targetUrls.length);
-    if (!quotaCheck.allowed) {
-      return NextResponse.json(
-        {
-          error: `Daily free quota limit reached (20/20 audits used). Please wait 120 seconds before your next free audits unlock!`,
-          isQuotaExceeded: true,
-          cooldownSeconds: quotaCheck.cooldownSeconds || 120,
-        },
-        {
-          status: 403,
-          headers: {
-            'X-Quota-Limit': String(quotaCheck.limit),
-            'X-Quota-Remaining': '0',
-            'Retry-After': String(quotaCheck.cooldownSeconds || 120),
-          },
+    // 2. Authentication & Account-based vs Guest Quota Check
+    const session = await auth();
+    const userEmail = session?.user?.email;
+
+    let userAuditReservation: { success: boolean; remainingCredits: number; limit: number } | null = null;
+    let isDbUser = false;
+
+    if (userEmail) {
+      const dbUser = await getUserByEmail(userEmail);
+      if (dbUser) {
+        isDbUser = true;
+
+        // Authenticated User: Check suspension status & Atomically reserve quota
+        if (session?.user?.status === 'suspended' || dbUser.status === 'suspended') {
+          return NextResponse.json(
+            { error: 'Your account has been suspended by an administrator. Please contact support.', isSuspended: true },
+            { status: 403 }
+          );
         }
-      );
+
+        // Atomically reserve audit quota before scraping starts (eliminates race conditions)
+        const reservation = await reserveUserAuditQuota(userEmail, targetUrls.length);
+        if (!reservation.success) {
+          return NextResponse.json(
+            {
+              error: reservation.error || 'Daily audit quota limit reached. Please wait for daily reset or upgrade to Pro!',
+              isQuotaExceeded: true,
+              cooldownSeconds: 0,
+            },
+            {
+              status: 403,
+              headers: {
+                'X-Quota-Limit': String(reservation.limit),
+                'X-Quota-Remaining': '0',
+              },
+            }
+          );
+        }
+        userAuditReservation = reservation;
+      }
     }
 
-    // Consume quota
-    freemiumLimiter.consume(clientIp, targetUrls.length);
+    if (!isDbUser) {
+      // Guest User (or unauthenticated visitor): IP-based Quota & Cooldown Check (freemiumLimiter)
+      const quotaCheck = freemiumLimiter.check(clientIp, targetUrls.length);
+      if (!quotaCheck.allowed) {
+        return NextResponse.json(
+          {
+            error: `Daily free guest quota limit reached (${quotaCheck.used}/${quotaCheck.limit} audits used). Please wait ${quotaCheck.cooldownSeconds || 120} seconds or sign in for 20 free daily audits with cloud history!`,
+            isQuotaExceeded: true,
+            cooldownSeconds: quotaCheck.cooldownSeconds || 120,
+          },
+          {
+            status: 403,
+            headers: {
+              'X-Quota-Limit': String(quotaCheck.limit),
+              'X-Quota-Remaining': '0',
+              'Retry-After': String(quotaCheck.cooldownSeconds || 120),
+            },
+          }
+        );
+      }
+    }
+
+    // NOTE: Pre-consumption removed to fix the double-consumption bug.
+    // Quota is consumed once after processing.
 
     const auditPromises = targetUrls.map(async (url, idx): Promise<SinglePageAudit> => {
       const normalizedUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`;
@@ -167,13 +225,12 @@ export async function POST(req: NextRequest) {
     const results = await Promise.all(auditPromises);
 
     // If authenticated, persist audit history and full snapshot for user
-    try {
-      const session = await auth();
-      if (session?.user?.email) {
+    if (userEmail) {
+      try {
         for (const r of results) {
           if (r.status === 'success') {
             await saveUserAudit({
-              user_email: session.user.email,
+              user_email: userEmail,
               url: r.url,
               title: r.meta?.title || 'Audited Webpage',
               score: r.technicalAudit?.technicalScore ?? null,
@@ -191,7 +248,7 @@ export async function POST(req: NextRequest) {
             });
 
             await saveUserAuditSnapshot({
-              user_email: session.user.email,
+              user_email: userEmail,
               url: r.url,
               label: `Crawl (${dateLabel})`,
               score: r.technicalAudit?.technicalScore ?? 0,
@@ -209,14 +266,31 @@ export async function POST(req: NextRequest) {
             });
           }
         }
+      } catch (auditSaveErr) {
+        console.error('[User Audit History Save Warning]:', auditSaveErr);
       }
-    } catch (auditSaveErr) {
-      console.error('[User Audit History Save Warning]:', auditSaveErr);
     }
 
-    // Consume server-side freemium quota for successfully processed target URLs
-    freemiumLimiter.consume(clientIp, targetUrls.length);
-    const updatedQuota = freemiumLimiter.check(clientIp, 0);
+    // Reconcile Quota: If any target URLs completely errored, refund the difference
+    const successCount = results.filter((r) => r.status === 'success').length;
+    const failedCount = targetUrls.length - successCount;
+
+    let updatedQuotaLimit = 20;
+    let updatedQuotaRemaining = 20;
+
+    if (userEmail && userAuditReservation) {
+      if (failedCount > 0) {
+        await refundUserAuditQuota(userEmail, failedCount);
+      }
+      updatedQuotaLimit = userAuditReservation.limit;
+      updatedQuotaRemaining = Math.max(0, userAuditReservation.remainingCredits + failedCount);
+    } else {
+      const countToDeduct = successCount > 0 ? successCount : targetUrls.length;
+      freemiumLimiter.consume(clientIp, countToDeduct);
+      const updatedGuestQuota = freemiumLimiter.check(clientIp, 0);
+      updatedQuotaLimit = updatedGuestQuota.limit;
+      updatedQuotaRemaining = updatedGuestQuota.remaining;
+    }
 
     const responsePayload: BatchAuditResponse = {
       timestamp: new Date().toISOString(),
@@ -228,8 +302,8 @@ export async function POST(req: NextRequest) {
       headers: {
         'X-RateLimit-Limit': String(rateLimit.limit),
         'X-RateLimit-Remaining': String(rateLimit.remaining),
-        'X-Daily-Quota-Limit': String(updatedQuota.limit),
-        'X-Daily-Quota-Remaining': String(updatedQuota.remaining),
+        'X-Daily-Quota-Limit': String(updatedQuotaLimit),
+        'X-Daily-Quota-Remaining': String(updatedQuotaRemaining),
       },
     });
   } catch (error: any) {

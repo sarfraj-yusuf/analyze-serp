@@ -116,12 +116,7 @@ const jsonLdSchema = [
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "AnalyzeSERP",
-    "url": "https://analyzeserp.com",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://analyzeserp.com/blog?search={search_term_string}",
-      "query-input": "required name=search_term_string"
-    }
+    "url": "https://analyzeserp.com"
   }
 ];
 

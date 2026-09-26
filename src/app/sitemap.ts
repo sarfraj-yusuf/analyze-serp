@@ -3,150 +3,43 @@ import { getAllBlogPosts } from '@/lib/blog';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://analyzeserp.com';
-  const currentDate = new Date().toISOString().split('T')[0];
 
   const blogPosts = getAllBlogPosts();
 
-  const blogSitemapEntries: MetadataRoute.Sitemap = blogPosts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: post.date || currentDate,
-    changeFrequency: 'weekly',
-    priority: 0.8,
-  }));
+  // Blog posts provide trustworthy editorial modification dates from frontmatter (lastModified or publish date)
+  const blogSitemapEntries: MetadataRoute.Sitemap = blogPosts.map((post) => {
+    const rawDate = post.lastModified || post.date;
+    const isTrustworthyDate = rawDate && !isNaN(new Date(rawDate).getTime());
 
+    return {
+      url: `${baseUrl}/blog/${post.slug}`,
+      ...(isTrustworthyDate ? { lastModified: rawDate } : {}),
+    };
+  });
+
+  // Static URLs omit lastModified because we do not have an automated, trustworthy
+  // content-revision timestamp for them. Omitting lastmod is strictly preferred over
+  // emitting artificial deployment dates or arbitrary timestamps.
   const staticEntries: MetadataRoute.Sitemap = [
-    {
-      url: `${baseUrl}`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/featured-snippet-optimizer`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/content-scratchpad`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/internal-link-mapper`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/technical-health`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/site-speed-checker`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/contrast-checker`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/redirect-checker`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/serp-snippet-preview`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/affiliate-link-checker`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/featured-snippet-optimizer`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/content-scratchpad`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/internal-link-mapper`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/readability`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/pdf-reports`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/pricing`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/blog`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/changelog`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/about`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/contact`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/privacy`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/terms`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
+    { url: `${baseUrl}` },
+    { url: `${baseUrl}/featured-snippet-optimizer` },
+    { url: `${baseUrl}/content-scratchpad` },
+    { url: `${baseUrl}/internal-link-mapper` },
+    { url: `${baseUrl}/technical-health` },
+    { url: `${baseUrl}/site-speed-checker` },
+    { url: `${baseUrl}/contrast-checker` },
+    { url: `${baseUrl}/redirect-checker` },
+    { url: `${baseUrl}/serp-snippet-preview` },
+    { url: `${baseUrl}/affiliate-link-checker` },
+    { url: `${baseUrl}/readability` },
+    { url: `${baseUrl}/pdf-reports` },
+    { url: `${baseUrl}/pricing` },
+    { url: `${baseUrl}/blog` },
+    { url: `${baseUrl}/changelog` },
+    { url: `${baseUrl}/about` },
+    { url: `${baseUrl}/contact` },
+    { url: `${baseUrl}/privacy` },
+    { url: `${baseUrl}/terms` },
   ];
 
   return [...staticEntries, ...blogSitemapEntries];

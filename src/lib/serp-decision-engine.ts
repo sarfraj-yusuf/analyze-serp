@@ -258,9 +258,9 @@ export function analyzeSerpAlignment(
     evidenceActions.push({
       id: 'faq-section-gap',
       title: 'Add User FAQ Section',
-      action: 'Expose 3-5 common user questions in an FAQ H2 section, then add FAQPage schema markup.',
+      action: 'Expose 3-5 common user questions in an FAQ H2 section with optional FAQPage semantic markup.',
       evidence: `${compFaqCount}/${compCount} ranking pages include an FAQ section.`,
-      businessImpact: 'Directly qualifies your URL for high-CTR Google "People Also Ask" accordions and conversational voice search answers.',
+      businessImpact: 'Strengthens topical depth for long-tail query matching and provides clear Q&A entity structure for search crawlers and AI answer engines.',
       isMissing: true,
       impact: 'MEDIUM',
       effort: 'LOW',
@@ -274,9 +274,9 @@ export function analyzeSerpAlignment(
     evidenceActions.push({
       id: 'schema-markup-gap',
       title: 'Implement JSON-LD Schema Markup',
-      action: 'Add structured Article or FAQ schema code to enhance Google search snippet visibility.',
+      action: 'Add structured Article or semantic schema code to enhance machine understanding and rich result eligibility.',
       evidence: `${compSchemaCount}/${compCount} ranking pages implement JSON-LD schema.`,
-      businessImpact: 'Unlocks rich snippet features (stars, FAQ accordions, author cards) in Google SERP, boosting organic click-through rates by up to 20-30%.',
+      businessImpact: 'Provides explicit machine-readable context for search engines and AI crawlers, enabling eligible rich snippet features (such as Article badges and author credentials).',
       isMissing: true,
       impact: 'MEDIUM',
       effort: 'LOW',

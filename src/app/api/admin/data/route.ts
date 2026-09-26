@@ -13,43 +13,16 @@ import {
 } from '@/lib/db';
 import { getDetectedSuspiciousBots } from '@/lib/rate-limiter';
 
+import { verifyAdminSession } from '@/lib/auth-admin';
+
 export async function GET(req: Request) {
   try {
-    const forwarded = req.headers.get('x-forwarded-for');
-    const clientIp = forwarded
-      ? forwarded.split(',')[0].trim()
-      : req.headers.get('x-real-ip') || '127.0.0.1';
-
-    const secretKey = process.env.ADMIN_SECRET_KEY;
-    if (!secretKey) {
+    const authResult = await verifyAdminSession(req, '/api/admin/data');
+    if (!authResult.authorized) {
       return NextResponse.json(
-        { error: 'Admin API disabled. ADMIN_SECRET_KEY is not configured on this server.' },
-        { status: 503 }
+        { error: authResult.error || 'Unauthorized Admin Access.' },
+        { status: authResult.status || 401 }
       );
-    }
-
-    const authKey = req.headers.get('x-admin-key');
-    if (!authKey) {
-      return NextResponse.json(
-        { error: 'Unauthorized Admin Access. Missing x-admin-key header.' },
-        { status: 401 }
-      );
-    }
-
-    const authKeyHash = crypto.createHash('sha256').update(authKey).digest();
-    const secretKeyHash = crypto.createHash('sha256').update(secretKey).digest();
-    const isMatch = crypto.timingSafeEqual(authKeyHash, secretKeyHash);
-
-    if (!isMatch) {
-      logSecurityIncident({
-        incident_type: 'UNAUTHORIZED_ADMIN_ATTEMPT',
-        severity: 'high',
-        ip_address: clientIp,
-        target_endpoint: '/api/admin/data',
-        details: 'Unauthorized admin dashboard access attempt with invalid passkey',
-      }).catch(() => {});
-
-      return NextResponse.json({ error: 'Unauthorized Admin Access. Invalid Key.' }, { status: 401 });
     }
 
     const [

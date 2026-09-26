@@ -18,6 +18,13 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    if (session.user.status === 'suspended') {
+      return NextResponse.json(
+        { success: false, error: 'Your account has been suspended by an administrator.', isSuspended: true, snapshots: [] },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const idParam = searchParams.get('id');
 
@@ -75,6 +82,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (session.user.status === 'suspended') {
+      return NextResponse.json(
+        { success: false, error: 'Your account has been suspended by an administrator. Cannot save snapshots.', isSuspended: true },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const { url, label, score, targetKeyword, snapshotJson } = body;
 
@@ -118,6 +132,13 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
+    if (session.user.status === 'suspended') {
+      return NextResponse.json(
+        { success: false, error: 'Account suspended.' },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const snapshotIdStr = searchParams.get('id');
 
@@ -138,8 +159,15 @@ export async function DELETE(req: NextRequest) {
 
     const deleted = await deleteUserAuditSnapshot(session.user.email, snapshotId);
 
+    if (!deleted) {
+      return NextResponse.json(
+        { success: false, error: 'Snapshot not found or you do not have permission to delete it.' },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json({
-      success: deleted,
+      success: true,
       message: 'Snapshot deleted successfully',
     });
   } catch (error) {

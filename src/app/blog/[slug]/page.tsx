@@ -63,7 +63,8 @@ export async function generateMetadata({ params }: SingleBlogPageProps): Promise
       description: meta.description,
       url: canonicalUrl,
       type: 'article',
-      publishedTime: meta.date,
+      publishedTime: meta.date || undefined,
+      modifiedTime: meta.lastModified || meta.date || undefined,
       authors: [meta.author],
       images: [{ url: meta.image || '/og-image.jpg', width: 1200, height: 630 }],
     },
@@ -109,7 +110,7 @@ export default async function SingleBlogPostPage({ params }: SingleBlogPageProps
     description: meta.description,
     image: `https://analyzeserp.com${meta.image}`,
     datePublished: meta.date,
-    dateModified: meta.date,
+    dateModified: meta.lastModified || meta.date,
     author: {
       '@type': 'Person',
       name: meta.author,
@@ -312,6 +313,7 @@ export default async function SingleBlogPostPage({ params }: SingleBlogPageProps
           <ChevronRight className="size-3.5 text-slate-400 dark:text-slate-600" />
           <Link
             href={`/blog?category=${encodeURIComponent(meta.category)}`}
+            rel="nofollow"
             className="font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
           >
             {meta.category}
@@ -328,6 +330,7 @@ export default async function SingleBlogPostPage({ params }: SingleBlogPageProps
           <div className="flex flex-wrap items-center gap-2.5 text-xs">
             <Link
               href={`/blog?category=${encodeURIComponent(meta.category)}`}
+              rel="nofollow"
               className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 font-bold uppercase tracking-wider text-[10px] hover:bg-emerald-500/20 transition-colors"
             >
               {meta.category}

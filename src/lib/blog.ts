@@ -13,6 +13,7 @@ export interface BlogPostMeta {
   title: string;
   description: string;
   date: string;
+  lastModified?: string;
   author: string;
   authorRole: string;
   authorTwitter?: string;
@@ -146,7 +147,8 @@ export function getAllBlogPosts(): BlogPostMeta[] {
         slug,
         title: data.title || 'Untitled Post',
         description: data.description || '',
-        date: data.date || new Date().toISOString().split('T')[0],
+        date: data.date ? String(data.date).trim() : '',
+        lastModified: data.lastModified || data.updatedAt ? String(data.lastModified || data.updatedAt).trim() : undefined,
         author: data.author || 'Sarfraj Yusuf',
         authorRole: data.authorRole || 'Founder & Senior SEO Strategist',
         authorTwitter: data.authorTwitter || 'https://twitter.com/sarfrajyusuf',
@@ -159,7 +161,7 @@ export function getAllBlogPosts(): BlogPostMeta[] {
       };
     });
 
-  return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return posts.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
 }
 
 /**
@@ -209,7 +211,8 @@ export function getBlogPostBySlug(slug: string): BlogPost | null {
       slug,
       title: data.title || 'Untitled Post',
       description: data.description || '',
-      date: data.date || new Date().toISOString().split('T')[0],
+      date: data.date ? String(data.date).trim() : '',
+      lastModified: data.lastModified || data.updatedAt ? String(data.lastModified || data.updatedAt).trim() : undefined,
       author: data.author || 'Sarfraj Yusuf',
       authorRole: data.authorRole || 'Founder & Senior SEO Strategist',
       authorTwitter: data.authorTwitter || 'https://twitter.com/sarfrajyusuf',

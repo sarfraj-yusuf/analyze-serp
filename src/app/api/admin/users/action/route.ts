@@ -2,45 +2,15 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getUserByEmail, adminUpdateUser, banIp, unbanIp, getBannedIps, updateSiteConfigurations, logSecurityIncident } from '@/lib/db';
 
+import { verifyAdminSession } from '@/lib/auth-admin';
+
 export async function POST(req: Request) {
   try {
-    const forwarded = req.headers.get('x-forwarded-for');
-    const clientIp = req.headers.get('cf-connecting-ip') ||
-      req.headers.get('x-real-ip') ||
-      (forwarded ? forwarded.split(',')[0].trim() : '127.0.0.1');
-
-    const secretKey = process.env.ADMIN_SECRET_KEY;
-    if (!secretKey) {
+    const authResult = await verifyAdminSession(req, '/api/admin/users/action');
+    if (!authResult.authorized) {
       return NextResponse.json(
-        { error: 'Admin API disabled. ADMIN_SECRET_KEY is not configured on this server.' },
-        { status: 503 }
-      );
-    }
-
-    const authKey = req.headers.get('x-admin-key');
-    if (!authKey) {
-      return NextResponse.json(
-        { error: 'Unauthorized Admin Access. Missing x-admin-key header.' },
-        { status: 401 }
-      );
-    }
-
-    const authKeyHash = crypto.createHash('sha256').update(authKey).digest();
-    const secretKeyHash = crypto.createHash('sha256').update(secretKey).digest();
-    const isMatch = crypto.timingSafeEqual(authKeyHash, secretKeyHash);
-
-    if (!isMatch) {
-      logSecurityIncident({
-        incident_type: 'UNAUTHORIZED_ADMIN_ATTEMPT',
-        severity: 'critical',
-        ip_address: clientIp,
-        target_endpoint: '/api/admin/users/action',
-        details: 'Unauthorized admin mutation action attempt with invalid passkey',
-      }).catch(() => {});
-
-      return NextResponse.json(
-        { error: 'Unauthorized Admin Access. Invalid Key.' },
-        { status: 401 }
+        { error: authResult.error || 'Unauthorized Admin Access.' },
+        { status: authResult.status || 401 }
       );
     }
 
@@ -52,7 +22,7 @@ export async function POST(req: Request) {
       if (!ip || typeof ip !== 'string') {
         return NextResponse.json({ error: 'Target IP address is required.' }, { status: 400 });
       }
-      const ok = await banIp(ip, reason || 'Manual Admin Block', 'admin');
+      const ok = await banIp(ip, reason || 'Manual Admin Block', authResult.adminEmail || 'admin');
       const updatedBannedIps = await getBannedIps();
       return NextResponse.json({
         success: ok,
@@ -127,8 +97,11 @@ export async function POST(req: Request) {
       }
 
       case 'RESET_USAGE': {
-        success = await adminUpdateUser(email, { daily_ai_credits_used: 0 });
-        message = `Reset today's credit consumption for ${email} to 0.`;
+        success = await adminUpdateUser(email, {
+          daily_ai_credits_used: 0,
+          daily_audit_credits_used: 0,
+        });
+        message = `Reset today's credit and audit consumption for ${email} to 0.`;
         break;
       }
 
@@ -136,16 +109,22 @@ export async function POST(req: Request) {
       case 'TOGGLE_ROLE': {
         const allowedRoles: ('user' | 'pro' | 'admin')[] = ['user', 'pro', 'admin'];
         const newRole: 'user' | 'pro' | 'admin' = allowedRoles.includes(value) ? value : (value === 'pro' ? 'pro' : 'user');
-        const newLimit = newRole === 'admin'
+        const newAiLimit = newRole === 'admin'
           ? Math.max(100, user.daily_ai_credits_limit || 100)
           : newRole === 'pro'
           ? Math.max(50, user.daily_ai_credits_limit || 50)
           : 5;
+        const newAuditLimit = newRole === 'admin'
+          ? Math.max(1000, user.daily_audit_credits_limit || 1000)
+          : newRole === 'pro'
+          ? Math.max(200, user.daily_audit_credits_limit || 200)
+          : 20;
         success = await adminUpdateUser(email, {
           role: newRole,
-          daily_ai_credits_limit: newLimit,
+          daily_ai_credits_limit: newAiLimit,
+          daily_audit_credits_limit: newAuditLimit,
         });
-        message = `User ${email} role updated to ${newRole.toUpperCase()} (Quota: ${newLimit}/day).`;
+        message = `User ${email} role updated to ${newRole.toUpperCase()} (AI: ${newAiLimit}/day, Audits: ${newAuditLimit}/day).`;
         break;
       }
 

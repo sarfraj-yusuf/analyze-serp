@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 import { scrapeURL } from '@/lib/scraper';
 import { analyzePageContrast } from '@/lib/contrast-analyzer';
-import { auditRateLimiter } from '@/lib/rate-limiter';
+import { diagnosticRateLimiter } from '@/lib/rate-limiter';
 import { validateUrlSafety, safeFetchWithSsrf } from '@/lib/ssrf-protection';
 
 export async function POST(req: NextRequest) {
   try {
-    const clientIp = auditRateLimiter.getClientIp(req);
-    const rateLimit = auditRateLimiter.check(clientIp);
+    const clientIp = diagnosticRateLimiter.getClientIp(req);
+    const rateLimit = diagnosticRateLimiter.check(clientIp, '/api/contrast');
 
     if (!rateLimit.success) {
       return NextResponse.json(

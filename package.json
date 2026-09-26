@@ -16,7 +16,7 @@
     "lucide-react": "^0.475.0",
     "mysql2": "^3.23.2",
     "next": "^15.1.7",
-    "next-auth": "^5.0.0-beta.32",
+    "next-auth": "5.0.0-beta.32",
     "next-mdx-remote": "^6.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -1,18 +1,11 @@
 import { saveActivityLog } from './db';
+import { getTrustedClientIp } from './client-ip';
 
 /**
- * Extracts client IP address from incoming Next.js Request headers
+ * Extracts client IP address using canonical trusted IP resolver
  */
 export function getClientIp(req: Request): string {
-  const forwardedFor = req.headers.get('x-forwarded-for');
-  if (forwardedFor) {
-    return forwardedFor.split(',')[0].trim();
-  }
-  const realIp = req.headers.get('x-real-ip');
-  if (realIp) {
-    return realIp.trim();
-  }
-  return '127.0.0.1';
+  return getTrustedClientIp(req);
 }
 
 /**

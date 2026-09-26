@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchGooglePageSpeedData, CoreWebVitalsData } from '@/lib/pagespeed';
-import { auditRateLimiter } from '@/lib/rate-limiter';
+import { pageSpeedRateLimiter } from '@/lib/rate-limiter';
 import { validateUrlSafety } from '@/lib/ssrf-protection';
 
 // 1-Hour In-Memory Cache Map (key: url + strategy)
@@ -9,12 +9,12 @@ const CACHE_TTL_MS = 60 * 60 * 1000; // 1 Hour (3,600,000 ms)
 
 export async function POST(req: NextRequest) {
   try {
-    const clientIp = auditRateLimiter.getClientIp(req);
-    const rateLimit = auditRateLimiter.check(clientIp);
+    const clientIp = pageSpeedRateLimiter.getClientIp(req);
+    const rateLimit = pageSpeedRateLimiter.check(clientIp, '/api/pagespeed');
 
     if (!rateLimit.success) {
       return NextResponse.json(
-        { error: 'Rate limit exceeded. Please wait a few seconds before testing another URL.' },
+        { error: 'PageSpeed rate limit exceeded. Please wait a few seconds before testing another URL.' },
         {
           status: 429,
           headers: {

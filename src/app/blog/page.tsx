@@ -6,39 +6,58 @@ import { BlogExplorer } from '@/components/BlogExplorer';
 import { getAllBlogPosts, getAllBlogCategories } from '@/lib/blog';
 import { Sparkles, BookOpen, ShieldCheck } from 'lucide-react';
 
-export const metadata: Metadata = {
-  title: 'SEO Knowledge Base & Actionable Guides',
-  description:
-    'Learn how to perform competitor keyword gap analysis, optimize title tag pixel lengths, audit affiliate links, and boost organic search rankings with guides by Sarfraj Yusuf.',
-  alternates: {
-    canonical: 'https://analyzeserp.com/blog',
-  },
-  openGraph: {
-    title: 'SEO Knowledge Base & Actionable Guides | AnalyzeSERP',
-    description:
-      'Competitor SEO audit guides, keyword gap strategies, and technical performance tutorials.',
-    url: 'https://analyzeserp.com/blog',
-    type: 'website',
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'AnalyzeSERP SEO Knowledge Base & Guides',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'SEO Knowledge Base & Actionable Guides | AnalyzeSERP',
-    description:
-      'Competitor SEO audit guides, keyword gap strategies, and technical performance tutorials.',
-    images: ['/og-image.jpg'],
-  },
-};
-
 interface BlogPageProps {
   searchParams: Promise<{ category?: string; search?: string }>;
+}
+
+export async function generateMetadata({ searchParams }: BlogPageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const isParameterized = Boolean(
+    (params.category && params.category !== 'All') ||
+    (params.search && params.search.trim())
+  );
+
+  return {
+    title: 'SEO Knowledge Base & Actionable Guides',
+    description:
+      'Learn how to perform competitor keyword gap analysis, optimize title tag pixel lengths, audit affiliate links, and boost organic search rankings with guides by Sarfraj Yusuf.',
+    alternates: {
+      canonical: 'https://analyzeserp.com/blog',
+    },
+    // Parameterized search/filter pages must not be indexed as separate content.
+    // They are served noindex with follow=true, consolidating authority back to the canonical /blog.
+    robots: isParameterized
+      ? {
+          index: false,
+          follow: true,
+        }
+      : {
+          index: true,
+          follow: true,
+        },
+    openGraph: {
+      title: 'SEO Knowledge Base & Actionable Guides | AnalyzeSERP',
+      description:
+        'Competitor SEO audit guides, keyword gap strategies, and technical performance tutorials.',
+      url: 'https://analyzeserp.com/blog',
+      type: 'website',
+      images: [
+        {
+          url: '/og-image.jpg',
+          width: 1200,
+          height: 630,
+          alt: 'AnalyzeSERP SEO Knowledge Base & Guides',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'SEO Knowledge Base & Actionable Guides | AnalyzeSERP',
+      description:
+        'Competitor SEO audit guides, keyword gap strategies, and technical performance tutorials.',
+      images: ['/og-image.jpg'],
+    },
+  };
 }
 
 export default async function BlogListingPage({ searchParams }: BlogPageProps) {

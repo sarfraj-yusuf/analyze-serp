@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { getUserCredits, consumeUserCredit } from '@/lib/user-credits';
-import { saveUserAiActivity } from '@/lib/db';
+import { reserveUserCredit, refundUserCredit } from '@/lib/user-credits';
+import { saveUserAiActivity, getUserByEmail } from '@/lib/db';
 import { aiRateLimiter } from '@/lib/rate-limiter';
 import {
   generateMetaRewrite,
@@ -49,23 +49,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userEmail = session.user.email;
-
-    // 2. Check daily credit balance
-    const creditStatus = await getUserCredits(userEmail);
-    if (creditStatus.remainingCredits <= 0) {
+    if (session.user.status === 'suspended') {
       return NextResponse.json(
         {
-          error: `Daily AI credit limit reached (${creditStatus.limit}/${creditStatus.limit} used). Your 5 free credits will reset in ${creditStatus.resetInHours} hour(s).`,
-          limitReached: true,
-          remainingCredits: 0,
-          resetInHours: creditStatus.resetInHours,
+          error: 'Your account has been suspended by an administrator. Please contact support.',
+          isSuspended: true,
         },
-        { status: 429 }
+        { status: 403 }
       );
     }
 
-    // 3. Parse and validate payload
+    const userEmail = session.user.email;
+
+    // Security Guard: Verify user exists in DB - only DB users receive AI credits
+    const dbUser = await getUserByEmail(userEmail);
+    if (!dbUser) {
+      return NextResponse.json(
+        {
+          error: 'User account not found. Please sign in again with Google or GitHub to activate your AI credits.',
+          requiresAuth: true,
+        },
+        { status: 401 }
+      );
+    }
+
+    if (dbUser.status === 'suspended') {
+      return NextResponse.json(
+        {
+          error: 'Your account has been suspended by an administrator. Please contact support.',
+          isSuspended: true,
+        },
+        { status: 403 }
+      );
+    }
+
+    // 3. Parse and validate payload first (before credit reservation)
     let body: Record<string, unknown>;
     try {
       body = await req.json();
@@ -78,10 +96,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing or invalid "type" parameter' }, { status: 400 });
     }
 
+    // 4. Atomically reserve 1 AI credit BEFORE calling Gemini (eliminates race condition)
+    const reservation = await reserveUserCredit(userEmail);
+    if (!reservation.success) {
+      return NextResponse.json(
+        {
+          error: reservation.error || 'Daily free AI limit reached. Please wait for daily reset or upgrade to Pro!',
+          limitReached: true,
+          remainingCredits: reservation.remainingCredits || 0,
+        },
+        { status: 429 }
+      );
+    }
+
     let generatedData: unknown;
 
-    // 4. Route generation request to appropriate Gemini handler
-    switch (type) {
+    // 5. Route generation request to appropriate Gemini handler with automatic refund on failure
+    try {
+      switch (type) {
       case 'meta-rewrite': {
         const { title, description, targetKeyword, pageUrl } = body;
         if (typeof title === 'string' && title.length > 300) {
@@ -243,14 +275,17 @@ export async function POST(req: NextRequest) {
       }
 
       default:
+        await refundUserCredit(userEmail);
         return NextResponse.json(
           { error: `Unsupported generation type: "${type}". Supported: meta-rewrite, fix-recommendation, content-section, simplify-tone, snippet-bait, scratchpad-assist, internal-link-strategy.` },
           { status: 400 }
         );
+      }
+    } catch (geminiError: any) {
+      // Auto-refund credit if Gemini call fails
+      await refundUserCredit(userEmail);
+      throw geminiError;
     }
-
-    // 5. Deduct 1 credit upon successful generation
-    const deduction = await consumeUserCredit(userEmail);
 
     // 6. Log activity to user_ai_history
     try {
@@ -300,9 +335,8 @@ export async function POST(req: NextRequest) {
       type,
       data: generatedData,
       credits: {
-        remaining: deduction.remainingCredits,
-        limit: creditStatus.limit,
-        resetInHours: creditStatus.resetInHours,
+        remaining: reservation.remainingCredits,
+        limit: reservation.limit,
       },
     });
   } catch (error) {

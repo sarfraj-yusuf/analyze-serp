@@ -23,6 +23,7 @@ import {
   TrendingUp,
   Globe,
   BarChart3,
+  AlertTriangle,
 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -30,11 +31,21 @@ export default function LoginPage() {
   const router = useRouter();
   const [loadingProvider, setLoadingProvider] = useState<'google' | 'github' | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  // Sync theme with HTML root class on mount
+  // Sync theme with HTML root class on mount & check for OAuth error query param
   useEffect(() => {
     const isDark = document.documentElement.classList.contains('dark');
     setTheme(isDark ? 'dark' : 'light');
+
+    if (typeof window !== 'undefined') {
+      const errorParam = new URLSearchParams(window.location.search).get('error');
+      if (errorParam === 'AccessDenied') {
+        setAuthError('Sign-in rejected: Your account has been suspended by an administrator.');
+      } else if (errorParam) {
+        setAuthError('Authentication failed. Please try signing in again.');
+      }
+    }
   }, []);
 
   const toggleTheme = () => {
@@ -264,61 +275,115 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* Error Notification Alert */}
+            {authError && (
+              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-700 dark:text-rose-400 text-xs flex items-center gap-2 animate-in fade-in duration-150">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
+                <span>{authError}</span>
+              </div>
+            )}
+
             {/* Authenticated State vs Sign In Actions */}
             {status === 'authenticated' && session?.user ? (
-              <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 space-y-4 animate-in fade-in duration-150">
-                <div className="flex items-center gap-3">
-                  {session.user.image ? (
-                    <img
-                      src={session.user.image}
-                      alt={session.user.name || 'User'}
-                      className="w-11 h-11 rounded-xl object-cover border border-emerald-500/30 shadow-xs"
-                    />
-                  ) : (
-                    <div className="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm shadow-xs">
-                      {session.user.name?.charAt(0) || 'U'}
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
-                        {session.user.name || 'Signed In User'}
+              session.user.status === 'suspended' ? (
+                <div className="p-5 rounded-2xl bg-rose-500/10 border border-rose-500/25 space-y-4 animate-in fade-in duration-150">
+                  <div className="flex items-center gap-3">
+                    {session.user.image ? (
+                      <img
+                        src={session.user.image}
+                        alt={session.user.name || 'User'}
+                        className="w-11 h-11 rounded-xl object-cover border border-rose-500/30 shadow-xs"
+                      />
+                    ) : (
+                      <div className="w-11 h-11 rounded-xl bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-sm shadow-xs">
+                        {session.user.name?.charAt(0) || 'U'}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                          {session.user.name || 'User'}
+                        </p>
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/20 text-rose-700 dark:text-rose-300">
+                          Suspended
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate">
+                        {session.user.email}
                       </p>
-                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
-                        Active
-                      </span>
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate">
-                      {session.user.email}
-                    </p>
+                  </div>
+
+                  <p className="text-xs text-rose-600 dark:text-rose-400 leading-relaxed">
+                    This account has been suspended by an administrator. Workspace access and tool features are locked.
+                  </p>
+
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => signOut({ callbackUrl: '/' })}
+                      className="w-full py-2.5 px-4 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </button>
                   </div>
                 </div>
+              ) : (
+                <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 space-y-4 animate-in fade-in duration-150">
+                  <div className="flex items-center gap-3">
+                    {session.user.image ? (
+                      <img
+                        src={session.user.image}
+                        alt={session.user.name || 'User'}
+                        className="w-11 h-11 rounded-xl object-cover border border-emerald-500/30 shadow-xs"
+                      />
+                    ) : (
+                      <div className="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm shadow-xs">
+                        {session.user.name?.charAt(0) || 'U'}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                          {session.user.name || 'Signed In User'}
+                        </p>
+                        <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+                          Active
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate">
+                        {session.user.email}
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="flex items-center justify-between text-xs pt-2.5 border-t border-emerald-500/20">
-                  <span className="text-slate-600 dark:text-slate-300 font-medium">Daily AI Credits:</span>
-                  <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                    {session.user.credits?.remainingCredits ?? 5} / {session.user.credits?.limit ?? 5} Available
-                  </span>
-                </div>
+                  <div className="flex items-center justify-between text-xs pt-2.5 border-t border-emerald-500/20">
+                    <span className="text-slate-600 dark:text-slate-300 font-medium">Daily AI Credits:</span>
+                    <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                      {session.user.credits?.remainingCredits ?? 5} / {session.user.credits?.limit ?? 5} Available
+                    </span>
+                  </div>
 
-                <div className="pt-1 flex items-center gap-2">
-                  <Link
-                    href="/dashboard"
-                    className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                  >
-                    <LayoutDashboard className="w-4 h-4" />
-                    <span>Enter SEO Workspace</span>
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => signOut({ callbackUrl: '/' })}
-                    className="py-2.5 px-3 rounded-xl border border-slate-200 dark:border-white/10 hover:border-rose-500/40 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>Sign Out</span>
-                  </button>
+                  <div className="pt-1 flex items-center gap-2">
+                    <Link
+                      href="/dashboard"
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    >
+                      <LayoutDashboard className="w-4 h-4" />
+                      <span>Enter SEO Workspace</span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => signOut({ callbackUrl: '/' })}
+                      className="py-2.5 px-3 rounded-xl border border-slate-200 dark:border-white/10 hover:border-rose-500/40 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )
             ) : (
               <div className="space-y-4">
                 {/* 1-Click OAuth Buttons */}

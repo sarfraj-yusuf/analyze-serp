@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { traceRedirectChain } from '@/lib/redirect-tracer';
-import { auditRateLimiter } from '@/lib/rate-limiter';
+import { diagnosticRateLimiter } from '@/lib/rate-limiter';
 
 export async function POST(req: NextRequest) {
   try {
-    const clientIp = auditRateLimiter.getClientIp(req);
-    const rateLimit = auditRateLimiter.check(clientIp);
+    const clientIp = diagnosticRateLimiter.getClientIp(req);
+    const rateLimit = diagnosticRateLimiter.check(clientIp, '/api/redirect');
 
     if (!rateLimit.success) {
       return NextResponse.json(

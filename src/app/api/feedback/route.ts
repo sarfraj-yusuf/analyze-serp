@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { saveUserFeedback, getAllFeedback, logSecurityIncident } from '@/lib/db';
-import { getClientIp } from '@/lib/activity-logger';
+import { getTrustedClientIp } from '@/lib/client-ip';
 
 // Basic sliding window memory rate limiter for feedback submissions (5 per IP / 24h)
 const feedbackIpMap = new Map<string, { count: number; resetTime: number }>();
 
 export async function POST(req: Request) {
   try {
-    const ip = getClientIp(req);
+    const ip = getTrustedClientIp(req);
     const body = await req.json();
 
     const { rating, category, message, email, user_type, hp_website } = body;
@@ -85,32 +85,16 @@ export async function POST(req: Request) {
   }
 }
 
+import { verifyAdminSession } from '@/lib/auth-admin';
+
 export async function GET(req: Request) {
   try {
-    const adminKey = process.env.ADMIN_SECRET_KEY;
-    if (!adminKey) {
-      return NextResponse.json({ error: 'Feedback list is restricted' }, { status: 403 });
-    }
-
-    const providedKey = req.headers.get('x-admin-key');
-    if (!providedKey) {
-      return NextResponse.json({ error: 'Unauthorized. Admin authorization required.' }, { status: 401 });
-    }
-
-    const providedHash = crypto.createHash('sha256').update(providedKey).digest();
-    const adminHash = crypto.createHash('sha256').update(adminKey).digest();
-    const isMatch = crypto.timingSafeEqual(providedHash, adminHash);
-
-    if (!isMatch) {
-      logSecurityIncident({
-        incident_type: 'UNAUTHORIZED_ADMIN_ATTEMPT',
-        severity: 'high',
-        ip_address: getClientIp(req),
-        target_endpoint: '/api/feedback',
-        details: 'Unauthorized feedback review list access attempt with invalid passkey',
-      }).catch(() => {});
-
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await verifyAdminSession(req, '/api/feedback');
+    if (!authResult.authorized) {
+      return NextResponse.json(
+        { error: authResult.error || 'Unauthorized' },
+        { status: authResult.status || 401 }
+      );
     }
 
     const feedbackList = await getAllFeedback();

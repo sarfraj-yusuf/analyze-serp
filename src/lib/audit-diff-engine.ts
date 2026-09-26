@@ -251,7 +251,7 @@ export function compareAudits(
     cSchemaFail,
     baseline.meta.hasJsonLdSchema ? 'Schema Detected' : 'Missing Schema',
     current.meta.hasJsonLdSchema ? 'Schema Detected' : 'Missing Schema',
-    'JSON-LD Schema enables Google rich result accordions, FAQs, and article cards on SERP.'
+    'JSON-LD Schema clarifies page entity types, author attribution, and rich result eligibility for search engines.'
   );
 
   // 4. Canonical URL Configuration

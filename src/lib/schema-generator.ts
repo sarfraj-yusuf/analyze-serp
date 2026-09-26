@@ -153,7 +153,7 @@ export function generateCombinedGraphSchema(article: ArticleSchemaData, faqs: Fa
 }
 
 /**
- * Validates FAQ items against Google Rich Results standards
+ * Validates FAQ items against Schema.org FAQPage semantic standards
  */
 export function validateFaqSchema(faqs: FaqItem[]): SchemaValidationResult {
   const issues: SchemaValidationIssue[] = [];
@@ -172,7 +172,7 @@ export function validateFaqSchema(faqs: FaqItem[]): SchemaValidationResult {
     issues.push({
       type: 'warning',
       field: 'mainEntity',
-      message: 'Google recommends providing at least 2 to 3 FAQs to qualify for rich snippet display.',
+      message: 'Providing at least 2 to 3 FAQs offers comprehensive semantic coverage for key questions.',
     });
   }
 
@@ -185,7 +185,7 @@ export function validateFaqSchema(faqs: FaqItem[]): SchemaValidationResult {
       issues.push({
         type: 'error',
         field: `faq[${qNum}].question`,
-        message: `Question #${qNum} is empty. A valid question string is required by Googlebot.`,
+        message: `Question #${qNum} is empty. A valid question string is required for Schema.org compliance.`,
       });
     } else {
       if (qText.length < 8) {
@@ -208,7 +208,7 @@ export function validateFaqSchema(faqs: FaqItem[]): SchemaValidationResult {
       issues.push({
         type: 'error',
         field: `faq[${qNum}].answer`,
-        message: `Answer #${qNum} is empty. Google requires non-empty acceptedAnswer text.`,
+        message: `Answer #${qNum} is empty. Schema.org requires non-empty acceptedAnswer text.`,
       });
     } else if (aText.length < 15) {
       issues.push({

@@ -330,8 +330,8 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
         <JsonLdSchemaModal
           isOpen={isSchemaModalOpen}
           onClose={() => setIsSchemaModalOpen(false)}
-          initialTitle="Structured Data & FAQPage Schema"
-          initialDescription="Enhance Google search snippet visibility with valid JSON-LD schema markup."
+          initialTitle="Structured Data & Semantic Schema"
+          initialDescription="Clarify page semantics and entity relationships for search engines with valid JSON-LD schema markup."
         />
       )}
     </div>

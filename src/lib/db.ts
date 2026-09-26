@@ -81,6 +81,9 @@ export interface DbUser {
   provider_id: string;
   daily_ai_credits_used: number;
   daily_ai_credits_limit: number;
+  daily_audit_credits_used?: number;
+  daily_audit_credits_limit?: number;
+  last_audit_reset?: string | Date;
   role?: 'user' | 'pro' | 'admin';
   status?: 'active' | 'suspended';
   last_credit_reset: string | Date;
@@ -158,6 +161,9 @@ export async function initDatabaseTables(): Promise<void> {
           provider_id VARCHAR(255) NOT NULL,
           daily_ai_credits_used INT DEFAULT 0,
           daily_ai_credits_limit INT DEFAULT 5,
+          daily_audit_credits_used INT DEFAULT 0,
+          daily_audit_credits_limit INT DEFAULT 20,
+          last_audit_reset TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           role VARCHAR(20) DEFAULT 'user',
           status VARCHAR(20) DEFAULT 'active',
           last_credit_reset TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -189,6 +195,42 @@ export async function initDatabaseTables(): Promise<void> {
         }
       } catch (colErr) {
         console.error('[DB Migration Error] status check:', colErr);
+      }
+
+      try {
+        const [auditUsedCol] = (await connection.query(`
+          SELECT COUNT(*) as cnt FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'daily_audit_credits_used'
+        `)) as any;
+        if (auditUsedCol && auditUsedCol[0] && Number(auditUsedCol[0].cnt) === 0) {
+          await connection.query(`ALTER TABLE users ADD COLUMN daily_audit_credits_used INT DEFAULT 0`);
+        }
+      } catch (colErr) {
+        console.error('[DB Migration Error] daily_audit_credits_used check:', colErr);
+      }
+
+      try {
+        const [auditLimitCol] = (await connection.query(`
+          SELECT COUNT(*) as cnt FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'daily_audit_credits_limit'
+        `)) as any;
+        if (auditLimitCol && auditLimitCol[0] && Number(auditLimitCol[0].cnt) === 0) {
+          await connection.query(`ALTER TABLE users ADD COLUMN daily_audit_credits_limit INT DEFAULT 20`);
+        }
+      } catch (colErr) {
+        console.error('[DB Migration Error] daily_audit_credits_limit check:', colErr);
+      }
+
+      try {
+        const [auditResetCol] = (await connection.query(`
+          SELECT COUNT(*) as cnt FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'last_audit_reset'
+        `)) as any;
+        if (auditResetCol && auditResetCol[0] && Number(auditResetCol[0].cnt) === 0) {
+          await connection.query(`ALTER TABLE users ADD COLUMN last_audit_reset TIMESTAMP DEFAULT CURRENT_TIMESTAMP`);
+        }
+      } catch (colErr) {
+        console.error('[DB Migration Error] last_audit_reset check:', colErr);
       }
 
       await connection.query(`
@@ -471,8 +513,8 @@ export async function upsertUser(user: {
       const connection = await db.getConnection();
       try {
         await connection.execute(
-          `INSERT INTO users (id, name, email, image, provider, provider_id, daily_ai_credits_used, daily_ai_credits_limit, last_credit_reset)
-           VALUES (?, ?, ?, ?, ?, ?, 0, ?, NOW())
+          `INSERT INTO users (id, name, email, image, provider, provider_id, daily_ai_credits_used, daily_ai_credits_limit, daily_audit_credits_used, daily_audit_credits_limit, last_credit_reset, last_audit_reset)
+           VALUES (?, ?, ?, ?, ?, ?, 0, ?, 0, 20, NOW(), NOW())
            ON DUPLICATE KEY UPDATE
              name = COALESCE(VALUES(name), name),
              image = COALESCE(VALUES(image), image),
@@ -516,6 +558,9 @@ export async function upsertUser(user: {
     provider_id: user.provider_id,
     daily_ai_credits_used: 0,
     daily_ai_credits_limit: defaultDailyLimit,
+    daily_audit_credits_used: 0,
+    daily_audit_credits_limit: 20,
+    last_audit_reset: new Date(),
     role: 'user',
     status: 'active',
     last_credit_reset: new Date(),
@@ -603,6 +648,379 @@ export async function updateUserCredits(
 }
 
 /**
+ * Updates user audit quota count and optional reset timestamp
+ */
+export async function updateUserAuditCredits(
+  email: string,
+  creditsUsed: number,
+  lastReset?: Date
+): Promise<boolean> {
+  const db = getPool();
+
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        if (lastReset) {
+          await connection.execute(
+            `UPDATE users SET daily_audit_credits_used = ?, last_audit_reset = ? WHERE email = ?`,
+            [creditsUsed, lastReset, email]
+          );
+        } else {
+          await connection.execute(
+            `UPDATE users SET daily_audit_credits_used = ? WHERE email = ?`,
+            [creditsUsed, email]
+          );
+        }
+        return true;
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('[DB Error] Failed to update user audit credits in MySQL:', error);
+    }
+  }
+
+  const user = memoryUserStore.get(email);
+  if (user) {
+    user.daily_audit_credits_used = creditsUsed;
+    if (lastReset) {
+      user.last_audit_reset = lastReset;
+    }
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Atomically reserves 1 AI credit at the database level to prevent race conditions.
+ */
+export async function atomicReserveUserAiCredit(email: string): Promise<{
+  success: boolean;
+  remainingCredits: number;
+  limit: number;
+  error?: string;
+}> {
+  const db = getPool();
+
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        // 1. Auto-reset credits if 24 hours have elapsed
+        await connection.execute(
+          `UPDATE users
+           SET daily_ai_credits_used = 0, last_credit_reset = NOW()
+           WHERE email = ?
+             AND (last_credit_reset IS NULL OR last_credit_reset < DATE_SUB(NOW(), INTERVAL 1 DAY))`,
+          [email]
+        );
+
+        // 2. Atomic conditional increment: ensures daily_ai_credits_used < limit
+        const [updateResult] = (await connection.execute(
+          `UPDATE users
+           SET daily_ai_credits_used = daily_ai_credits_used + 1
+           WHERE email = ?
+             AND status = 'active'
+             AND daily_ai_credits_used < daily_ai_credits_limit`,
+          [email]
+        )) as any;
+
+        if (updateResult && updateResult.affectedRows > 0) {
+          const [rows] = (await connection.execute(
+            `SELECT daily_ai_credits_used, daily_ai_credits_limit FROM users WHERE email = ? LIMIT 1`,
+            [email]
+          )) as any;
+          const user = rows?.[0];
+          const limit = user ? Number(user.daily_ai_credits_limit) : 5;
+          const used = user ? Number(user.daily_ai_credits_used) : 1;
+          return {
+            success: true,
+            remainingCredits: Math.max(0, limit - used),
+            limit,
+          };
+        }
+
+        // Reservation failed: diagnose reason
+        const [userRows] = (await connection.execute(
+          `SELECT status, daily_ai_credits_used, daily_ai_credits_limit FROM users WHERE email = ? LIMIT 1`,
+          [email]
+        )) as any;
+        const user = userRows?.[0];
+        if (!user) {
+          return {
+            success: false,
+            remainingCredits: 0,
+            limit: 0,
+            error: 'User account not found.',
+          };
+        }
+        if (user.status === 'suspended') {
+          return {
+            success: false,
+            remainingCredits: 0,
+            limit: Number(user.daily_ai_credits_limit),
+            error: 'Your account has been suspended by an administrator. Please contact support.',
+          };
+        }
+
+        const limit = Number(user.daily_ai_credits_limit);
+        const used = Number(user.daily_ai_credits_used);
+        return {
+          success: false,
+          remainingCredits: Math.max(0, limit - used),
+          limit,
+          error: `Daily free AI limit reached (${used}/${limit} credits used). Resets in 24 hours.`,
+        };
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('[DB Error] Failed to atomicReserveUserAiCredit in MySQL:', error);
+    }
+  }
+
+  // In-memory fallback
+  const user = memoryUserStore.get(email);
+  if (!user) {
+    return { success: false, remainingCredits: 0, limit: 0, error: 'User not found' };
+  }
+  if (user.status === 'suspended') {
+    return { success: false, remainingCredits: 0, limit: user.daily_ai_credits_limit, error: 'Account suspended' };
+  }
+
+  const now = Date.now();
+  const lastReset = new Date(user.last_credit_reset).getTime();
+  if (now - lastReset >= 24 * 60 * 60 * 1000) {
+    user.daily_ai_credits_used = 0;
+    user.last_credit_reset = new Date();
+  }
+
+  if (user.daily_ai_credits_used < user.daily_ai_credits_limit) {
+    user.daily_ai_credits_used += 1;
+    return {
+      success: true,
+      remainingCredits: Math.max(0, user.daily_ai_credits_limit - user.daily_ai_credits_used),
+      limit: user.daily_ai_credits_limit,
+    };
+  }
+
+  return {
+    success: false,
+    remainingCredits: 0,
+    limit: user.daily_ai_credits_limit,
+    error: `Daily free AI limit reached (${user.daily_ai_credits_limit} credits used).`,
+  };
+}
+
+/**
+ * Atomically refunds 1 AI credit if Gemini API fails
+ */
+export async function atomicRefundUserAiCredit(email: string): Promise<boolean> {
+  const db = getPool();
+
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        await connection.execute(
+          `UPDATE users
+           SET daily_ai_credits_used = GREATEST(0, daily_ai_credits_used - 1)
+           WHERE email = ?`,
+          [email]
+        );
+        return true;
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('[DB Error] Failed to atomicRefundUserAiCredit in MySQL:', error);
+    }
+  }
+
+  const user = memoryUserStore.get(email);
+  if (user) {
+    user.daily_ai_credits_used = Math.max(0, user.daily_ai_credits_used - 1);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Atomically reserves audit quota at the database level to prevent concurrent batch race conditions.
+ */
+export async function atomicReserveUserAuditCredits(
+  email: string,
+  count: number
+): Promise<{
+  success: boolean;
+  remainingCredits: number;
+  limit: number;
+  error?: string;
+}> {
+  const db = getPool();
+
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        // 1. Auto-reset audit credits if 24 hours have elapsed
+        await connection.execute(
+          `UPDATE users
+           SET daily_audit_credits_used = 0, last_audit_reset = NOW()
+           WHERE email = ?
+             AND (last_audit_reset IS NULL OR last_audit_reset < DATE_SUB(NOW(), INTERVAL 1 DAY))`,
+          [email]
+        );
+
+        // 2. Atomic conditional increment
+        const [updateResult] = (await connection.execute(
+          `UPDATE users
+           SET daily_audit_credits_used = daily_audit_credits_used + ?
+           WHERE email = ?
+             AND status = 'active'
+             AND (
+               role IN ('admin', 'pro')
+               OR (daily_audit_credits_used + ?) <= daily_audit_credits_limit
+             )`,
+          [count, email, count]
+        )) as any;
+
+        if (updateResult && updateResult.affectedRows > 0) {
+          const [rows] = (await connection.execute(
+            `SELECT daily_audit_credits_used, daily_audit_credits_limit, role FROM users WHERE email = ? LIMIT 1`,
+            [email]
+          )) as any;
+          const user = rows?.[0];
+          const isUnlimited = user?.role === 'admin' || user?.role === 'pro';
+          const limit = isUnlimited ? 9999 : (user ? Number(user.daily_audit_credits_limit || 20) : 20);
+          const used = user ? Number(user.daily_audit_credits_used || 0) : count;
+          return {
+            success: true,
+            remainingCredits: isUnlimited ? 9999 : Math.max(0, limit - used),
+            limit,
+          };
+        }
+
+        // Reservation failed: diagnose reason
+        const [userRows] = (await connection.execute(
+          `SELECT status, daily_audit_credits_used, daily_audit_credits_limit, role FROM users WHERE email = ? LIMIT 1`,
+          [email]
+        )) as any;
+        const user = userRows?.[0];
+        if (!user) {
+          return {
+            success: false,
+            remainingCredits: 0,
+            limit: 0,
+            error: 'User account not found.',
+          };
+        }
+        if (user.status === 'suspended') {
+          return {
+            success: false,
+            remainingCredits: 0,
+            limit: Number(user.daily_audit_credits_limit || 20),
+            error: 'Your account has been suspended by an administrator. Please contact support.',
+          };
+        }
+
+        const limit = Number(user.daily_audit_credits_limit || 20);
+        const used = Number(user.daily_audit_credits_used || 0);
+        return {
+          success: false,
+          remainingCredits: Math.max(0, limit - used),
+          limit,
+          error: `Daily audit quota limit reached (${used}/${limit} audits used).`,
+        };
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('[DB Error] Failed to atomicReserveUserAuditCredits in MySQL:', error);
+    }
+  }
+
+  // In-memory fallback
+  const user = memoryUserStore.get(email);
+  if (!user) {
+    return { success: false, remainingCredits: 0, limit: 0, error: 'User not found' };
+  }
+  if (user.status === 'suspended') {
+    return { success: false, remainingCredits: 0, limit: user.daily_audit_credits_limit || 20, error: 'Account suspended' };
+  }
+
+  const role = user.role || 'user';
+  if (role === 'admin' || role === 'pro') {
+    user.daily_audit_credits_used = (user.daily_audit_credits_used || 0) + count;
+    return { success: true, remainingCredits: 9999, limit: 9999 };
+  }
+
+  const now = Date.now();
+  const lastReset = user.last_audit_reset ? new Date(user.last_audit_reset).getTime() : 0;
+  if (!lastReset || now - lastReset >= 24 * 60 * 60 * 1000) {
+    user.daily_audit_credits_used = 0;
+    user.last_audit_reset = new Date();
+  }
+
+  const limit = user.daily_audit_credits_limit || 20;
+  const used = user.daily_audit_credits_used || 0;
+  if (used + count <= limit) {
+    user.daily_audit_credits_used = used + count;
+    return {
+      success: true,
+      remainingCredits: Math.max(0, limit - user.daily_audit_credits_used),
+      limit,
+    };
+  }
+
+  return {
+    success: false,
+    remainingCredits: Math.max(0, limit - used),
+    limit,
+    error: `Daily audit quota limit reached (${used}/${limit} audits used).`,
+  };
+}
+
+/**
+ * Atomically refunds audit credits if scraping fails
+ */
+export async function atomicRefundUserAuditCredits(email: string, count: number): Promise<boolean> {
+  const db = getPool();
+
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        await connection.execute(
+          `UPDATE users
+           SET daily_audit_credits_used = GREATEST(0, daily_audit_credits_used - ?)
+           WHERE email = ?`,
+          [count, email]
+        );
+        return true;
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('[DB Error] Failed to atomicRefundUserAuditCredits in MySQL:', error);
+    }
+  }
+
+  const user = memoryUserStore.get(email);
+  if (user) {
+    user.daily_audit_credits_used = Math.max(0, (user.daily_audit_credits_used || 0) - count);
+    return true;
+  }
+  return false;
+}
+
+/**
  * Fetches all registered users for the Admin Console
  */
 export async function getAllUsers(): Promise<DbUser[]> {
@@ -614,7 +1032,7 @@ export async function getAllUsers(): Promise<DbUser[]> {
       const connection = await db.getConnection();
       try {
         const [rows] = await connection.execute(
-          `SELECT id, name, email, image, provider, provider_id, daily_ai_credits_used, daily_ai_credits_limit, role, status, last_credit_reset, created_at FROM users ORDER BY created_at DESC`
+          `SELECT id, name, email, image, provider, provider_id, daily_ai_credits_used, daily_ai_credits_limit, daily_audit_credits_used, daily_audit_credits_limit, role, status, last_credit_reset, last_audit_reset, created_at FROM users ORDER BY created_at DESC`
         );
         return rows as DbUser[];
       } finally {
@@ -639,6 +1057,8 @@ export async function adminUpdateUser(
   updates: {
     daily_ai_credits_limit?: number;
     daily_ai_credits_used?: number;
+    daily_audit_credits_limit?: number;
+    daily_audit_credits_used?: number;
     role?: 'user' | 'pro' | 'admin';
     status?: 'active' | 'suspended';
   }
@@ -660,6 +1080,14 @@ export async function adminUpdateUser(
         if (updates.daily_ai_credits_used !== undefined) {
           setClauses.push('daily_ai_credits_used = ?');
           values.push(updates.daily_ai_credits_used);
+        }
+        if (updates.daily_audit_credits_limit !== undefined) {
+          setClauses.push('daily_audit_credits_limit = ?');
+          values.push(updates.daily_audit_credits_limit);
+        }
+        if (updates.daily_audit_credits_used !== undefined) {
+          setClauses.push('daily_audit_credits_used = ?');
+          values.push(updates.daily_audit_credits_used);
         }
         if (updates.role !== undefined) {
           setClauses.push('role = ?');
@@ -691,6 +1119,8 @@ export async function adminUpdateUser(
   if (user) {
     if (updates.daily_ai_credits_limit !== undefined) user.daily_ai_credits_limit = updates.daily_ai_credits_limit;
     if (updates.daily_ai_credits_used !== undefined) user.daily_ai_credits_used = updates.daily_ai_credits_used;
+    if (updates.daily_audit_credits_limit !== undefined) user.daily_audit_credits_limit = updates.daily_audit_credits_limit;
+    if (updates.daily_audit_credits_used !== undefined) user.daily_audit_credits_used = updates.daily_audit_credits_used;
     if (updates.role !== undefined) user.role = updates.role;
     if (updates.status !== undefined) user.status = updates.status;
     return true;
@@ -797,11 +1227,11 @@ export async function deleteUserAudit(
       await initDatabaseTables();
       const connection = await db.getConnection();
       try {
-        await connection.execute(
+        const [result] = (await connection.execute(
           `DELETE FROM user_audit_history WHERE id = ? AND user_email = ?`,
           [auditId, email]
-        );
-        return true;
+        )) as any;
+        return Boolean(result && result.affectedRows > 0);
       } finally {
         connection.release();
       }
@@ -1069,11 +1499,11 @@ export async function deleteUserAuditSnapshot(
       await initDatabaseTables();
       const connection = await db.getConnection();
       try {
-        await connection.execute(
+        const [result] = (await connection.execute(
           `DELETE FROM user_audit_snapshots WHERE id = ? AND user_email = ?`,
           [snapshotId, email]
-        );
-        return true;
+        )) as any;
+        return Boolean(result && result.affectedRows > 0);
       } finally {
         connection.release();
       }

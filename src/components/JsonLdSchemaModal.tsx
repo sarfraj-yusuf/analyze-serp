@@ -373,7 +373,7 @@ export const JsonLdSchemaModal: React.FC<JsonLdSchemaModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                Build Google-compliant structured data for rich snippet accordions and enhanced SERP visibility.
+                Build Schema.org structured data for clear page semantics, AI understanding, and search engine entity mapping.
               </p>
             </div>
           </div>
@@ -479,7 +479,7 @@ export const JsonLdSchemaModal: React.FC<JsonLdSchemaModalProps> = ({
                       FAQ Items ({faqs.length})
                     </h4>
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
-                      Google Rich Accordions
+                      Semantic Q&amp;A Markup
                     </span>
                   </div>
 
@@ -868,7 +868,7 @@ export const JsonLdSchemaModal: React.FC<JsonLdSchemaModalProps> = ({
                 <div className="space-y-4">
                   <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 flex items-center justify-between">
                     <span>Google Search Result Snippet Simulation</span>
-                    <span className="text-indigo-600 dark:text-indigo-400">Interactive Accordion</span>
+                    <span className="text-slate-500 dark:text-slate-400 font-medium">Semantic Q&amp;A Entities</span>
                   </div>
 
                   {/* Google Search Result Card */}
@@ -899,11 +899,11 @@ export const JsonLdSchemaModal: React.FC<JsonLdSchemaModalProps> = ({
                         'Discover comprehensive answers, insights, and evidence-based guidance in this complete walkthrough.'}
                     </p>
 
-                    {/* FAQ Rich Result Accordions */}
+                    {/* FAQ Semantic Entities Preview */}
                     {faqs.filter((f) => f.question.trim().length > 0).length > 0 && (
                       <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
                         <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 pb-0.5">
-                          People Also Ask / FAQ Rich Snippet:
+                          Semantic Q&amp;A Content Entities:
                         </div>
                         {faqs
                           .filter((f) => f.question.trim().length > 0)
@@ -944,10 +944,10 @@ export const JsonLdSchemaModal: React.FC<JsonLdSchemaModalProps> = ({
                     )}
                   </div>
 
-                  <div className="p-3 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-900/40 text-xs text-indigo-900 dark:text-indigo-200 flex items-start gap-2">
-                    <Info className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+                  <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                    <Info className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                     <span className="leading-relaxed">
-                      Google displays these interactive accordion drop-downs on search results when valid <strong>FAQPage</strong> JSON-LD schema is present, increasing organic CTR significantly.
+                      <strong>SEO Advisory:</strong> Google removed FAQ rich-result accordion displays from standard Search in 2023–2024. FAQPage schema remains valuable as optional semantic markup to help search engines, LLMs, and assistive tools understand question-and-answer entity relationships, but is no longer a SERP rich snippet growth driver.
                     </span>
                   </div>
                 </div>
@@ -1012,7 +1012,7 @@ export const JsonLdSchemaModal: React.FC<JsonLdSchemaModalProps> = ({
                     {activeValidation.issues.length === 0 ? (
                       <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
                         <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        <span>All Google Rich Results criteria satisfied! Ready to publish.</span>
+                        <span>All Schema.org validation criteria satisfied! Ready to embed.</span>
                       </div>
                     ) : (
                       activeValidation.issues.map((issue, idx) => {
