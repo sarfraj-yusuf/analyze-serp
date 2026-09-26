@@ -328,12 +328,12 @@ export default function Home() {
               <Clock className="w-4 h-4 text-amber-500 animate-spin" />
               <span>Quota Cooldown: 5/5 Audits Used</span>
             </div>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+            <p role="status" className="text-xl font-bold text-slate-800 dark:text-slate-100">
               Next 5 Free Audits Unlock In:{' '}
               <span className="font-mono text-2xl text-amber-500 underline ml-2">
                 {cooldownSeconds}s
               </span>
-            </h3>
+            </p>
             <p className="text-xs text-slate-600 dark:text-slate-300 max-w-md mx-auto leading-relaxed">
               <strong>AnalyzeSERP Pro ($19/mo value) is 100% free during public beta.</strong> While the timer counts down, feel free to submit feedback or test other utilities.
             </p>

@@ -1,14 +1,14 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Color Contrast Checker & WCAG Accessibility Auditor',
+  title: 'WCAG Color Contrast Checker',
   description:
     'Test foreground and background text color contrast ratios against WCAG 2.1 AA and AAA standards. Free online color contrast checker for web accessibility.',
   alternates: {
     canonical: 'https://analyzeserp.com/contrast-checker',
   },
   openGraph: {
-    title: 'Color Contrast Checker & WCAG Accessibility Auditor | AnalyzeSERP',
+    title: 'WCAG Color Contrast Checker | AnalyzeSERP',
     description:
       'Test foreground and background text color contrast ratios against WCAG 2.1 AA and AAA standards.',
     url: 'https://analyzeserp.com/contrast-checker',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@analyzeserp',
     creator: '@sarfrajyusuf',
-    title: 'Color Contrast Checker & WCAG Accessibility Auditor | AnalyzeSERP',
+    title: 'WCAG Color Contrast Checker | AnalyzeSERP',
     description:
       'Test text color contrast ratios against WCAG 2.1 AA and AAA standards.',
     images: ['/og-image.jpg'],

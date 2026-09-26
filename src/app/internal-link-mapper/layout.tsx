@@ -1,14 +1,14 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Internal Link Topology & Anchor Text Distribution Mapper',
+  title: 'Internal Link & Anchor Text Mapper',
   description:
     'Map internal link architecture, destination target hubs, and 5-tier anchor text distribution. Detect over-optimization and uncover competitor anchor gaps.',
   alternates: {
     canonical: 'https://analyzeserp.com/internal-link-mapper',
   },
   openGraph: {
-    title: 'Internal Link Topology & Anchor Text Distribution Mapper | AnalyzeSERP',
+    title: 'Internal Link & Anchor Text Mapper | AnalyzeSERP',
     description:
       'Map internal link architecture, destination target hubs, and 5-tier anchor text distribution. Detect over-optimization and uncover competitor anchor gaps.',
     url: 'https://analyzeserp.com/internal-link-mapper',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@analyzeserp',
     creator: '@sarfrajyusuf',
-    title: 'Internal Link Topology & Anchor Text Distribution Mapper | AnalyzeSERP',
+    title: 'Internal Link & Anchor Text Mapper | AnalyzeSERP',
     description:
       'Map internal link architecture, destination target hubs, and 5-tier anchor text distribution.',
     images: ['/og-image.jpg'],

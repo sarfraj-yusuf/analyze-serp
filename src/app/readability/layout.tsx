@@ -1,14 +1,14 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Readability Score Checker & Flesch Kincaid Auditor',
+  title: 'Readability Score & Flesch Kincaid Checker',
   description:
     'Audit content readability scores, analyze Flesch-Kincaid grade levels, detect passive voice ratio, and optimize article complexity for Google Helpful Content.',
   alternates: {
     canonical: 'https://analyzeserp.com/readability',
   },
   openGraph: {
-    title: 'Readability Score Checker & Flesch Kincaid Auditor | AnalyzeSERP',
+    title: 'Readability Score & Flesch Kincaid Checker | AnalyzeSERP',
     description:
       'Audit content readability scores, analyze Flesch-Kincaid grade levels, and optimize article complexity for Google Helpful Content.',
     url: 'https://analyzeserp.com/readability',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@analyzeserp',
     creator: '@sarfrajyusuf',
-    title: 'Readability Score Checker & Flesch Kincaid Auditor | AnalyzeSERP',
+    title: 'Readability Score & Flesch Kincaid Checker | AnalyzeSERP',
     description:
       'Audit content readability scores and analyze Flesch-Kincaid grade levels.',
     images: ['/og-image.jpg'],

@@ -90,8 +90,8 @@ const FAQS = [
     a: 'No. The lexical tokenizer and keyword occurrence engine run 100% locally in your browser memory (sub-millisecond latency). Your drafts are auto-saved in your browser localStorage and are never sent to third-party databases unless you explicitly trigger the optional AI Writing Assistant.',
   },
   {
-    q: 'What is the ideal keyword frequency for primary and secondary keywords?',
-    a: 'Google’s modern helpful content system penalizes keyword stuffing. A healthy primary keyword density ranges between 1.0% and 2.0% of total words. Secondary and semantic gap keywords should appear naturally 1 to 4 times to prove comprehensive topical authority without unnatural repetition.',
+    q: 'What is the recommended keyword frequency for primary and secondary keywords?',
+    a: 'Modern search engines prioritize natural language, topical depth, and search intent over rigid keyword density percentages. Rather than repeating terms artificially, ensure your focus keyword appears naturally in key structural places (title, intro, headings) and weave in semantic terms without stuffing.',
   },
   {
     q: 'Can I export my content to WordPress, Notion, or Webflow?',
@@ -592,7 +592,7 @@ export default function ContentScratchpadPage() {
               How to Write High-Ranking Content in 3 Steps
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              Eliminate the guesswork of SEO writing. Hit the exact keyword benchmarks Google rewards.
+              Eliminate the guesswork of SEO writing. Build topic-complete content that answers user search intent naturally.
             </p>
           </div>
 

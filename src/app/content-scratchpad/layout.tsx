@@ -1,16 +1,16 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Live SEO Content Scratchpad & Real-Time Content Scorer',
+  title: 'SEO Content Scratchpad & Live Editor',
   description:
-    'Real-time lexical scoring studio with competitor keyword checklist, keyword density guard, and Flesch reading ease analyzer. Write rank-ready content fast.',
+    'Real-time lexical scoring studio with competitor keyword checklist, content structure analysis, and Flesch reading ease analyzer. Write rank-ready content fast.',
   alternates: {
     canonical: 'https://analyzeserp.com/content-scratchpad',
   },
   openGraph: {
-    title: 'Live SEO Content Scratchpad & Real-Time Content Scorer | AnalyzeSERP',
+    title: 'SEO Content Scratchpad & Live Editor | AnalyzeSERP',
     description:
-      'Real-time lexical scoring studio with competitor keyword checklist, keyword density guard, and Flesch reading ease analyzer. Write rank-ready content fast.',
+      'Real-time lexical scoring studio with competitor keyword checklist, content structure analysis, and Flesch reading ease analyzer. Write rank-ready content fast.',
     url: 'https://analyzeserp.com/content-scratchpad',
     type: 'website',
     images: [
@@ -26,9 +26,9 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@analyzeserp',
     creator: '@sarfrajyusuf',
-    title: 'Live SEO Content Scratchpad & Real-Time Content Scorer | AnalyzeSERP',
+    title: 'SEO Content Scratchpad & Live Editor | AnalyzeSERP',
     description:
-      'Real-time lexical scoring studio with competitor keyword checklist, keyword density guard, and Flesch reading ease analyzer.',
+      'Real-time lexical scoring studio with competitor keyword checklist, content structure analysis, and Flesch reading ease analyzer.',
     images: ['/og-image.jpg'],
   },
 };

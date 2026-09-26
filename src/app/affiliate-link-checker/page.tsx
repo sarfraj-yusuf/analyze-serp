@@ -172,7 +172,7 @@ export default function AffiliateLinkCheckerPage() {
           </h1>
 
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl mx-auto">
-            Audit outbound links for affiliate parameters (Amazon, ShareASale, CJ, Impact), verify rel=&quot;sponsored&quot; &amp; rel=&quot;nofollow&quot; compliance, and prevent Google link spam penalties.
+            Audit outbound links for affiliate parameters (Amazon, ShareASale, CJ, Impact), verify rel=&quot;sponsored&quot; &amp; rel=&quot;nofollow&quot; compliance, and align with Google link spam guidelines.
           </p>
         </header>
 
@@ -298,7 +298,7 @@ export default function AffiliateLinkCheckerPage() {
                 The Science of Outbound Links: Google SpamBrain & rel Directives
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Official Google guidelines for qualifying commercial links, preventing algorithmic penalties, and protecting PageRank.
+                Official Google guidelines for qualifying commercial links, maintaining search compliance, and preserving link equity.
               </p>
             </div>
 
@@ -390,8 +390,8 @@ export default function AffiliateLinkCheckerPage() {
                       <span className="font-bold text-emerald-600 dark:text-emerald-400">Equity Retained</span>
                     </div>
                     <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
-                      <span>Spam Action Risk:</span>
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400">0% Penalty Risk</span>
+                      <span>Compliance Posture:</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">Policy Compliant</span>
                     </div>
                   </div>
                 </div>

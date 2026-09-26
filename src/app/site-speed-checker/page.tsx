@@ -176,7 +176,7 @@ export default function SiteSpeedCheckerPage() {
           </h1>
 
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl mx-auto">
-            Test real-time Time to First Byte (TTFB), LCP, INP, CLS benchmarks, server fetch latency, and DOM payload bloat to boost Core Web Vitals rankings.
+            Test real-time Time to First Byte (TTFB), LCP, INP, CLS benchmarks, server fetch latency, and DOM payload bloat to improve Core Web Vitals and user experience.
           </p>
         </header>
 

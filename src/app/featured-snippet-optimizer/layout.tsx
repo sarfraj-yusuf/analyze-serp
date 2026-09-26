@@ -1,14 +1,14 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Google Featured Snippet Optimizer & Position 0 Bait Studio',
+  title: 'Featured Snippet & Position Zero Optimizer',
   description:
     'Audit Google Position 0 featured snippet opportunities, generate high-converting snippet bait definitions (paragraphs, lists, tables), and classify search intent.',
   alternates: {
     canonical: 'https://analyzeserp.com/featured-snippet-optimizer',
   },
   openGraph: {
-    title: 'Google Featured Snippet Optimizer & Position 0 Bait Studio | AnalyzeSERP',
+    title: 'Featured Snippet & Position Zero Optimizer | AnalyzeSERP',
     description:
       'Audit Google Position 0 featured snippet opportunities, generate high-converting snippet bait definitions (paragraphs, lists, tables), and classify search intent.',
     url: 'https://analyzeserp.com/featured-snippet-optimizer',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@analyzeserp',
     creator: '@sarfrajyusuf',
-    title: 'Google Featured Snippet Optimizer & Position 0 Bait Studio | AnalyzeSERP',
+    title: 'Featured Snippet & Position Zero Optimizer | AnalyzeSERP',
     description:
       'Audit Google Position 0 featured snippet opportunities, generate high-converting snippet bait definitions (paragraphs, lists, tables), and classify search intent.',
     images: ['/og-image.jpg'],

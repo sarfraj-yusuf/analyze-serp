@@ -1,14 +1,14 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Google SERP Snippet Preview Tool & Pixel Checker',
+  title: 'SERP Snippet Preview & Pixel Tool',
   description:
     'Test title tag pixel width (600px limit) and meta description truncation in real-time. Free Google search & social card simulator for SEO.',
   alternates: {
     canonical: 'https://analyzeserp.com/serp-snippet-preview',
   },
   openGraph: {
-    title: 'Google SERP Snippet Preview Tool & Pixel Checker | AnalyzeSERP',
+    title: 'SERP Snippet Preview & Pixel Tool | AnalyzeSERP',
     description:
       'Test title tag pixel width (600px limit) and meta description truncation in real-time. Free Google search & social card simulator for SEO.',
     url: 'https://analyzeserp.com/serp-snippet-preview',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@analyzeserp',
     creator: '@sarfrajyusuf',
-    title: 'Google SERP Snippet Preview Tool & Pixel Checker | AnalyzeSERP',
+    title: 'SERP Snippet Preview & Pixel Tool | AnalyzeSERP',
     description:
       'Test title tag pixel width (600px limit) and meta description truncation in real-time.',
     images: ['/og-image.jpg'],

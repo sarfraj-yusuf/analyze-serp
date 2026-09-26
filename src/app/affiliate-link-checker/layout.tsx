@@ -1,14 +1,14 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Affiliate Link Checker & Rel Sponsored Auditor',
+  title: 'Affiliate Link & Sponsored Tag Checker',
   description:
     'Audit outbound links, detect Amazon, CJ & ShareASale parameters, and check Google rel="sponsored" link spam compliance. Free SEO link inspector.',
   alternates: {
     canonical: 'https://analyzeserp.com/affiliate-link-checker',
   },
   openGraph: {
-    title: 'Affiliate Link Checker & Rel Sponsored Auditor | AnalyzeSERP',
+    title: 'Affiliate Link & Sponsored Tag Checker | AnalyzeSERP',
     description:
       'Audit outbound links, detect Amazon, CJ & ShareASale parameters, and check Google rel="sponsored" link spam compliance. Free SEO link inspector.',
     url: 'https://analyzeserp.com/affiliate-link-checker',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Affiliate Link Checker & Rel Sponsored Auditor | AnalyzeSERP',
+    title: 'Affiliate Link & Sponsored Tag Checker | AnalyzeSERP',
     description:
       'Audit outbound links, detect Amazon, CJ & ShareASale parameters, and check Google rel="sponsored" link spam compliance. Free SEO link inspector.',
     images: ['/og-image.jpg'],
