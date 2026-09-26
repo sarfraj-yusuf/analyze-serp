@@ -113,6 +113,7 @@ export default async function SingleBlogPostPage({ params }: SingleBlogPageProps
     dateModified: meta.lastModified || meta.date,
     author: {
       '@type': 'Person',
+      '@id': 'https://analyzeserp.com/#founder',
       name: meta.author,
       jobTitle: meta.authorRole,
       url: 'https://analyzeserp.com/about',
@@ -120,11 +121,13 @@ export default async function SingleBlogPostPage({ params }: SingleBlogPageProps
     },
     publisher: {
       '@type': 'Organization',
+      '@id': 'https://analyzeserp.com/#organization',
       name: 'AnalyzeSERP',
       url: 'https://analyzeserp.com',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://analyzeserp.com/og-image.jpg',
+        '@id': 'https://analyzeserp.com/#logo',
+        url: 'https://analyzeserp.com/logo.svg',
       },
     },
     mainEntityOfPage: {

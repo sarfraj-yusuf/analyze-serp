@@ -46,7 +46,7 @@ const PRICING_FAQS: FaqItem[] = [
   },
   {
     q: 'How does AnalyzeSERP extract search data in under 500 milliseconds without AI latency?',
-    a: 'AnalyzeSERP bypasses heavy headless browsers and generative LLMs in favor of a specialized, high-concurrency Node.js Cheerio DOM engine. We extract raw HTML tags, heading hierarchies, schema markup, and keyword n-grams directly from the document AST with zero hallucinations.',
+    a: 'AnalyzeSERP bypasses heavy headless browsers and generative LLMs in favor of a specialized, high-concurrency Node.js Cheerio DOM engine. We extract raw HTML tags, heading hierarchies, schema markup, and keyword n-grams directly from the document AST with deterministic accuracy.',
   },
   {
     q: 'How will pricing work once AnalyzeSERP transitions out of Public Beta?',
@@ -79,7 +79,7 @@ const FEATURE_CATEGORIES: FeatureCategory[] = [
     features: [
       { name: 'Core Engine Architecture', starter: 'Cheerio Raw DOM AST', proBeta: 'Cheerio Raw DOM AST', agency: 'Dedicated Cluster' },
       { name: 'Average Extraction Latency', starter: '< 500ms TTFB', proBeta: '< 450ms TTFB', agency: '< 350ms TTFB' },
-      { name: 'Generative AI Hallucination Rate', starter: '0.0% (Exact Facts)', proBeta: '0.0% (Exact Facts)', agency: '0.0% (Exact Facts)' },
+      { name: 'Extraction Mode', starter: 'Deterministic AST', proBeta: 'Deterministic AST', agency: 'Deterministic AST' },
       { name: 'Raw HTML Payload & Status Codes', starter: true, proBeta: true, agency: true },
       { name: 'Priority Server Crawl Queue', starter: false, proBeta: true, agency: true, highlight: true },
     ],
@@ -153,10 +153,14 @@ export default function PricingPage() {
     {
       '@context': 'https://schema.org',
       '@type': 'SoftwareApplication',
+      '@id': 'https://analyzeserp.com/#webapp',
       name: 'AnalyzeSERP Competitor SEO Suite',
       url: 'https://analyzeserp.com/pricing',
       applicationCategory: 'BusinessApplication',
       operatingSystem: 'All',
+      provider: {
+        '@id': 'https://analyzeserp.com/#organization',
+      },
       offers: [
         {
           '@type': 'Offer',
@@ -593,7 +597,7 @@ export default function PricingPage() {
               Ready to Audit Competitors in Sub-500ms?
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-gray-400 leading-relaxed">
-              Experience deterministic SEO intelligence with zero AI hallucinations, unlimited audits, and unbranded client reports.
+              Experience deterministic SEO intelligence with verifiable HTML DOM facts, unlimited audits, and unbranded client reports.
             </p>
           </div>
 

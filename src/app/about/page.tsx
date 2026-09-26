@@ -37,9 +37,9 @@ interface FaqItem {
 
 const FAQ_ITEMS: FaqItem[] = [
   {
-    question: 'How does AnalyzeSERP combine non-AI auditing with on-demand AI writing?',
+    question: 'How does AnalyzeSERP combine deterministic auditing with on-demand AI writing?',
     answer:
-      'We strictly separate empirical measurement from creative generation. Our core auditing and crawling engine is 100% non-AI and deterministic—it inspects the raw DOM using Cheerio in under 500ms to guarantee 0% hallucinations for titles, headings, and keyword n-grams. Once your audit facts are proven, you can optionally invoke our on-demand AI co-pilot to rewrite meta descriptions, simplify sentences, or draft section outlines.',
+      'We strictly separate empirical measurement from creative generation. Our core auditing engine is deterministic—it inspects the server-rendered HTML DOM using Cheerio to extract exact titles, headings, and keyword n-grams directly from source code without synthetic estimation. Once your audit baseline is established, you can optionally invoke our AI co-pilot to rewrite meta descriptions, simplify sentences, or draft section outlines.',
   },
   {
     question: 'How are the Core Web Vitals and performance benchmarks measured?',
@@ -79,12 +79,12 @@ export default function AboutPage() {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-tight">
-            Deterministic Precision.{' '}
-            <span className="text-emerald-600 dark:text-emerald-400">Zero Hallucinations.</span>
+            Deterministic HTML Analysis.{' '}
+            <span className="text-emerald-600 dark:text-emerald-400">Verifiable DOM Data.</span>
           </h1>
 
           <p className="text-sm sm:text-base text-slate-600 dark:text-gray-300 leading-relaxed">
-            AnalyzeSERP was created for technical SEO specialists, content directors, and digital agencies who demand verifiable search data. Our core auditing crawler is 100% non-AI and deterministic—extracting real DOM facts in under 500ms—paired with an on-demand AI co-pilot whenever you need to rewrite meta tags or draft outlines.
+            AnalyzeSERP was created for technical SEO specialists, content directors, and digital agencies who demand verifiable search data. Our core auditing engine is deterministic—extracting real HTML DOM facts directly from source code—paired with an optional on-demand AI co-pilot whenever you need to rewrite meta tags or draft outlines.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
@@ -105,14 +105,14 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Section 2: Deterministic Engine vs Generic AI Scrapers Matrix */}
+        {/* Section 2: Deterministic Engine vs Generative AI Summarization Matrix */}
         <section className="space-y-6">
           <div className="text-center space-y-2 max-w-2xl mx-auto">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">
-              Why Raw DOM Extraction Beats Generative AI
+              Raw DOM Extraction vs Generative AI Summarization
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-gray-400">
-              Google algorithms rank actual document trees and field latency — not synthetic LLM interpretations.
+              Search engines evaluate actual document trees, status codes, and server response headers — not synthetic estimations.
             </p>
           </div>
 
@@ -123,10 +123,10 @@ export default function AboutPage() {
                   <tr className="bg-slate-50 dark:bg-white/[0.03] border-b border-slate-200/80 dark:border-white/10">
                     <th className="p-4 font-bold text-slate-800 dark:text-slate-200">Capability</th>
                     <th className="p-4 font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/5">
-                      AnalyzeSERP (Deterministic Engine)
+                      AnalyzeSERP (Deterministic DOM Engine)
                     </th>
                     <th className="p-4 font-bold text-slate-500 dark:text-gray-400">
-                      Generic AI Scrapers (OpenAI / Perplexity)
+                      Generative LLM Scraping
                     </th>
                   </tr>
                 </thead>
@@ -137,10 +137,10 @@ export default function AboutPage() {
                     </td>
                     <td className="p-4 font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                      <span>Sub-500ms (Raw Cheerio AST)</span>
+                      <span>Fast server-rendered parsing (&lt; 500ms for static HTML)</span>
                     </td>
                     <td className="p-4 text-slate-500 dark:text-gray-400">
-                      20–45 seconds (Heavy LLM synthesis)
+                      Multi-second generation latency (depends on model queue and prompt size)
                     </td>
                   </tr>
                   <tr>
@@ -149,22 +149,22 @@ export default function AboutPage() {
                     </td>
                     <td className="p-4 font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                      <span>100% Mathematical Precision</span>
+                      <span>Direct source code extraction (titles, H1–H6, canonicals)</span>
                     </td>
                     <td className="p-4 text-slate-500 dark:text-gray-400">
-                      High hallucination rate on missed headings
+                      Risk of synthetic estimation or omitted heading tags
                     </td>
                   </tr>
                   <tr>
                     <td className="p-4 font-semibold text-slate-800 dark:text-slate-200">
-                      Data Privacy &amp; Tracking
+                      Data Privacy &amp; Retention
                     </td>
                     <td className="p-4 font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                      <span>Zero URL Logging &amp; Client-Side Privacy</span>
+                      <span>Transient audit processing with zero persistent URL tracking</span>
                     </td>
                     <td className="p-4 text-slate-500 dark:text-gray-400">
-                      URLs ingested into training datasets
+                      Input data retention governed by third-party model provider policies
                     </td>
                   </tr>
                   <tr>
@@ -176,7 +176,7 @@ export default function AboutPage() {
                       <span>Google Search Central &amp; W3C WCAG 2.2</span>
                     </td>
                     <td className="p-4 text-slate-500 dark:text-gray-400">
-                      Generalized summaries without spec alignment
+                      Generalized summaries without formal specification alignment
                     </td>
                   </tr>
                   <tr>
@@ -188,7 +188,7 @@ export default function AboutPage() {
                       <span>100% Free Public Beta</span>
                     </td>
                     <td className="p-4 text-slate-500 dark:text-gray-400">
-                      Expensive token-based metering per prompt
+                      Recurring token-based metering per query
                     </td>
                   </tr>
                 </tbody>
@@ -241,7 +241,7 @@ export default function AboutPage() {
                 </h3>
               </div>
               <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
-                Ranking algorithms heavily prioritize latency and page stability. AnalyzeSERP calculates real server response TTFB latency, multi-hop 301 redirect chains, payload compression (Gzip/Brotli), and WCAG 2.2 color contrast ratios to ensure total technical health compliance.
+                Search engines emphasize page experience, latency, and stability as key quality signals. AnalyzeSERP calculates real server response TTFB latency, multi-hop 301 redirect chains, payload compression (Gzip/Brotli), and WCAG 2.2 color contrast ratios to ensure total technical health compliance.
               </p>
             </div>
 
@@ -291,7 +291,7 @@ export default function AboutPage() {
                 Engine Telemetry &amp; Performance Benchmarks
               </h3>
               <p className="text-xs text-slate-500 dark:text-gray-400">
-                Production metrics measured across 50,000+ live web audits.
+                Performance metrics across supported document audit benchmarks.
               </p>
             </div>
             <div className="inline-flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-mono font-bold">
@@ -308,9 +308,9 @@ export default function AboutPage() {
             </div>
 
             <div className="space-y-1">
-              <p className="text-[10px] uppercase font-bold text-slate-400">Data Hallucination Rate</p>
-              <p className="text-2xl font-black font-mono text-slate-800 dark:text-slate-100">0.0%</p>
-              <p className="text-[10px] text-slate-500">100% deterministic facts</p>
+              <p className="text-[10px] uppercase font-bold text-slate-400">Extraction Mode</p>
+              <p className="text-2xl font-black font-mono text-slate-800 dark:text-slate-100">Deterministic</p>
+              <p className="text-[10px] text-slate-500">Direct DOM AST facts</p>
             </div>
 
             <div className="space-y-1">
@@ -409,7 +409,7 @@ export default function AboutPage() {
                 <span>2. Facts Over Generative Guesses</span>
               </h4>
               <p>
-                Search algorithms do not rank AI summaries; they index concrete status codes, meta tags, and visual pixel caps. We deliver raw, verifiable facts that match exactly what Googlebot sees.
+                Search engines index concrete status codes, document structures, and meta tags. We deliver direct, verifiable data extracted from the document tree.
               </p>
             </div>
 

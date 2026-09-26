@@ -482,7 +482,7 @@ export default function ContactPage() {
                   <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all" />
                 </h4>
                 <p className="text-[11px] text-slate-500 dark:text-gray-400 leading-relaxed mt-1">
-                  Read why sub-500ms deterministic extraction eliminates generative AI hallucinations.
+                  Read how deterministic DOM extraction delivers verifiable, source-grounded search data.
                 </p>
               </div>
             </Link>

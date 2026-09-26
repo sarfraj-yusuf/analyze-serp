@@ -81,44 +81,80 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLdSchema = [
-  {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "AnalyzeSERP",
-    "url": "https://analyzeserp.com",
-    "description": "High-speed deterministic competitor SEO auditor with an on-demand AI writing co-pilot.",
-    "applicationCategory": "BusinessApplication",
-    "operatingSystem": "All",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD",
-    },
-    "author": {
+const jsonLdSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
       "@type": "Organization",
+      "@id": "https://analyzeserp.com/#organization",
       "name": "AnalyzeSERP",
       "url": "https://analyzeserp.com",
+      "logo": {
+        "@type": "ImageObject",
+        "@id": "https://analyzeserp.com/#logo",
+        "url": "https://analyzeserp.com/logo.svg",
+        "contentUrl": "https://analyzeserp.com/logo.svg",
+        "caption": "AnalyzeSERP Logo"
+      },
+      "image": {
+        "@id": "https://analyzeserp.com/#logo"
+      },
+      "founder": {
+        "@type": "Person",
+        "@id": "https://analyzeserp.com/#founder",
+        "name": "Sarfraj Yusuf",
+        "jobTitle": "Founder & Senior SEO Strategist",
+        "url": "https://analyzeserp.com/about",
+        "sameAs": [
+          "https://twitter.com/sarfrajyusuf",
+          "https://github.com/sarfraj-yusuf"
+        ]
+      },
+      "sameAs": [
+        "https://twitter.com/analyzeserp",
+        "https://twitter.com/sarfrajyusuf",
+        "https://github.com/sarfraj-yusuf/analyze-serp"
+      ]
     },
-  },
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "AnalyzeSERP",
-    "url": "https://analyzeserp.com",
-    "logo": "https://analyzeserp.com/logo.svg",
-    "sameAs": [
-      "https://twitter.com/analyzeserp",
-      "https://twitter.com/sarfrajyusuf"
-    ]
-  },
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "AnalyzeSERP",
-    "url": "https://analyzeserp.com"
-  }
-];
+    {
+      "@type": "WebSite",
+      "@id": "https://analyzeserp.com/#website",
+      "url": "https://analyzeserp.com",
+      "name": "AnalyzeSERP",
+      "description": "Deterministic Competitor SEO Analysis & SERP Benchmarking Platform",
+      "publisher": {
+        "@id": "https://analyzeserp.com/#organization"
+      },
+      "inLanguage": "en-US"
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://analyzeserp.com/#webapp",
+      "url": "https://analyzeserp.com",
+      "name": "AnalyzeSERP Competitor SEO Analyzer",
+      "applicationCategory": "SEOApplication",
+      "operatingSystem": "All",
+      "browserRequirements": "Requires HTML5 and JavaScript",
+      "description": "High-speed deterministic competitor SEO auditor with real-time DOM parsing, keyword gap analysis, and content benchmarking.",
+      "author": {
+        "@id": "https://analyzeserp.com/#founder"
+      },
+      "provider": {
+        "@id": "https://analyzeserp.com/#organization"
+      },
+      "offers": {
+        "@type": "Offer",
+        "@id": "https://analyzeserp.com/#free-offer",
+        "price": "0.00",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@id": "https://analyzeserp.com/#organization"
+        }
+      }
+    }
+  ]
+};
 
 import { ClientFeedbackWrapper } from "@/components/ClientFeedbackWrapper";
 import { AuthProvider } from "@/components/AuthProvider";

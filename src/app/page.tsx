@@ -230,43 +230,9 @@ export default function Home() {
     router.push(`/audit?${queryParams.toString()}`);
   };
 
-  const softwareSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'WebApplication',
-    name: 'AnalyzeSERP',
-    url: 'https://analyzeserp.com',
-    applicationCategory: 'SEOApplication',
-    operatingSystem: 'All',
-    browserRequirements: 'Requires HTML5 and JavaScript',
-    description:
-      'Run a free competitor SEO audit instantly. Compare titles, meta tags, headings, keywords, links & technical SEO — no signup, no credit card required.',
-    author: {
-      '@type': 'Person',
-      name: 'Sarfraj Yusuf',
-      jobTitle: 'Founder & Senior SEO Strategist',
-      url: 'https://analyzeserp.com/about',
-    },
-    offers: {
-      '@type': 'Offer',
-      price: '0.00',
-      priceCurrency: 'USD',
-      availability: 'https://schema.org/InStock',
-      seller: {
-        '@type': 'Organization',
-        name: 'AnalyzeSERP',
-      },
-    },
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-[var(--text-primary)] selection:bg-emerald-500 selection:text-black transition-colors duration-200">
       <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
-
-      {/* WebApplication / SoftwareApplication JSON-LD Schema Script */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
-      />
 
       {/* Daily Quota Freemium Bar */}
       {!isQuotaBarDismissed && (
@@ -585,7 +551,7 @@ export default function Home() {
                   </div>
                   <div className="pt-2 flex items-center gap-1.5 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>0.0% AI Hallucination rate</span>
+                    <span>Deterministic DOM Extraction</span>
                   </div>
                 </div>
 
@@ -882,7 +848,7 @@ export default function Home() {
                         name: 'What makes AnalyzeSERP faster and more accurate than AI scraper tools?',
                         acceptedAnswer: {
                           '@type': 'Answer',
-                          text: 'Generative LLMs take 20 to 45 seconds to summarize pages and frequently hallucinate missing headings, word counts, and meta tags. AnalyzeSERP uses a dedicated server-side Node.js Cheerio DOM parser that inspects the real raw HTML in under 500 milliseconds—returning 100% mathematical facts without guessing.',
+                          text: 'Unlike generative AI tools that synthesize approximate summaries, AnalyzeSERP uses a dedicated server-side Cheerio HTML DOM parser that inspects raw document trees in under 500 milliseconds—returning exact structural tags, heading hierarchies, and word counts directly from source code without synthetic estimation.',
                         },
                       },
                       {
@@ -935,7 +901,7 @@ export default function Home() {
                   {
                     question: 'What makes AnalyzeSERP faster and more accurate than AI scraper tools?',
                     answer:
-                      'Generative LLMs (like GPT-4 or Claude web bots) take 20 to 45 seconds to summarize pages and frequently hallucinate missing headings, word counts, and meta tags. AnalyzeSERP uses a dedicated server-side Node.js Cheerio DOM parser that inspects the real raw HTML in under 500 milliseconds—returning 100% mathematical facts without guessing.',
+                      'Unlike generative AI tools that synthesize approximate summaries, AnalyzeSERP uses a dedicated server-side Cheerio HTML DOM parser that inspects raw document trees in under 500 milliseconds—returning exact structural tags, heading hierarchies, and word counts directly from source code without synthetic estimation.',
                   },
                   {
                     question: 'Can I compare multiple competitor URLs side by side?',

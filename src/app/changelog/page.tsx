@@ -181,7 +181,7 @@ const CHANGELOG_RELEASES: ChangelogEntry[] = [
     date: 'August 2026',
     title: 'Next.js 15 App Router Architecture & Zero-AI Crawler Engine',
     summary:
-      'Rebuilt AnalyzeSERP from the ground up on Next.js 15, React 19, and Tailwind CSS v4. Introduced our proprietary deterministic DOM crawler powered by Cheerio, replacing slow, hallucination-prone AI scrapers with sub-500ms raw DOM inspection.',
+      'Rebuilt AnalyzeSERP from the ground up on Next.js 15, React 19, and Tailwind CSS v4. Introduced our deterministic DOM crawler powered by Cheerio, replacing generative scraper models with fast, exact raw DOM inspection.',
     categories: [
       {
         label: 'Core Infrastructure',
@@ -215,7 +215,7 @@ export default function ChangelogPage() {
 
           <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-tight">
             Continuous Velocity.{' '}
-            <span className="text-emerald-600 dark:text-emerald-400">Zero Hallucinations.</span>
+            <span className="text-emerald-600 dark:text-emerald-400">Verifiable DOM Data.</span>
           </h1>
 
           <p className="text-sm sm:text-base text-slate-600 dark:text-gray-400 leading-relaxed">

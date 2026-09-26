@@ -31,6 +31,64 @@ export const metadata: Metadata = {
   },
 };
 
+const aboutSchema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    '@id': 'https://analyzeserp.com/about#webpage',
+    url: 'https://analyzeserp.com/about',
+    name: 'About AnalyzeSERP & Founder Sarfraj Yusuf',
+    description:
+      'Learn about AnalyzeSERP, the high-speed deterministic SEO auditor with an on-demand AI writing co-pilot, created by Senior SEO Strategist Sarfraj Yusuf.',
+    isPartOf: {
+      '@id': 'https://analyzeserp.com/#website',
+    },
+    about: {
+      '@id': 'https://analyzeserp.com/#organization',
+    },
+    mainEntity: {
+      '@type': 'Person',
+      '@id': 'https://analyzeserp.com/#founder',
+      name: 'Sarfraj Yusuf',
+      jobTitle: 'Founder & Senior SEO Strategist',
+      url: 'https://analyzeserp.com/about',
+      worksFor: {
+        '@id': 'https://analyzeserp.com/#organization',
+      },
+      sameAs: [
+        'https://twitter.com/sarfrajyusuf',
+        'https://github.com/sarfraj-yusuf',
+      ],
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://analyzeserp.com',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'About',
+        item: 'https://analyzeserp.com/about',
+      },
+    ],
+  },
+];
+
 export default function AboutLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutSchema) }}
+      />
+      {children}
+    </>
+  );
 }
