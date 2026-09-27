@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fetchGooglePageSpeedData, CoreWebVitalsData } from '@/lib/pagespeed';
 import { pageSpeedRateLimiter } from '@/lib/rate-limiter';
 import { validateUrlSafety } from '@/lib/ssrf-protection';
+import { LRUCache } from '@/lib/lru-cache';
 
-// 1-Hour In-Memory Cache Map (key: url + strategy)
-const cacheMap = new Map<string, { data: CoreWebVitalsData; timestamp: number }>();
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 Hour (3,600,000 ms)
+// 1-Hour Bounded LRU Cache (max 200 entries, 1-hour TTL)
+const pageSpeedCache = new LRUCache<CoreWebVitalsData>(200, 60 * 60 * 1000);
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,13 +47,12 @@ export async function POST(req: NextRequest) {
 
     const cleanStrategy = strategy === 'desktop' ? 'desktop' : 'mobile';
     const cacheKey = `${url.trim().toLowerCase()}::${cleanStrategy}`;
-    const now = Date.now();
 
-    // Check 1-Hour LRU cache
-    const cached = cacheMap.get(cacheKey);
-    if (cached && now - cached.timestamp < CACHE_TTL_MS) {
+    // Check 1-Hour Bounded LRU cache
+    const cached = pageSpeedCache.get(cacheKey);
+    if (cached) {
       return NextResponse.json({
-        ...cached.data,
+        ...cached,
         isCached: true,
       });
     }
@@ -68,17 +67,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Save to 1-Hour cache
-    cacheMap.set(cacheKey, { data, timestamp: now });
-
-    // Clean up expired cache items if map size exceeds 500 items
-    if (cacheMap.size > 500) {
-      cacheMap.forEach((val, key) => {
-        if (now - val.timestamp >= CACHE_TTL_MS) {
-          cacheMap.delete(key);
-        }
-      });
-    }
+    // Save to Bounded LRU cache (automatically evicts oldest when exceeding 200 items)
+    pageSpeedCache.set(cacheKey, data);
 
     return NextResponse.json({
       ...data,

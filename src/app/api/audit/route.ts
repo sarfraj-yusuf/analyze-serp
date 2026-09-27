@@ -12,8 +12,20 @@ import { saveUserAudit, saveUserAuditSnapshot, getUserByEmail } from '@/lib/db';
 import { reserveUserAuditQuota, refundUserAuditQuota } from '@/lib/user-credits';
 
 export async function POST(req: NextRequest) {
+  let clientIp = '';
+  let targetUrls: string[] = [];
+  let userEmail: string | null | undefined = undefined;
+  let userAuditReservation: { success: boolean; remainingCredits: number; limit: number } | null = null;
+  let guestReservation: {
+    allowed: boolean;
+    used: number;
+    limit: number;
+    remaining: number;
+    cooldownSeconds: number;
+  } | null = null;
+
   try {
-    const clientIp = auditRateLimiter.getClientIp(req);
+    clientIp = auditRateLimiter.getClientIp(req);
 
     let body: Record<string, unknown>;
     try {
@@ -32,7 +44,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Limit to maximum 5 URLs per request
-    const targetUrls = urls.slice(0, 5).map((u) => (typeof u === 'string' ? u.trim() : '')).filter(Boolean);
+    targetUrls = urls.slice(0, 5).map((u) => (typeof u === 'string' ? u.trim() : '')).filter(Boolean);
     if (targetUrls.length === 0) {
       return NextResponse.json(
         { error: 'Please provide at least one valid URL string.' },
@@ -62,9 +74,8 @@ export async function POST(req: NextRequest) {
 
     // 2. Authentication & Account-based vs Guest Quota Check
     const session = await auth();
-    const userEmail = session?.user?.email;
+    userEmail = session?.user?.email;
 
-    let userAuditReservation: { success: boolean; remainingCredits: number; limit: number } | null = null;
     let isDbUser = false;
 
     if (userEmail) {
@@ -102,30 +113,36 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    let guestReservation: {
+      allowed: boolean;
+      used: number;
+      limit: number;
+      remaining: number;
+      cooldownSeconds: number;
+    } | null = null;
+
     if (!isDbUser) {
-      // Guest User (or unauthenticated visitor): IP-based Quota & Cooldown Check (freemiumLimiter)
-      const quotaCheck = freemiumLimiter.check(clientIp, targetUrls.length);
-      if (!quotaCheck.allowed) {
+      // Guest User (or unauthenticated visitor): Atomically reserve IP-based Quota before scraping to eliminate multi-tab race condition
+      const quotaReservation = freemiumLimiter.reserve(clientIp, targetUrls.length);
+      if (!quotaReservation.allowed) {
         return NextResponse.json(
           {
-            error: `Daily free guest quota limit reached (${quotaCheck.used}/${quotaCheck.limit} audits used). Please wait ${quotaCheck.cooldownSeconds || 120} seconds or sign in for 20 free daily audits with cloud history!`,
+            error: `Daily free guest quota limit reached (${quotaReservation.used}/${quotaReservation.limit} audits used). Please wait ${quotaReservation.cooldownSeconds || 120} seconds or sign in for 20 free daily audits with cloud history!`,
             isQuotaExceeded: true,
-            cooldownSeconds: quotaCheck.cooldownSeconds || 120,
+            cooldownSeconds: quotaReservation.cooldownSeconds || 120,
           },
           {
             status: 403,
             headers: {
-              'X-Quota-Limit': String(quotaCheck.limit),
+              'X-Quota-Limit': String(quotaReservation.limit),
               'X-Quota-Remaining': '0',
-              'Retry-After': String(quotaCheck.cooldownSeconds || 120),
+              'Retry-After': String(quotaReservation.cooldownSeconds || 120),
             },
           }
         );
       }
+      guestReservation = quotaReservation;
     }
-
-    // NOTE: Pre-consumption removed to fix the double-consumption bug.
-    // Quota is consumed once after processing.
 
     const auditPromises = targetUrls.map(async (url, idx): Promise<SinglePageAudit> => {
       const normalizedUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`;
@@ -284,9 +301,10 @@ export async function POST(req: NextRequest) {
       }
       updatedQuotaLimit = userAuditReservation.limit;
       updatedQuotaRemaining = Math.max(0, userAuditReservation.remainingCredits + failedCount);
-    } else {
-      const countToDeduct = successCount > 0 ? successCount : targetUrls.length;
-      freemiumLimiter.consume(clientIp, countToDeduct);
+    } else if (guestReservation) {
+      if (failedCount > 0) {
+        freemiumLimiter.refund(clientIp, failedCount);
+      }
       const updatedGuestQuota = freemiumLimiter.check(clientIp, 0);
       updatedQuotaLimit = updatedGuestQuota.limit;
       updatedQuotaRemaining = updatedGuestQuota.remaining;
@@ -307,6 +325,12 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error: any) {
+    if (userEmail && userAuditReservation) {
+      await refundUserAuditQuota(userEmail, targetUrls.length).catch(() => {});
+    } else if (guestReservation && clientIp) {
+      freemiumLimiter.refund(clientIp, targetUrls.length);
+    }
+
     return NextResponse.json(
       { error: error.message || 'Internal Server Error processing SEO audit request.' },
       { status: 500 }

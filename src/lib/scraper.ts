@@ -158,6 +158,56 @@ function formatNetworkError(err: any, url: string): Error {
 }
 
 /**
+ * Reads a response body text with a hard byte accumulation limit (default 5MB).
+ * Prevents chunked transfer zip-bombs or memory exhaustion attacks.
+ */
+async function readBodyWithLimit(
+  response: Response,
+  maxBytes: number = 5 * 1024 * 1024
+): Promise<string> {
+  if (!response.body) {
+    return await response.text();
+  }
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  const decoder = new TextDecoder('utf-8');
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) {
+        totalBytes += value.length;
+        if (totalBytes > maxBytes) {
+          try {
+            await reader.cancel();
+          } catch {}
+          throw new Error(
+            `Payload Too Large: Webpage stream size exceeded the ${(maxBytes / 1024 / 1024).toFixed(0)}MB crawl limit.`
+          );
+        }
+        chunks.push(value);
+      }
+    }
+  } finally {
+    try {
+      reader.releaseLock();
+    } catch {}
+  }
+
+  const merged = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  return decoder.decode(merged);
+}
+
+/**
  * High-performance, non-AI server-side web scraper using Cheerio
  */
 export async function scrapePage(targetUrl: string, profileIndex?: number): Promise<ScrapedRawDOM> {
@@ -242,8 +292,8 @@ export async function scrapePage(targetUrl: string, profileIndex?: number): Prom
 
     const finalUrl = response.url || formattedUrl;
 
-    // Body download stream is protected by the same 8-second global timeout
-    const html = await response.text();
+    // Body download stream is protected by 8-second global timeout and strict 5MB chunked stream limit
+    const html = await readBodyWithLimit(response, 5 * 1024 * 1024);
     const fetchTimeMs = Date.now() - startTime;
     clearTimeout(timeoutId);
     const $ = cheerio.load(html);
