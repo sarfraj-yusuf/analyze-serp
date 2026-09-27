@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { url, strategy = 'mobile' } = body;
+    const { url, strategy = 'mobile', forceRefresh = false } = body;
 
     if (!url || typeof url !== 'string' || !url.trim()) {
       return NextResponse.json(
@@ -48,13 +48,15 @@ export async function POST(req: NextRequest) {
     const cleanStrategy = strategy === 'desktop' ? 'desktop' : 'mobile';
     const cacheKey = `${url.trim().toLowerCase()}::${cleanStrategy}`;
 
-    // Check 1-Hour Bounded LRU cache
-    const cached = pageSpeedCache.get(cacheKey);
-    if (cached) {
-      return NextResponse.json({
-        ...cached,
-        isCached: true,
-      });
+    // Check 1-Hour Bounded LRU cache (unless forceRefresh is explicitly requested)
+    if (!forceRefresh) {
+      const cached = pageSpeedCache.get(cacheKey);
+      if (cached) {
+        return NextResponse.json({
+          ...cached,
+          isCached: true,
+        });
+      }
     }
 
     // Fetch live Google PageSpeed Insights data

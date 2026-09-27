@@ -1,7 +1,7 @@
 'use client';
 
 import { TechnicalAudit, RobotsValidationResult } from '@/types/seo';
-import { Zap, Clock, FileCode, Layers, ShieldCheck, AlertTriangle, Check, Cpu, Code2, Lock, FileText, ExternalLink } from 'lucide-react';
+import { Zap, Clock, FileCode, Layers, ShieldCheck, AlertTriangle, Check, Cpu, Code2, Lock, FileText, ExternalLink, CheckCircle2, XCircle, Info } from 'lucide-react';
 import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
 
 interface TechnicalHealthCardProps {
@@ -247,7 +247,7 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
           <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
             <div className="flex items-center gap-2">
               <span
-                className={`px-2.5 py-1 rounded text-xs font-extrabold uppercase ${
+                className={`px-2.5 py-1 rounded text-xs font-extrabold uppercase flex items-center gap-1.5 ${
                   robotsValidation.status === 'ALLOWED'
                     ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
                     : robotsValidation.status === 'BLOCKED'
@@ -255,11 +255,22 @@ export const TechnicalHealthCard: React.FC<TechnicalHealthCardProps> = ({ techni
                     : 'bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-gray-300'
                 }`}
               >
-                {robotsValidation.status === 'ALLOWED'
-                  ? '🟢 Allowed for Crawling'
-                  : robotsValidation.status === 'BLOCKED'
-                  ? '🔴 Blocked by Disallow Rule'
-                  : 'ℹ️ No robots.txt (Allowed by Default)'}
+                {robotsValidation.status === 'ALLOWED' ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>Allowed for Crawling</span>
+                  </>
+                ) : robotsValidation.status === 'BLOCKED' ? (
+                  <>
+                    <XCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+                    <span>Blocked by Disallow Rule</span>
+                  </>
+                ) : (
+                  <>
+                    <Info className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
+                    <span>No robots.txt (Allowed by Default)</span>
+                  </>
+                )}
               </span>
 
               {robotsValidation.matchedRule && (

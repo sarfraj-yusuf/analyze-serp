@@ -26,6 +26,7 @@ import {
   ChevronDown,
   ChevronUp,
   FileEdit,
+  RefreshCw,
 } from 'lucide-react';
 
 const ACTIVE_AUDIT_STORAGE_KEY = 'analyzeserp_active_audit_session';
@@ -598,7 +599,7 @@ function AuditWorkspaceClient() {
                 >
                   {isAuditing ? (
                     <>
-                      <Zap className="size-3.5 animate-spin" />
+                      <RefreshCw className="size-3.5 animate-spin" />
                       <span>Re-Auditing...</span>
                     </>
                   ) : (

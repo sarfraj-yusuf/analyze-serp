@@ -11,6 +11,7 @@ import {
   SlidersHorizontal,
   ChevronRight,
   Table,
+  RefreshCw,
 } from 'lucide-react';
 
 interface AuditSkeletonProps {
@@ -37,7 +38,7 @@ export const AuditSkeleton: React.FC<AuditSkeletonProps> = ({ urls = [], targetK
         className="flex items-center justify-between pb-1 border-b border-slate-200/80 dark:border-white/[0.08]"
       >
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
-          <Zap className="size-3.5 text-emerald-600 dark:text-emerald-400 animate-spin" />
+          <RefreshCw className="size-3.5 text-emerald-600 dark:text-emerald-400 animate-spin" />
           <span>
             {validUrlCount > 0
               ? `Benchmarking ${validUrlCount} URLs in parallel...`

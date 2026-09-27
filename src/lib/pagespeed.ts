@@ -7,29 +7,63 @@ export interface CoreWebVitalsMetric {
   label?: string;
 }
 
+export interface SpeedOpportunityItem {
+  url?: string;
+  totalBytes?: number;
+  wastedBytes?: number;
+  wastedMs?: number;
+  label?: string;
+}
+
 export interface SpeedOpportunity {
+  id: string;
   title: string;
   description: string;
   displayValue?: string;
   score: number;
+  wastedMs?: number;
+  wastedBytes?: number;
+  items?: SpeedOpportunityItem[];
+}
+
+export interface SpeedDiagnostic {
+  id: string;
+  title: string;
+  description: string;
+  displayValue?: string;
+  score?: number | null;
+}
+
+export interface PassedAudit {
+  id: string;
+  title: string;
+  description?: string;
 }
 
 export interface CoreWebVitalsData {
   url: string;
   strategy: 'mobile' | 'desktop';
   performanceScore: number; // 0 - 100
+  seoScore?: number; // 0 - 100
+  accessibilityScore?: number; // 0 - 100
+  bestPracticesScore?: number; // 0 - 100
+  coreWebVitalsPassed: boolean;
   lcp: CoreWebVitalsMetric; // Largest Contentful Paint (s)
   inp: CoreWebVitalsMetric; // Interaction to Next Paint (ms)
   cls: CoreWebVitalsMetric; // Cumulative Layout Shift
   fcp: CoreWebVitalsMetric; // First Contentful Paint (s)
   ttfb: CoreWebVitalsMetric; // Time to First Byte (ms)
+  speedIndex?: CoreWebVitalsMetric; // Speed Index (s)
   opportunities: SpeedOpportunity[];
+  diagnostics: SpeedDiagnostic[];
+  passedAudits: PassedAudit[];
   timestamp: string;
   isCached?: boolean;
 }
 
 /**
  * Fetches Google PageSpeed Insights API v5 data with CrUX Field & Lighthouse metrics.
+ * Runs multi-pillar audit: Performance, SEO, Accessibility, Best Practices.
  */
 export async function fetchGooglePageSpeedData(
   url: string,
@@ -38,7 +72,7 @@ export async function fetchGooglePageSpeedData(
   try {
     const apiKey = process.env.PAGESPEED_API_KEY || '';
     const encodedUrl = encodeURIComponent(url);
-    const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodedUrl}&strategy=${strategy}${
+    const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodedUrl}&strategy=${strategy}&category=performance&category=seo&category=accessibility&category=best-practices${
       apiKey ? `&key=${apiKey}` : ''
     }`;
 
@@ -65,6 +99,15 @@ export async function fetchGooglePageSpeedData(
     const performanceScore = Math.round(
       (categories.performance?.score || 0) * 100
     );
+    const seoScore = typeof categories.seo?.score === 'number'
+      ? Math.round(categories.seo.score * 100)
+      : undefined;
+    const accessibilityScore = typeof categories.accessibility?.score === 'number'
+      ? Math.round(categories.accessibility.score * 100)
+      : undefined;
+    const bestPracticesScore = typeof categories['best-practices']?.score === 'number'
+      ? Math.round(categories['best-practices'].score * 100)
+      : undefined;
 
     const audits = lighthouse.audits || {};
 
@@ -186,35 +229,112 @@ export async function fetchGooglePageSpeedData(
       score: ttfbAudit.score || 0,
     };
 
-    // Extract Speed Opportunities
+    // 6. Speed Index
+    const speedIndexAudit = audits['speed-index'] || {};
+    const speedIndexVal = (speedIndexAudit.numericValue || 2500) / 1000;
+    const speedIndexCategory: 'FAST' | 'AVERAGE' | 'SLOW' =
+      speedIndexVal <= 3.4 ? 'FAST' : speedIndexVal <= 5.8 ? 'AVERAGE' : 'SLOW';
+
+    const speedIndex: CoreWebVitalsMetric = {
+      value: Number(speedIndexVal.toFixed(2)),
+      displayValue: speedIndexAudit.displayValue || `${speedIndexVal.toFixed(1)} s`,
+      category: speedIndexCategory,
+      score: speedIndexAudit.score || 0,
+    };
+
+    // Official Core Web Vitals Pass / Fail evaluation (LCP <= 2.5s, INP <= 200ms, CLS <= 0.1)
+    const coreWebVitalsPassed = lcp.category === 'FAST' && inp.category === 'FAST' && cls.category === 'FAST';
+
+    // Extract Speed Opportunities & Itemized Details
     const opportunities: SpeedOpportunity[] = [];
+    const diagnostics: SpeedDiagnostic[] = [];
+    const passedAudits: PassedAudit[] = [];
+
     Object.keys(audits).forEach((key) => {
       const audit = audits[key];
+      if (!audit) return;
+
+      // Opportunities (score < 0.9 and opportunity details)
       if (
         audit.details &&
         audit.details.type === 'opportunity' &&
         audit.score !== null &&
         audit.score < 0.9
       ) {
+        const items: SpeedOpportunityItem[] = [];
+        if (Array.isArray(audit.details.items)) {
+          audit.details.items.slice(0, 5).forEach((item: any) => {
+            items.push({
+              url: item.url,
+              totalBytes: item.totalBytes,
+              wastedBytes: item.wastedBytes,
+              wastedMs: item.wastedMs,
+              label: item.label,
+            });
+          });
+        }
+
         opportunities.push({
+          id: key,
+          title: audit.title,
+          description: audit.description,
+          displayValue: audit.displayValue,
+          score: audit.score,
+          wastedMs: audit.details.overallSavingsMs,
+          wastedBytes: audit.details.overallSavingsBytes,
+          items,
+        });
+      }
+      // Diagnostics (informational audits with scores or metrics)
+      else if (
+        audit.details &&
+        audit.details.type === 'table' &&
+        audit.score !== null &&
+        audit.score < 0.9 &&
+        !['largest-contentful-paint', 'total-blocking-time', 'cumulative-layout-shift', 'first-contentful-paint', 'speed-index'].includes(key)
+      ) {
+        diagnostics.push({
+          id: key,
           title: audit.title,
           description: audit.description,
           displayValue: audit.displayValue,
           score: audit.score,
         });
       }
+      // Passed Audits
+      else if (audit.score === 1 && audit.title) {
+        passedAudits.push({
+          id: key,
+          title: audit.title,
+          description: audit.description,
+        });
+      }
+    });
+
+    // Sort opportunities by largest impact (wastedMs or wastedBytes)
+    opportunities.sort((a, b) => {
+      const aImpact = (a.wastedMs || 0) * 10 + (a.wastedBytes || 0) / 1024;
+      const bImpact = (b.wastedMs || 0) * 10 + (b.wastedBytes || 0) / 1024;
+      return bImpact - aImpact;
     });
 
     return {
       url,
       strategy,
       performanceScore,
+      seoScore,
+      accessibilityScore,
+      bestPracticesScore,
+      coreWebVitalsPassed,
       lcp,
       inp,
       cls,
       fcp,
       ttfb,
-      opportunities: opportunities.slice(0, 6),
+      speedIndex,
+      opportunities: opportunities.slice(0, 10),
+      diagnostics: diagnostics.slice(0, 8),
+      passedAudits: passedAudits.slice(0, 20),
       timestamp: new Date().toISOString(),
     };
   } catch (error) {

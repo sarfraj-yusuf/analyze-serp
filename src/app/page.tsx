@@ -37,6 +37,7 @@ import {
   Link2,
   GitFork,
   RotateCcw,
+  RefreshCw,
   Network,
   FileEdit,
 } from 'lucide-react';
@@ -520,7 +521,7 @@ export default function Home() {
                   >
                     {isSubmitting ? (
                       <>
-                        <Zap className="w-4 h-4 animate-spin" />
+                        <RefreshCw className="w-4 h-4 animate-spin" />
                         <span>Opening Audit...</span>
                       </>
                     ) : (
