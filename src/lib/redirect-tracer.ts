@@ -1,4 +1,4 @@
-import { validateUrlSafety } from './ssrf-protection';
+import { validateUrlSafety, safeFetchWithSsrf } from './ssrf-protection';
 
 export interface RedirectHop {
   hopNumber: number;
@@ -86,9 +86,9 @@ export async function traceRedirectChain(rawUrl: string): Promise<RedirectChainR
     let response: Response;
 
     try {
-      response = await fetch(currentUrl, {
+      response = await safeFetchWithSsrf(currentUrl, {
         method: 'GET',
-        redirect: 'manual', // Strictly do not auto-follow redirects!
+        followRedirects: false, // Step hop-by-hop with manual redirect inspection
         signal: AbortSignal.timeout(5000), // Enforce 5-second per-hop timeout safeguard
         headers: {
           'User-Agent':
@@ -98,18 +98,20 @@ export async function traceRedirectChain(rawUrl: string): Promise<RedirectChainR
         },
       });
     } catch (err: any) {
-      // Record failed connection hop
+      // Record failed connection hop or SSRF block
       const duration = Date.now() - startTime;
       totalLatencyMs += duration;
+
+      const isSsrfBlock = err.message && (err.message.startsWith('Blocked') || err.message.includes('SSRF'));
 
       hops.push({
         hopNumber: hopIndex,
         url: currentUrl,
         statusCode: 0,
-        statusText: 'Connection Failed / DNS Error',
+        statusText: isSsrfBlock ? err.message : 'Connection Failed / DNS Error',
         destinationUrl: null,
         responseTimeMs: duration,
-        server: 'Unknown',
+        server: isSsrfBlock ? 'Security Firewall' : 'Unknown',
         isHttps: currentUrl.startsWith('https://'),
         isPermanent: false,
         isTemporary: false,

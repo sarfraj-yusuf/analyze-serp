@@ -281,6 +281,7 @@ export async function validateUrlSafety(url: string): Promise<void> {
 
 export interface SafeFetchOptions extends RequestInit {
   maxRedirects?: number;
+  followRedirects?: boolean;
 }
 
 /**
@@ -294,6 +295,7 @@ export async function safeFetchWithSsrf(
   options: SafeFetchOptions = {}
 ): Promise<Response> {
   const maxRedirects = options.maxRedirects ?? 5;
+  const followRedirects = options.followRedirects ?? true;
   let currentUrl = targetUrl;
   let redirectCount = 0;
 
@@ -302,12 +304,18 @@ export async function safeFetchWithSsrf(
     await validateUrlSafety(currentUrl);
 
     // 2. Fetch using manual redirect mode
+    const { maxRedirects: _, followRedirects: __, ...fetchInit } = options;
     const fetchOptions: RequestInit = {
-      ...options,
+      ...fetchInit,
       redirect: 'manual',
     };
 
     const response = await fetch(currentUrl, fetchOptions);
+
+    // If caller specifically requested single-hop manual inspection (e.g. redirect tracer)
+    if (!followRedirects) {
+      return response;
+    }
 
     // 3. Check for redirect response status codes
     const isRedirect = [301, 302, 303, 307, 308].includes(response.status);

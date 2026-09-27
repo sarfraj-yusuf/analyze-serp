@@ -92,8 +92,34 @@ export async function verifyAdminSession(
     };
   }
 
-  // 4. Ensure user is marked with 'admin' role in database
-  if (dbUser && dbUser.role !== 'admin') {
+  // 4. Role Authorization: Must have pre-existing 'admin' role in database
+  // or be an explicitly allowlisted bootstrap administrator via ADMIN_EMAILS environment variable
+  const adminEmailsList = (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+
+  const isExplicitBootstrapAdmin = adminEmailsList.includes(userEmail.toLowerCase());
+  const hasDbAdminRole = dbUser?.role === 'admin';
+
+  if (!hasDbAdminRole && !isExplicitBootstrapAdmin) {
+    logSecurityIncident({
+      incident_type: 'UNAUTHORIZED_ADMIN_ATTEMPT',
+      severity: 'high',
+      ip_address: clientIp,
+      target_endpoint: targetEndpoint,
+      details: `User ${userEmail} provided valid passkey but lacks administrative authorization/role.`,
+    }).catch(() => {});
+
+    return {
+      authorized: false,
+      status: 403,
+      error: 'Forbidden: Access denied. Administrative privileges required.',
+    };
+  }
+
+  // If user is an explicitly allowlisted bootstrap admin, sync their DB role
+  if (isExplicitBootstrapAdmin && dbUser && dbUser.role !== 'admin') {
     await adminUpdateUser(userEmail, { role: 'admin' });
   }
 
