@@ -5,6 +5,22 @@ import { verifySameOrigin } from '@/lib/csrf';
 
 // Basic sliding window memory rate limiter for feedback submissions (5 per IP / 24h)
 const feedbackIpMap = new Map<string, { count: number; resetTime: number }>();
+let lastFeedbackCleanup = Date.now();
+
+function cleanupFeedbackMap(now: number): void {
+  lastFeedbackCleanup = now;
+  for (const [ip, data] of feedbackIpMap.entries()) {
+    if (now > data.resetTime) {
+      feedbackIpMap.delete(ip);
+    }
+  }
+  // Hard ceiling safety cap (max 2,000 entries)
+  if (feedbackIpMap.size > 2000) {
+    const excess = feedbackIpMap.size - 2000;
+    const keys = Array.from(feedbackIpMap.keys()).slice(0, excess);
+    for (const k of keys) feedbackIpMap.delete(k);
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -50,8 +66,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. IP RATE LIMITING (Max 5 submissions per IP per 24 hours)
+    // 4. IP RATE LIMITING (Max 5 submissions per IP per 24 hours with TTL pruning)
     const now = Date.now();
+    if (now - lastFeedbackCleanup > 60 * 60 * 1000 || feedbackIpMap.size > 2000) {
+      cleanupFeedbackMap(now);
+    }
+
     const windowMs = 24 * 60 * 60 * 1000;
     const ipData = feedbackIpMap.get(ip) || { count: 0, resetTime: now + windowMs };
 

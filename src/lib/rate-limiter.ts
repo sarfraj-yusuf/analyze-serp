@@ -32,6 +32,34 @@ class BotDetectionEngine {
   private botThreshold = 50; // 50 requests in 60s
   private criticalThreshold = 100; // 100 requests in 60s
   private quarantineDurationMs = 5 * 60 * 1000; // 5 minutes quarantine penalty
+  private lastCleanup: number = Date.now();
+  private maxMapEntries: number = 5000;
+
+  /**
+   * Purges stale IP tracking records to prevent unbounded memory growth
+   */
+  private cleanup(now: number): void {
+    this.lastCleanup = now;
+    const windowStart = now - this.windowMs;
+    const quarantineCutoff = now - this.quarantineDurationMs;
+
+    for (const [ip, data] of this.ipCalls.entries()) {
+      data.timestamps = data.timestamps.filter((t) => t > windowStart);
+      const isQuarantined = data.flaggedAt ? data.flaggedAt > quarantineCutoff : false;
+      if (data.timestamps.length === 0 && !isQuarantined) {
+        this.ipCalls.delete(ip);
+      }
+    }
+
+    // Hard ceiling safety cap: evict oldest entries if map exceeds capacity limit
+    if (this.ipCalls.size > this.maxMapEntries) {
+      const excess = this.ipCalls.size - this.maxMapEntries;
+      const keysToDelete = Array.from(this.ipCalls.keys()).slice(0, excess);
+      for (const k of keysToDelete) {
+        this.ipCalls.delete(k);
+      }
+    }
+  }
 
   /**
    * Record an incoming request from an IP across any tool or endpoint
@@ -45,6 +73,12 @@ class BotDetectionEngine {
     }
 
     const now = Date.now();
+
+    // Periodic prune of stale IPs or capacity overflow protection
+    if (now - this.lastCleanup > 2 * 60 * 1000 || this.ipCalls.size > this.maxMapEntries) {
+      this.cleanup(now);
+    }
+
     const windowStart = now - this.windowMs;
 
     let data = this.ipCalls.get(ip);
@@ -153,6 +187,7 @@ class RateLimiter {
   private maxRequests: number;
   private cleanupIntervalMs: number;
   private lastCleanup: number = Date.now();
+  private maxEntries: number = 5000;
 
   /**
    * @param windowMs Time window in milliseconds (e.g. 60,000 for 1 minute)
@@ -220,8 +255,8 @@ class RateLimiter {
     const now = Date.now();
     const windowStart = now - this.windowMs;
 
-    // Periodic cleanup of stale IPs
-    if (now - this.lastCleanup > this.cleanupIntervalMs) {
+    // Periodic cleanup of stale IPs or capacity overflow protection
+    if (now - this.lastCleanup > this.cleanupIntervalMs || this.requests.size > this.maxEntries) {
       this.cleanup(windowStart);
     }
 
@@ -269,7 +304,7 @@ class RateLimiter {
   }
 
   /**
-   * Purge IP records older than the active window
+   * Purge IP records older than the active window and enforce capacity limit
    */
   private cleanup(windowStart: number): void {
     this.lastCleanup = Date.now();
@@ -277,6 +312,15 @@ class RateLimiter {
       record.timestamps = record.timestamps.filter((ts) => ts > windowStart);
       if (record.timestamps.length === 0) {
         this.requests.delete(ip);
+      }
+    }
+
+    // Hard ceiling safety cap: evict oldest entries if map exceeds capacity limit
+    if (this.requests.size > this.maxEntries) {
+      const excess = this.requests.size - this.maxEntries;
+      const keysToDelete = Array.from(this.requests.keys()).slice(0, excess);
+      for (const k of keysToDelete) {
+        this.requests.delete(k);
       }
     }
   }
