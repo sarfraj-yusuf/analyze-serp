@@ -24,17 +24,28 @@ const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
   />
 );
 
-export const AuditSkeleton: React.FC<AuditSkeletonProps> = () => {
+export const AuditSkeleton: React.FC<AuditSkeletonProps> = ({ urls = [], targetKeyword }) => {
+  const validUrlCount = urls.filter((u) => u && u.trim()).length;
+
   return (
-    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-300" aria-busy="true">
       {/* 1. Sleek Minimalist Status Indicator */}
-      <div className="flex items-center justify-between pb-1 border-b border-slate-200/80 dark:border-white/[0.08]">
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="flex items-center justify-between pb-1 border-b border-slate-200/80 dark:border-white/[0.08]"
+      >
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
           <Zap className="size-3.5 text-emerald-600 dark:text-emerald-400 animate-spin" />
-          <span>Benchmarking Competitor SERP Signals...</span>
+          <span>
+            {validUrlCount > 0
+              ? `Benchmarking ${validUrlCount} URLs in parallel...`
+              : 'Benchmarking Competitor SERP Signals...'}
+          </span>
         </div>
-        <span className="text-xs font-mono text-slate-400 dark:text-slate-500 hidden sm:inline">
-          Extracting DOM, Core Web Vitals &amp; Keyword Gaps
+        <span className="text-xs font-mono text-slate-500 dark:text-slate-400 hidden sm:inline">
+          {targetKeyword ? `Evaluating intent for "${targetKeyword}" • ` : ''}Extracting DOM, Core Web Vitals &amp; Keyword Gaps
         </span>
       </div>
 

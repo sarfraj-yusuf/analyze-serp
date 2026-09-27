@@ -305,7 +305,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             {isToolsOpen && (
               <div
                 className="absolute top-full left-0 mt-1.5 w-[680px] -ml-20 lg:ml-0 rounded-2xl glass-panel p-5 border border-slate-200/90 dark:border-white/10 shadow-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150"
-                role="menu"
                 aria-label="SEO Tools Directory"
               >
                 {/* Invisible Hover Bridge to prevent gap hover flicker */}
@@ -331,7 +330,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
                             <Link
                               key={tool.href}
                               href={tool.href}
-                              role="menuitem"
                               className={`group/item flex items-start gap-3 p-2 rounded-xl transition-all ${
                                 isActive
                                   ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'
@@ -429,7 +427,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             {isResourcesOpen && (
               <div
                 className="absolute top-full left-0 mt-1.5 w-[360px] rounded-2xl glass-panel p-3 border border-slate-200/90 dark:border-white/10 shadow-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150"
-                role="menu"
                 aria-label="Resources Directory"
               >
                 {/* Invisible Hover Bridge */}
@@ -443,7 +440,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
                       <Link
                         key={item.href}
                         href={item.href}
-                        role="menuitem"
                         className={`group/item flex items-start gap-3 p-2.5 rounded-xl transition-all ${
                           isActive
                             ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'

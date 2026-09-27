@@ -538,6 +538,17 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
         </div>
       </div>
 
+      {/* Mobile Horizontal Scroll Indicator Cue */}
+      <div className="flex md:hidden items-center justify-between px-3 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs text-slate-600 dark:text-slate-400">
+        <span className="flex items-center gap-1.5 font-medium">
+          <SlidersHorizontal className="size-3.5 text-emerald-500" />
+          <span>Swipe horizontally to view competitor frequencies</span>
+        </span>
+        <span className="font-mono text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+          {results.length} URLs &rarr;
+        </span>
+      </div>
+
       {/* 4. Ergonomic Cross-Comparison Table with Sticky Column */}
       <div className="overflow-x-auto rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900 max-h-[520px] overflow-y-auto modal-scroll shadow-xs">
         <table className="w-full text-left border-collapse text-xs">

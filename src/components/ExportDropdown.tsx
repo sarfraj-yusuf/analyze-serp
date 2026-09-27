@@ -129,10 +129,10 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
 
   const triggerSuccess = (label: string) => {
     setDownloadSuccess(label);
+    setIsOpen(false);
     setTimeout(() => {
       setDownloadSuccess(null);
-      setIsOpen(false);
-    }, 1200);
+    }, 2200);
   };
 
   // 1. Export Action Roadmap CSV
@@ -316,18 +316,31 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
   return (
     <>
       {/* Trigger Button */}
-      <Tooltip content="Export Reports" side="top">
+      <Tooltip content={downloadSuccess ? `${downloadSuccess} downloaded successfully` : "Export Reports"} side="top">
         <button
           ref={buttonRef}
           type="button"
           onClick={toggleOpen}
           aria-expanded={isOpen}
           aria-haspopup="true"
-          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-600/20 active:scale-95 cursor-pointer shrink-0"
+          className={`px-3 py-1.5 rounded-lg text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer shrink-0 ${
+            downloadSuccess
+              ? 'bg-emerald-700 shadow-emerald-700/30'
+              : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20'
+          }`}
         >
-          <Download className="size-3" />
-          <span>Export</span>
-          <ChevronDown className={`size-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+          {downloadSuccess ? (
+            <>
+              <Check className="size-3.5 text-emerald-200" />
+              <span>{downloadSuccess} Saved!</span>
+            </>
+          ) : (
+            <>
+              <Download className="size-3" />
+              <span>Export</span>
+              <ChevronDown className={`size-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            </>
+          )}
         </button>
       </Tooltip>
 

@@ -25,10 +25,10 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
+  FileEdit,
 } from 'lucide-react';
 
 const ACTIVE_AUDIT_STORAGE_KEY = 'analyzeserp_active_audit_session';
-const MAX_FREE_DAILY_AUDITS = 20;
 
 interface PersistedAuditSession {
   urls: string[];
@@ -47,6 +47,7 @@ function AuditWorkspaceClient() {
   const [isAuditing, setIsAuditing] = useState(false);
   const [auditResponse, setAuditResponse] = useState<BatchAuditResponse | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<number, string>>({});
   const [isEditDockOpen, setIsEditDockOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [viewingSnapshotInfo, setViewingSnapshotInfo] = useState<{
@@ -255,6 +256,14 @@ function AuditWorkspaceClient() {
     const updated = [...urls];
     updated[index] = val;
     setUrls(updated);
+    if (fieldErrors[index]) {
+      const updatedErrors = { ...fieldErrors };
+      delete updatedErrors[index];
+      setFieldErrors(updatedErrors);
+    }
+    if (errorMsg) {
+      setErrorMsg(null);
+    }
   };
 
   const handleUrlBlur = (index: number) => {
@@ -267,12 +276,22 @@ function AuditWorkspaceClient() {
         updated[index] = normalized;
         setUrls(updated);
       }
+      if (fieldErrors[index]) {
+        const updatedErrors = { ...fieldErrors };
+        delete updatedErrors[index];
+        setFieldErrors(updatedErrors);
+      }
+    } else {
+      setFieldErrors((prev) => ({
+        ...prev,
+        [index]: 'Invalid URL format (e.g. example.com or https://example.com)',
+      }));
     }
   };
 
   const addUrlInput = () => {
     if (urls.length >= 5) {
-      setErrorMsg('Free mode allows up to 5 URLs. Upgrade to Pro for unlimited batch auditing.');
+      setErrorMsg('Public Beta supports up to 5 URLs per comparison run for optimal crawl performance.');
       return;
     }
     setUrls([...urls, '']);
@@ -282,40 +301,83 @@ function AuditWorkspaceClient() {
     if (urls.length <= 1) return;
     const updated = urls.filter((_, i) => i !== index);
     setUrls(updated);
+    if (fieldErrors[index]) {
+      const updatedErrors = { ...fieldErrors };
+      delete updatedErrors[index];
+      setFieldErrors(updatedErrors);
+    }
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const rawUrls = urls.map((u) => u.trim()).filter(Boolean);
-    if (rawUrls.length === 0) {
-      setErrorMsg('Please enter at least 1 valid URL.');
-      return;
+    setErrorMsg(null);
+    setFieldErrors({});
+
+    const trimmedUrls = urls.map((u) => u.trim());
+    const newFieldErrors: Record<number, string> = {};
+
+    // 1. Target URL (index 0) is mandatory
+    if (!trimmedUrls[0]) {
+      newFieldErrors[0] = 'Please enter your Target page URL.';
     }
 
-    const invalidList: string[] = [];
-    const normalizedUrls: string[] = [];
-    for (const u of rawUrls) {
-      if (!isValidUrl(u)) {
-        invalidList.push(u);
-      } else {
-        normalizedUrls.push(normalizeUrl(u));
+    // 2. Validate URL formats
+    const normalizedMap: Record<number, string> = {};
+    trimmedUrls.forEach((u, idx) => {
+      if (idx === 0 && !u) return;
+      if (u) {
+        if (!isValidUrl(u)) {
+          newFieldErrors[idx] = 'Invalid URL (e.g. example.com or https://example.com)';
+        } else {
+          normalizedMap[idx] = normalizeUrl(u);
+        }
       }
-    }
+    });
 
-    if (invalidList.length > 0) {
-      setErrorMsg(`Invalid URL format: "${invalidList[0]}". Please enter a valid domain or URL (e.g. example.com or https://example.com).`);
+    // 3. Validate Duplicates: Target vs Competitor
+    const targetNormalized = normalizedMap[0];
+    Object.entries(normalizedMap).forEach(([idxStr, normUrl]) => {
+      const idx = Number(idxStr);
+      if (idx > 0 && targetNormalized && normUrl.toLowerCase() === targetNormalized.toLowerCase()) {
+        newFieldErrors[idx] = 'Competitor URL cannot be identical to Target URL.';
+      }
+    });
+
+    // 4. Validate Duplicates: Competitor vs Competitor
+    const seenCompetitors = new Map<string, number>();
+    Object.entries(normalizedMap).forEach(([idxStr, normUrl]) => {
+      const idx = Number(idxStr);
+      if (idx > 0) {
+        const lower = normUrl.toLowerCase();
+        if (seenCompetitors.has(lower)) {
+          newFieldErrors[idx] = `Duplicate competitor URL (already entered in Competitor #${seenCompetitors.get(lower)})`;
+        } else {
+          seenCompetitors.set(lower, idx);
+        }
+      }
+    });
+
+    if (Object.keys(newFieldErrors).length > 0) {
+      setFieldErrors(newFieldErrors);
+      setErrorMsg('Please correct the highlighted URL fields before re-running the audit.');
       return;
     }
 
-    setUrls(normalizedUrls);
+    const finalUrls = Object.values(normalizedMap);
+    if (finalUrls.length === 0) {
+      setErrorMsg('Please enter at least 1 valid URL to run the audit.');
+      return;
+    }
+
+    setUrls(finalUrls);
     const newQuery = new URLSearchParams();
-    newQuery.set('urls', normalizedUrls.join(','));
+    newQuery.set('urls', finalUrls.join(','));
     if (targetKeyword.trim()) {
       newQuery.set('keyword', targetKeyword.trim());
     }
     router.push(`/audit?${newQuery.toString()}`);
 
-    runAudit(normalizedUrls, targetKeyword);
+    runAudit(finalUrls, targetKeyword);
   };
 
   const handleTrySample = () => {
@@ -434,9 +496,14 @@ function AuditWorkspaceClient() {
 
             <form onSubmit={handleFormSubmit} className="space-y-3 pt-1">
               <div>
-                <label htmlFor="audit-edit-keyword" className="block text-[11px] font-mono uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                  Optional Focus Keyword
-                </label>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                  <label htmlFor="audit-edit-keyword" className="block text-[11px] font-mono uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                    Optional Focus Keyword
+                  </label>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Highlights keyword gaps; does not alter crawled URLs
+                  </span>
+                </div>
                 <input
                   id="audit-edit-keyword"
                   type="text"
@@ -452,39 +519,55 @@ function AuditWorkspaceClient() {
                   Target Page &amp; Competitor URLs (Max 5)
                 </span>
                 {urls.map((url, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <span className="px-2.5 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300 w-24 text-center shrink-0">
-                      {idx === 0 ? 'TARGET' : `COMP #${idx}`}
-                    </span>
-                    <label htmlFor={`audit-edit-url-${idx}`} className="sr-only">
-                      {idx === 0 ? 'Target Page URL' : `Competitor ${idx} Page URL`}
-                    </label>
-                    <input
-                      id={`audit-edit-url-${idx}`}
-                      type="text"
-                      aria-label={idx === 0 ? 'Target Page URL' : `Competitor ${idx} Page URL`}
-                      aria-invalid={!!errorMsg}
-                      aria-describedby={errorMsg ? 'audit-edit-error-msg' : undefined}
-                      value={url}
-                      onChange={(e) => handleUrlChange(idx, e.target.value)}
-                      onBlur={() => handleUrlBlur(idx)}
-                      placeholder={
-                        idx === 0
-                          ? 'https://yourdomain.com/landing-page'
-                          : `https://competitor-${idx}.com/ranking-page`
-                      }
-                      className="flex-1 px-3 py-2 rounded-xl glass-input text-xs font-mono"
-                    />
-                    {urls.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeUrlInput(idx)}
-                        aria-label={`Remove URL ${idx + 1}`}
-                        className="p-2 rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-500/10 dark:text-slate-400 dark:hover:text-red-400 transition-colors"
-                        title={`Remove URL ${idx + 1}`}
+                  <div key={idx} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300 w-24 text-center shrink-0">
+                        {idx === 0 ? 'TARGET' : `COMP #${idx}`}
+                      </span>
+                      <label htmlFor={`audit-edit-url-${idx}`} className="sr-only">
+                        {idx === 0 ? 'Target Page URL' : `Competitor ${idx} Page URL`}
+                      </label>
+                      <input
+                        id={`audit-edit-url-${idx}`}
+                        type="text"
+                        aria-label={idx === 0 ? 'Target Page URL' : `Competitor ${idx} Page URL`}
+                        aria-invalid={Boolean(fieldErrors[idx])}
+                        aria-describedby={fieldErrors[idx] ? `audit-field-error-${idx}` : undefined}
+                        value={url}
+                        onChange={(e) => handleUrlChange(idx, e.target.value)}
+                        onBlur={() => handleUrlBlur(idx)}
+                        placeholder={
+                          idx === 0
+                            ? 'https://yourdomain.com/landing-page'
+                            : `https://competitor-${idx}.com/ranking-page`
+                        }
+                        className={`flex-1 px-3 py-2 rounded-xl glass-input text-xs font-mono ${
+                          fieldErrors[idx]
+                            ? 'border-red-500/80 dark:border-red-500/80 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                            : ''
+                        }`}
+                      />
+                      {urls.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeUrlInput(idx)}
+                          aria-label={`Remove URL ${idx + 1}`}
+                          className="min-w-[40px] min-h-[40px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-500/10 dark:text-slate-400 dark:hover:text-red-400 transition-colors shrink-0 cursor-pointer active:scale-95"
+                          title={`Remove URL ${idx + 1}`}
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      )}
+                    </div>
+                    {fieldErrors[idx] && (
+                      <p
+                        id={`audit-field-error-${idx}`}
+                        role="alert"
+                        className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1.5 pl-1 pt-0.5"
                       >
-                        <Trash2 className="size-3.5" />
-                      </button>
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{fieldErrors[idx]}</span>
+                      </p>
                     )}
                   </div>
                 ))}
@@ -530,10 +613,84 @@ function AuditWorkspaceClient() {
           </div>
         )}
 
-        {/* Audit Workspace or Loading or Empty State */}
+        {/* Global Audit Error Alert Banner when results exist */}
+        {errorMsg && !isEditDockOpen && auditResponse && auditResponse.results.length > 0 && (
+          <div role="alert" aria-live="polite" className="p-4 rounded-xl bg-red-500/10 border border-red-500/25 text-xs text-red-700 dark:text-red-400 flex items-center justify-between gap-3 animate-in fade-in duration-150">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <AlertCircle className="size-4 shrink-0 text-red-500" />
+              <span className="font-medium truncate">{errorMsg}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsEditDockOpen(true)}
+              className="px-2.5 py-1 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-700 dark:text-red-300 font-semibold text-[11px] shrink-0 transition-colors cursor-pointer"
+            >
+              Edit URLs
+            </button>
+          </div>
+        )}
+
+        {/* Audit Workspace or Loading or Error Recovery or Empty State */}
         {isAuditing ? (
           <div className="py-4">
             <AuditSkeleton urls={urls} targetKeyword={targetKeyword} />
+          </div>
+        ) : errorMsg && (!auditResponse || auditResponse.results.length === 0) ? (
+          /* Actionable Error Recovery State */
+          <div className="py-10 text-center space-y-6 max-w-xl mx-auto animate-in fade-in duration-200">
+            <div className="size-14 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center mx-auto shadow-xs">
+              <AlertCircle className="size-7" />
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
+                Audit Benchmark Incomplete
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-md mx-auto">
+                {errorMsg}
+              </p>
+            </div>
+
+            {/* Diagnostic helper tips based on error category */}
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 text-left text-xs space-y-2 text-slate-600 dark:text-slate-400">
+              <span className="font-semibold text-slate-800 dark:text-slate-200 block text-[11px] uppercase tracking-wider font-mono">
+                Troubleshooting Recommendations:
+              </span>
+              <ul className="list-disc list-inside space-y-1 text-[11px] text-slate-500 dark:text-slate-400">
+                <li>Verify that the URLs are accessible in your browser without requiring authentication.</li>
+                <li>Check if bot protection firewalls (e.g. Cloudflare / WAF) are blocking automated crawls.</li>
+                <li>Ensure full domain protocol is specified (e.g. <code className="font-mono text-emerald-600 dark:text-emerald-400">https://example.com</code>).</li>
+              </ul>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsEditDockOpen(true)}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-2 transition-all shadow-sm shadow-emerald-600/20 active:scale-95 cursor-pointer"
+              >
+                <FileEdit className="size-3.5" />
+                <span>Adjust &amp; Edit URLs</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => runAudit(urls, targetKeyword)}
+                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-semibold text-xs flex items-center gap-2 transition-all border border-slate-200 dark:border-white/10 active:scale-95 cursor-pointer"
+              >
+                <RotateCcw className="size-3.5" />
+                <span>Retry Audit</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleTrySample}
+                className="px-4 py-2.5 rounded-xl text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Sparkles className="size-3.5" />
+                <span>Try Known Working Sample</span>
+              </button>
+            </div>
           </div>
         ) : auditResponse && auditResponse.results.length > 0 ? (
           <CompetitorWorkspace
@@ -546,36 +703,115 @@ function AuditWorkspaceClient() {
             onEditUrls={() => setIsEditDockOpen((prev) => !prev)}
           />
         ) : (
-          /* Empty State: No active audit found */
-          <div className="py-12 sm:py-16 text-center space-y-6 max-w-2xl mx-auto">
-            <div className="size-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mx-auto shadow-sm">
-              <Search className="size-8" />
+          /* Empty State: Onboarding Checklist & Launchpad */
+          <div className="py-8 sm:py-12 text-center space-y-6 max-w-3xl mx-auto animate-in fade-in duration-200">
+            <div className="size-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mx-auto shadow-sm">
+              <Search className="size-7" />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 max-w-xl mx-auto">
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                No Active Competitor Audit Found
+                Ready to Benchmark Your SERP Competitors
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-md mx-auto">
-                Enter your target webpage alongside up to 4 ranking competitors to generate an instant side-by-side benchmark report.
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Compare your webpage against up to 4 ranking competitors to pinpoint content gaps, missing heading subtopics, keyword deficits, and Core Web Vitals opportunities.
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            {/* 4-Step How It Works Checklist Card */}
+            <div className="p-5 sm:p-6 rounded-2xl glass-panel border border-slate-200/90 dark:border-white/10 text-left space-y-4 shadow-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200/70 dark:border-white/[0.06]">
+                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                  How Competitor Benchmarking Works
+                </span>
+                <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                  4 Easy Steps
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="p-3 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] flex items-start gap-3">
+                  <div className="size-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-mono font-bold text-xs shrink-0 mt-0.5">
+                    1
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      Set Target URL
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
+                      The page on your domain you want to optimize and rank higher.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] flex items-start gap-3">
+                  <div className="size-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-mono font-bold text-xs shrink-0 mt-0.5">
+                    2
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      Add 1–4 Competitors
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
+                      The top ranking URLs currently winning organic visibility.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] flex items-start gap-3">
+                  <div className="size-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-mono font-bold text-xs shrink-0 mt-0.5">
+                    3
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      Optional Focus Query
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
+                      Calibrates intent match and phrase density gap recommendations.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] flex items-start gap-3">
+                  <div className="size-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-mono font-bold text-xs shrink-0 mt-0.5">
+                    4
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      Execute &amp; Export
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
+                      Generate side-by-side matrices, action items, and white-label PDFs.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsEditDockOpen(true)}
+                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-2 transition-all shadow-sm shadow-emerald-600/20 active:scale-95 cursor-pointer"
+              >
+                <SlidersHorizontal className="size-3.5" />
+                <span>Open URL Dock &amp; Start Audit</span>
+              </button>
+
               <button
                 type="button"
                 onClick={handleTrySample}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-2 transition-all shadow-sm shadow-emerald-600/20 active:scale-95 cursor-pointer"
+                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-semibold text-xs flex items-center gap-2 transition-all border border-slate-200 dark:border-white/10 active:scale-95 cursor-pointer"
               >
-                <Sparkles className="size-3.5" />
+                <Sparkles className="size-3.5 text-emerald-500" />
                 <span>Try Live Sample: AnalyzeSERP vs Vercel</span>
               </button>
 
               <Link
-                href="/#hero-audit-dock"
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-semibold text-xs flex items-center gap-2 transition-all border border-slate-200 dark:border-white/10 active:scale-95"
+                href="/"
+                className="px-4 py-2.5 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-semibold text-xs transition-colors"
               >
-                <span>Go to Homepage Input</span>
+                Return to Homepage
               </Link>
             </div>
           </div>

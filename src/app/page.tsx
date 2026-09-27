@@ -52,7 +52,6 @@ const ProUpgradeModal = dynamic(
   }
 );
 
-const MAX_FREE_DAILY_AUDITS = 20;
 const ACTIVE_AUDIT_STORAGE_KEY = 'analyzeserp_active_audit_session';
 
 interface PersistedAuditSession {
@@ -68,7 +67,7 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasActiveAudit, setHasActiveAudit] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [dailyAuditCount, setDailyAuditCount] = useState<number>(0);
+  const [fieldErrors, setFieldErrors] = useState<Record<number, string>>({});
   const [isProModalOpen, setIsProModalOpen] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState<number>(0);
   const [isCooldownActive, setIsCooldownActive] = useState<boolean>(false);
@@ -96,17 +95,6 @@ export default function Home() {
   }, [isCooldownActive, cooldownSeconds]);
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    const savedQuota = localStorage.getItem('daily_audit_quota');
-    if (savedQuota) {
-      try {
-        const parsed = JSON.parse(savedQuota);
-        if (parsed.date === today) {
-          setDailyAuditCount(parsed.count || 0);
-        }
-      } catch (e) {}
-    }
-
     if (localStorage.getItem('quota_bar_dismissed') === 'true') {
       setIsQuotaBarDismissed(true);
     }
@@ -131,6 +119,7 @@ export default function Home() {
     setUrls(['']);
     setTargetKeyword('');
     setErrorMsg(null);
+    setFieldErrors({});
     try {
       localStorage.removeItem(ACTIVE_AUDIT_STORAGE_KEY);
       localStorage.removeItem('analyzeserp_pending_ai_modal');
@@ -139,16 +128,9 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const incrementDailyQuota = (count: number) => {
-    const today = new Date().toISOString().split('T')[0];
-    const newCount = dailyAuditCount + count;
-    setDailyAuditCount(newCount);
-    localStorage.setItem('daily_audit_quota', JSON.stringify({ date: today, count: newCount }));
-  };
-
   const addUrlInput = () => {
     if (urls.length >= 5) {
-      setErrorMsg('Free mode allows up to 5 URLs. Upgrade to Pro for unlimited batch auditing.');
+      setErrorMsg('Public Beta supports up to 5 URLs per comparison run for optimal crawl performance.');
       return;
     }
     setUrls([...urls, '']);
@@ -158,12 +140,25 @@ export default function Home() {
     if (urls.length === 1) return;
     const updated = urls.filter((_, i) => i !== index);
     setUrls(updated);
+    if (fieldErrors[index]) {
+      const updatedErrors = { ...fieldErrors };
+      delete updatedErrors[index];
+      setFieldErrors(updatedErrors);
+    }
   };
 
   const handleUrlChange = (index: number, val: string) => {
     const updated = [...urls];
     updated[index] = val;
     setUrls(updated);
+    if (fieldErrors[index]) {
+      const updatedErrors = { ...fieldErrors };
+      delete updatedErrors[index];
+      setFieldErrors(updatedErrors);
+    }
+    if (errorMsg) {
+      setErrorMsg(null);
+    }
   };
 
   const handleUrlBlur = (index: number) => {
@@ -176,6 +171,16 @@ export default function Home() {
         updated[index] = normalized;
         setUrls(updated);
       }
+      if (fieldErrors[index]) {
+        const updatedErrors = { ...fieldErrors };
+        delete updatedErrors[index];
+        setFieldErrors(updatedErrors);
+      }
+    } else {
+      setFieldErrors((prev) => ({
+        ...prev,
+        [index]: 'Invalid URL format (e.g. example.com or https://example.com)',
+      }));
     }
   };
 
@@ -188,42 +193,73 @@ export default function Home() {
   const handleAuditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setFieldErrors({});
 
     if (isCooldownActive && cooldownSeconds > 0) {
-      setErrorMsg(`Quota limit reached. Please wait ${cooldownSeconds}s before your next 5 free audits unlock.`);
+      setErrorMsg(`Anti-abuse cooldown active. Please wait ${cooldownSeconds}s before starting your next batch audit.`);
       return;
     }
 
-    const rawUrls = urls.map((u) => u.trim()).filter(Boolean);
-    if (rawUrls.length === 0) {
+    const trimmedUrls = urls.map((u) => u.trim());
+    const newFieldErrors: Record<number, string> = {};
+
+    // 1. Target URL (index 0) is mandatory
+    if (!trimmedUrls[0]) {
+      newFieldErrors[0] = 'Please enter your Target page URL.';
+    }
+
+    // 2. Validate URL formats
+    const normalizedMap: Record<number, string> = {};
+    trimmedUrls.forEach((u, idx) => {
+      if (idx === 0 && !u) return;
+      if (u) {
+        if (!isValidUrl(u)) {
+          newFieldErrors[idx] = 'Invalid URL (e.g. example.com or https://example.com)';
+        } else {
+          normalizedMap[idx] = normalizeUrl(u);
+        }
+      }
+    });
+
+    // 3. Validate Duplicates: Target vs Competitor
+    const targetNormalized = normalizedMap[0];
+    Object.entries(normalizedMap).forEach(([idxStr, normUrl]) => {
+      const idx = Number(idxStr);
+      if (idx > 0 && targetNormalized && normUrl.toLowerCase() === targetNormalized.toLowerCase()) {
+        newFieldErrors[idx] = 'Competitor URL cannot be identical to Target URL.';
+      }
+    });
+
+    // 4. Validate Duplicates: Competitor vs Competitor
+    const seenCompetitors = new Map<string, number>();
+    Object.entries(normalizedMap).forEach(([idxStr, normUrl]) => {
+      const idx = Number(idxStr);
+      if (idx > 0) {
+        const lower = normUrl.toLowerCase();
+        if (seenCompetitors.has(lower)) {
+          newFieldErrors[idx] = `Duplicate competitor URL (already entered in Competitor #${seenCompetitors.get(lower)})`;
+        } else {
+          seenCompetitors.set(lower, idx);
+        }
+      }
+    });
+
+    if (Object.keys(newFieldErrors).length > 0) {
+      setFieldErrors(newFieldErrors);
+      setErrorMsg('Please correct the highlighted URL fields before running the audit.');
+      return;
+    }
+
+    const finalUrls = Object.values(normalizedMap);
+    if (finalUrls.length === 0) {
       setErrorMsg('Please enter at least 1 valid URL to run the audit.');
       return;
     }
 
-    const invalidList: string[] = [];
-    const normalizedList: string[] = [];
-    for (const u of rawUrls) {
-      if (!isValidUrl(u)) {
-        invalidList.push(u);
-      } else {
-        normalizedList.push(normalizeUrl(u));
-      }
-    }
-
-    if (invalidList.length > 0) {
-      setErrorMsg(`Invalid URL format: "${invalidList[0]}". Please enter a valid web domain or URL (e.g. example.com or https://example.com).`);
-      return;
-    }
-
-    if (dailyAuditCount + normalizedList.length > MAX_FREE_DAILY_AUDITS) {
-      setIsProModalOpen(true);
-      return;
-    }
-
-    setUrls(normalizedList);
+    setUrls(finalUrls);
     setIsSubmitting(true);
     const queryParams = new URLSearchParams();
-    queryParams.set('urls', normalizedList.join(','));
+    queryParams.set('urls', finalUrls.join(','));
     if (targetKeyword.trim()) {
       queryParams.set('keyword', targetKeyword.trim());
     }
@@ -272,7 +308,7 @@ export default function Home() {
         <div className="text-center space-y-3 max-w-3xl mx-auto pt-2 pb-1">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            <span>Competitor Benchmark Engine</span>
+            <span>Built for SEO Consultants, Agencies &amp; Growth Teams</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-800 dark:text-slate-100 [letter-spacing:-0.03em] leading-tight">
@@ -333,63 +369,88 @@ export default function Home() {
               </div>
             </div>
 
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              Enter the page you want to rank higher first (<strong className="text-slate-700 dark:text-slate-200 font-semibold">Target</strong>), then add 1–4 competing URLs ranking for the same query.
+            </p>
+
             <form onSubmit={handleAuditSubmit} className="space-y-4">
               <div className="space-y-3">
                 {/* URLs Inputs */}
                 {urls.map((url, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <span
-                        className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 font-mono text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md min-w-[62px] sm:min-w-[70px] text-center select-none ${
-                          idx === 0
-                            ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30'
-                            : 'bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300'
-                        }`}
-                      >
-                        {idx === 0 ? 'TARGET' : `COMP #${idx}`}
-                      </span>
-                      <label htmlFor={`hero-url-input-${idx}`} className="sr-only">
-                        {idx === 0 ? "Your Target Page URL" : `Competitor ${idx} Page URL`}
-                      </label>
-                      <input
-                        id={`hero-url-input-${idx}`}
-                        type="text"
-                        aria-label={idx === 0 ? "Your Target Page URL" : `Competitor ${idx} Page URL`}
-                        aria-invalid={!!errorMsg}
-                        aria-describedby={errorMsg ? "audit-error" : undefined}
-                        placeholder={
-                          idx === 0
-                            ? 'Your Target Page (e.g. https://yourdomain.com/my-article)'
-                            : `Competitor #${idx} Page (e.g. https://competitor.com/ranking-page)`
-                        }
-                        value={url}
-                        onChange={(e) => handleUrlChange(idx, e.target.value)}
-                        onBlur={() => handleUrlBlur(idx)}
-                        className="w-full pl-[80px] sm:pl-[94px] pr-4 py-2.5 sm:py-3 rounded-xl glass-input text-xs sm:text-sm focus:outline-none font-mono transition-all"
-                      />
-                    </div>
+                  <div key={idx} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <span
+                          className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 font-mono text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md min-w-[62px] sm:min-w-[70px] text-center select-none ${
+                            idx === 0
+                              ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30'
+                              : 'bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300'
+                          }`}
+                        >
+                          {idx === 0 ? 'TARGET' : `COMP #${idx}`}
+                        </span>
+                        <label htmlFor={`hero-url-input-${idx}`} className="sr-only">
+                          {idx === 0 ? "Your Target Page URL" : `Competitor ${idx} Page URL`}
+                        </label>
+                        <input
+                          id={`hero-url-input-${idx}`}
+                          type="text"
+                          aria-label={idx === 0 ? "Your Target Page URL" : `Competitor ${idx} Page URL`}
+                          aria-invalid={Boolean(fieldErrors[idx])}
+                          aria-describedby={fieldErrors[idx] ? `hero-url-error-${idx}` : undefined}
+                          placeholder={
+                            idx === 0
+                              ? 'Your Target Page (e.g. https://yourdomain.com/my-article)'
+                              : `Competitor #${idx} Page (e.g. https://competitor.com/ranking-page)`
+                          }
+                          value={url}
+                          onChange={(e) => handleUrlChange(idx, e.target.value)}
+                          onBlur={() => handleUrlBlur(idx)}
+                          className={`w-full pl-[80px] sm:pl-[94px] pr-4 py-2.5 sm:py-3 rounded-xl glass-input text-xs sm:text-sm focus:outline-none font-mono transition-all ${
+                            fieldErrors[idx]
+                              ? 'border-red-500/80 dark:border-red-500/80 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                              : ''
+                          }`}
+                        />
+                      </div>
 
-                    {urls.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeUrlInput(idx)}
-                        aria-label={`Remove URL ${idx + 1}`}
-                        className="p-2.5 sm:p-3 rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 dark:text-slate-400 transition-all cursor-pointer active:scale-[0.98] shrink-0"
-                        title={`Remove URL ${idx + 1}`}
+                      {urls.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeUrlInput(idx)}
+                          aria-label={`Remove URL ${idx + 1}`}
+                          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 dark:text-slate-400 transition-all cursor-pointer active:scale-[0.98] shrink-0"
+                          title={`Remove URL ${idx + 1}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    {fieldErrors[idx] && (
+                      <p
+                        id={`hero-url-error-${idx}`}
+                        role="alert"
+                        className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1.5 pl-1 pt-0.5"
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{fieldErrors[idx]}</span>
+                      </p>
                     )}
                   </div>
                 ))}
 
                 {/* Integrated Focus Keyword Field */}
                 <div className="p-3 sm:p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                  <label htmlFor="target-keyword-input" className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
-                    <Key className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span>Focus Keyword <span className="text-slate-600 dark:text-slate-400 font-normal">(Optional for intent alignment)</span></span>
-                  </label>
-                  <div className="w-full sm:max-w-xs">
+                  <div>
+                    <label htmlFor="target-keyword-input" className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                      <Key className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      <span>Focus Keyword <span className="text-slate-500 dark:text-slate-400 font-normal">(Optional)</span></span>
+                    </label>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      Highlights keyword gap recommendations; does not alter the crawled URLs.
+                    </p>
+                  </div>
+                  <div className="w-full sm:max-w-xs shrink-0">
                     <input
                       id="target-keyword-input"
                       type="text"
@@ -445,8 +506,9 @@ export default function Home() {
                     )}
                   </div>
 
-                  <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 tabular-nums px-0.5">
-                    {Math.max(0, MAX_FREE_DAILY_AUDITS - dailyAuditCount)}/20 free audits today
+                  <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 tabular-nums px-0.5 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                    <span>Public Beta: 100% Free &amp; Uncapped (Up to 5 URLs)</span>
                   </span>
                 </div>
 
@@ -470,7 +532,7 @@ export default function Home() {
                     )}
                   </button>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center sm:text-right font-medium">
-                    No login required • Results in 30 seconds
+                    No login required • Results in ~30s • Side-by-side gap report for titles, headings, keywords, links &amp; Core Web Vitals
                   </p>
                 </div>
               </div>
@@ -543,15 +605,15 @@ export default function Home() {
                       STEP 02
                     </span>
                     <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-                      Sub-500ms Cheerio Extraction
+                      Real-Time Signal &amp; Gap Extraction
                     </h3>
                     <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                      Our deterministic serverless crawler inspects raw HTML DOM nodes in parallel—extracting title pixel caps, heading trees, word counts, and Core Web Vitals.
+                      Our deterministic crawler inspects raw HTML DOM nodes across all URLs in parallel—pinpointing title pixel gaps, missing heading subtopics, keyword voids, and Core Web Vitals.
                     </p>
                   </div>
                   <div className="pt-2 flex items-center gap-1.5 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Deterministic DOM Extraction</span>
+                    <span>Deterministic Gap Isolation</span>
                   </div>
                 </div>
 

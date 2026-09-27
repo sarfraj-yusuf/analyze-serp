@@ -239,15 +239,27 @@ export const SerpHeroHeader: React.FC<SerpHeroHeaderProps> = ({ report, results 
             {top3Opportunities.map((opp, idx) => (
               <div
                 key={idx}
+                role="button"
+                tabIndex={0}
                 onClick={onScrollToActionPlan}
-                className="p-3.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/80 shadow-xs border-l-4 border-l-rose-500 space-y-2.5 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm transition-all cursor-pointer group"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onScrollToActionPlan?.();
+                  }
+                }}
+                className="p-3.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/80 shadow-xs border-l-4 border-l-rose-500 space-y-2.5 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-1.5 flex-wrap">
                     <span className="font-mono text-[10px] font-bold text-rose-700 dark:text-rose-400">
                       PRIORITY #{idx + 1}
                     </span>
-                    <span className="size-1.5 rounded-full bg-rose-500" />
+                    {opp.category && (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
+                        {opp.category}
+                      </span>
+                    )}
                   </div>
                   <h5 className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-snug group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                     {opp.title}
