@@ -33,6 +33,7 @@ import { AuthModal } from './AuthModal';
 import { Logo } from './Logo';
 import { LiveAnnouncementBanner } from './LiveAnnouncementBanner';
 import { Tooltip } from './Tooltip';
+import { useLiveCredits } from '@/lib/credit-events';
 
 interface ToolItem {
   title: string;
@@ -175,6 +176,10 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
   const { data: session, status } = useSession();
+  const liveCredits = useLiveCredits(
+    session?.user?.credits?.remainingCredits ?? 5,
+    session?.user?.credits?.limit ?? 5
+  );
   const [theme, setTheme] = useState<'dark' | 'light'>('light');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
@@ -511,7 +516,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           {status === 'loading' ? (
             <div className="h-[38px] w-[38px] rounded-full bg-slate-200/60 dark:bg-white/5 animate-pulse shrink-0" />
           ) : session?.user ? (
-            <div ref={profileMenuRef} className="relative flex items-center">
+            <div ref={profileMenuRef} className="relative flex items-center gap-2">
+              {/* Live Desktop AI Credits Pill */}
+              <span
+                className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-mono font-bold border transition-all duration-300 ${
+                  liveCredits.isJustUpdated
+                    ? 'scale-105 bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 border-emerald-500/50 ring-2 ring-emerald-500/40 shadow-sm'
+                    : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                }`}
+                title="Daily AI generation credits remaining"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span>{liveCredits.remaining} AI</span>
+              </span>
+
               <button
                 type="button"
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
@@ -562,8 +580,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
                     <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5 space-y-1">
                       <div className="flex items-center justify-between text-[11px]">
                         <span className="text-slate-600 dark:text-slate-400 font-medium">Daily AI Credits:</span>
-                        <strong className="text-emerald-600 dark:text-emerald-400 font-bold">
-                          {session.user.credits?.remainingCredits ?? 5} / {session.user.credits?.limit ?? 5}
+                        <strong
+                          className={`font-bold transition-all duration-300 ${
+                            liveCredits.isJustUpdated
+                              ? 'text-emerald-500 scale-110'
+                              : 'text-emerald-600 dark:text-emerald-400'
+                          }`}
+                        >
+                          {liveCredits.remaining} / {liveCredits.limit}
                         </strong>
                       </div>
                       <p className="text-[9px] text-slate-500 dark:text-gray-400 leading-tight">
@@ -598,7 +622,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           ) : (
             <Link
               href="/login"
-              className="h-[38px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-xs shadow-emerald-600/20 active:scale-95 shrink-0"
+              className="hidden md:flex h-[38px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold items-center gap-2 transition-all cursor-pointer shadow-xs shadow-emerald-600/20 active:scale-95 shrink-0"
             >
               <User className="w-4 h-4 text-white" />
               <span>Sign In</span>
@@ -624,6 +648,65 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           aria-label="Mobile Navigation"
           className="md:hidden pt-4 pb-3 px-2 border-t border-slate-200/80 dark:border-white/10 mt-3 space-y-3 animate-in fade-in duration-200 max-h-[80vh] overflow-y-auto"
         >
+          {/* Mobile Auth Header (Prominently placed at the top of drawer) */}
+          <div className="pb-3 border-b border-slate-200/80 dark:border-white/10">
+            {session?.user ? (
+              <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/5 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {session.user.image ? (
+                      <img src={session.user.image} alt={session.user.name || 'User'} className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+                        {session.user.name?.charAt(0) || 'U'}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{session.user.name || 'User'}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{session.user.email}</p>
+                    </div>
+                  </div>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border shrink-0 transition-all duration-300 ${
+                      liveCredits.isJustUpdated
+                        ? 'bg-emerald-500/30 text-emerald-800 dark:text-emerald-200 border-emerald-500/50 scale-105 ring-1 ring-emerald-500/40'
+                        : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                    }`}
+                  >
+                    {liveCredits.remaining} AI
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 pt-1 border-t border-slate-200/60 dark:border-white/5">
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    <span>Dashboard</span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => signOut()}
+                    className="py-1.5 px-3 text-xs font-semibold text-red-600 dark:text-red-400 hover:underline cursor-pointer"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95"
+              >
+                <User className="w-4 h-4 text-white" />
+                <span>Sign In to Unlock AI (Free)</span>
+              </Link>
+            )}
+          </div>
+
           {/* Categorized Tools on Mobile */}
           <div className="space-y-3">
             {TOOL_CATEGORIES.map((category) => (
@@ -747,59 +830,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
                 v2.4
               </span>
             </Link>
-          </div>
-
-          {/* Mobile Auth Row */}
-          <div className="pt-2 border-t border-slate-200/80 dark:border-white/10">
-            {session?.user ? (
-              <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/5 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    {session.user.image ? (
-                      <img src={session.user.image} alt={session.user.name || 'User'} className="w-7 h-7 rounded-lg object-cover shrink-0" />
-                    ) : (
-                      <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
-                        {session.user.name?.charAt(0) || 'U'}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{session.user.name || 'User'}</p>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{session.user.email}</p>
-                    </div>
-                  </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
-                    {session.user.credits?.remainingCredits ?? 5} AI
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 pt-1 border-t border-slate-200/60 dark:border-white/5">
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
-                  >
-                    <LayoutDashboard className="w-3.5 h-3.5" />
-                    <span>Dashboard</span>
-                  </Link>
-
-                  <button
-                    type="button"
-                    onClick={() => signOut()}
-                    className="py-1.5 px-3 text-xs font-semibold text-red-600 dark:text-red-400 hover:underline cursor-pointer"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <Link
-                href="/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
-              >
-                <User className="w-4 h-4" />
-                <span>Sign In to Unlock AI (Free)</span>
-              </Link>
-            )}
           </div>
         </nav>
       )}

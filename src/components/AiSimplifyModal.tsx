@@ -20,6 +20,7 @@ import {
 import { AuthModal } from './AuthModal';
 import { ReadabilityRewriteResult } from '@/lib/gemini';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { broadcastCreditUpdate } from '@/lib/credit-events';
 
 interface AiSimplifyModalProps {
   isOpen: boolean;
@@ -104,6 +105,7 @@ export const AiSimplifyModal: React.FC<AiSimplifyModalProps> = ({
       setResult(data.data as ReadabilityRewriteResult);
       if (data.credits?.remaining !== undefined) {
         setRemainingCredits(data.credits.remaining);
+        broadcastCreditUpdate(data.credits);
       }
       updateSession();
     } catch (err) {

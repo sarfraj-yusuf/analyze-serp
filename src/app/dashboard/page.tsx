@@ -11,6 +11,7 @@ import { AiRewriteModal } from '@/components/AiRewriteModal';
 import { Logo } from '@/components/Logo';
 import { DbUserAudit, DbUserAiActivity } from '@/lib/db';
 import { UserCreditsInfo } from '@/lib/user-credits';
+import { subscribeToCreditUpdates, LiveCreditUpdate } from '@/lib/credit-events';
 import {
   Zap,
   Globe,
@@ -340,14 +341,25 @@ export default function DashboardPage() {
     }
   };
 
+  const [liveCreditsUpdate, setLiveCreditsUpdate] = useState<LiveCreditUpdate | null>(null);
+
+  useEffect(() => {
+    return subscribeToCreditUpdates((update) => {
+      setLiveCreditsUpdate(update);
+    });
+  }, []);
+
   const credits = data?.credits || {
     remainingCredits: 5,
     limit: 5,
     usedCredits: 0,
     resetInHours: 24,
   };
+  const effectiveRemaining = liveCreditsUpdate?.remaining !== undefined ? liveCreditsUpdate.remaining : credits.remainingCredits;
+  const effectiveLimit = liveCreditsUpdate?.limit !== undefined ? liveCreditsUpdate.limit : credits.limit;
+  const effectiveUsed = Math.max(0, effectiveLimit - effectiveRemaining);
   const stats = data?.stats || { totalAudits: 0, totalAiGenerations: 0, avgScore: 0 };
-  const creditsPercentage = Math.round((credits.remainingCredits / credits.limit) * 100);
+  const creditsPercentage = Math.round((effectiveRemaining / effectiveLimit) * 100);
 
   // Enhancement 3: Portfolio Health Distribution Calculations
   const allAudits = data?.audits || [];
@@ -641,8 +653,8 @@ export default function DashboardPage() {
                       <span>Daily AI Quota Balance</span>
                     </div>
                     <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                      <span className="font-mono tabular-nums">{credits.remainingCredits}</span>
-                      <span className="text-slate-600 dark:text-slate-400 text-base font-normal">/ {credits.limit} Credits Remaining Today</span>
+                      <span className="font-mono tabular-nums">{effectiveRemaining}</span>
+                      <span className="text-slate-600 dark:text-slate-400 text-base font-normal">/ {effectiveLimit} Credits Remaining Today</span>
                     </h3>
                   </div>
 
@@ -655,7 +667,7 @@ export default function DashboardPage() {
                 {/* Progress Bar */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="text-slate-500 dark:text-slate-400">Used today: {credits.usedCredits} credits</span>
+                    <span className="text-slate-500 dark:text-slate-400">Used today: {effectiveUsed} credits</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-bold tabular-nums">{creditsPercentage}% Available</span>
                   </div>
                   <div className="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">

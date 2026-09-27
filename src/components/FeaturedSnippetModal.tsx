@@ -38,6 +38,7 @@ import {
 } from '@/lib/snippet-optimizer-engine';
 import { AuthModal } from '@/components/AuthModal';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { broadcastCreditUpdate } from '@/lib/credit-events';
 
 export interface FeaturedSnippetModalProps {
   isOpen: boolean;
@@ -206,6 +207,10 @@ export function FeaturedSnippetModal({
 
       if (data.tableData && data.tableData.headers && data.tableData.rows) {
         setTableData(data.tableData);
+      }
+
+      if (data.credits) {
+        broadcastCreditUpdate(data.credits);
       }
     } catch (err: any) {
       console.error('[FeaturedSnippetModal] AI generation error:', err);

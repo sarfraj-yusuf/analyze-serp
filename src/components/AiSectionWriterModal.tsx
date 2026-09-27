@@ -19,6 +19,7 @@ import {
 import { AuthModal } from './AuthModal';
 import { ContentSectionResult } from '@/lib/gemini';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { broadcastCreditUpdate } from '@/lib/credit-events';
 
 interface AiSectionWriterModalProps {
   isOpen: boolean;
@@ -111,6 +112,7 @@ export const AiSectionWriterModal: React.FC<AiSectionWriterModalProps> = ({
       setResult(data.data as ContentSectionResult);
       if (data.credits?.remaining !== undefined) {
         setRemainingCredits(data.credits.remaining);
+        broadcastCreditUpdate(data.credits);
       }
       updateSession();
     } catch (err) {

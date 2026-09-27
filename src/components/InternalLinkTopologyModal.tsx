@@ -36,6 +36,7 @@ import {
 import { TopicClusterStrategyResult } from '@/lib/gemini';
 import { AuthModal } from './AuthModal';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { broadcastCreditUpdate } from '@/lib/credit-events';
 
 export interface InternalLinkTopologyModalProps {
   isOpen: boolean;
@@ -170,6 +171,9 @@ export function InternalLinkTopologyModal({
       }
 
       setAiResult(data.data);
+      if (data.credits) {
+        broadcastCreditUpdate(data.credits);
+      }
     } catch (err: unknown) {
       setAiError(err instanceof Error ? err.message : 'An error occurred.');
     } finally {

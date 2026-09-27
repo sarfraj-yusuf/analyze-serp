@@ -20,6 +20,7 @@ import {
 import { AuthModal } from './AuthModal';
 import { FixRecommendationResult } from '@/lib/gemini';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { broadcastCreditUpdate } from '@/lib/credit-events';
 
 interface AiFixModalProps {
   isOpen: boolean;
@@ -116,6 +117,7 @@ export const AiFixModal: React.FC<AiFixModalProps> = ({
       setResult(data.data as FixRecommendationResult);
       if (data.credits?.remaining !== undefined) {
         setRemainingCredits(data.credits.remaining);
+        broadcastCreditUpdate(data.credits);
       }
       updateSession();
     } catch (err) {

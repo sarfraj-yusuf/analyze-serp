@@ -37,6 +37,7 @@ import {
 import { AuthModal } from './AuthModal';
 import { Tooltip } from './Tooltip';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { broadcastCreditUpdate } from '@/lib/credit-events';
 
 export interface ContentScratchpadModalProps {
   isOpen: boolean;
@@ -286,6 +287,9 @@ export function ContentScratchpadModal({
       }
 
       setAiResult(data.data);
+      if (data.credits) {
+        broadcastCreditUpdate(data.credits);
+      }
     } catch (err: unknown) {
       setAiError(err instanceof Error ? err.message : 'An unexpected error occurred.');
     } finally {

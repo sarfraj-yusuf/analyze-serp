@@ -42,6 +42,7 @@ import {
   generateSnippetHtml,
   generateSnippetMarkdown,
 } from '@/lib/snippet-optimizer-engine';
+import { broadcastCreditUpdate } from '@/lib/credit-events';
 
 const DEFAULT_SAMPLE_TABLE: SnippetTableData = {
   headers: ['Tool', 'Starting Price', 'Best For', 'Position 0 Fit'],
@@ -159,6 +160,10 @@ export default function FeaturedSnippetOptimizerPage() {
       }
       if (data.tableData && data.tableData.headers && data.tableData.rows) {
         setTableData(data.tableData);
+      }
+
+      if (data.credits) {
+        broadcastCreditUpdate(data.credits);
       }
     } catch (err: any) {
       console.error('[FeaturedSnippetOptimizerPage] AI generation error:', err);

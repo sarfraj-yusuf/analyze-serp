@@ -43,6 +43,7 @@ import {
   extractQuestionsFromHeadings,
 } from '@/lib/schema-generator';
 import { AuthModal } from './AuthModal';
+import { broadcastCreditUpdate } from '@/lib/credit-events';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 const EMPTY_FAQS: { question: string; answer: string }[] = [];
@@ -295,6 +296,9 @@ export const JsonLdSchemaModal: React.FC<JsonLdSchemaModalProps> = ({
       const cleanAnswer = generatedAnswer.replace(/^#+\s.*?\n+/g, '').trim();
 
       handleUpdateFaq(faqId, 'answer', cleanAnswer);
+      if (data.credits) {
+        broadcastCreditUpdate(data.credits);
+      }
     } catch (err: unknown) {
       console.error('[JsonLdSchemaModal] AI answer draft error:', err);
       setAiError(err instanceof Error ? err.message : 'Error generating AI answer');

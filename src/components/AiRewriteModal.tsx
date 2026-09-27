@@ -18,6 +18,7 @@ import {
 import { AuthModal } from './AuthModal';
 import { MetaRewriteResult } from '@/lib/gemini';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { broadcastCreditUpdate } from '@/lib/credit-events';
 
 interface AiRewriteModalProps {
   isOpen: boolean;
@@ -116,6 +117,7 @@ export const AiRewriteModal: React.FC<AiRewriteModalProps> = ({
       setResult(data.data as MetaRewriteResult);
       if (data.credits?.remaining !== undefined) {
         setRemainingCredits(data.credits.remaining);
+        broadcastCreditUpdate(data.credits);
       }
       // Trigger session update in background to sync Navbar credit badge
       updateSession();
