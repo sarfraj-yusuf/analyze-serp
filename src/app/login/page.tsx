@@ -42,6 +42,10 @@ export default function LoginPage() {
       const errorParam = new URLSearchParams(window.location.search).get('error');
       if (errorParam === 'AccessDenied') {
         setAuthError('Sign-in rejected: Your account has been suspended by an administrator.');
+      } else if (errorParam === 'Configuration') {
+        setAuthError('Server authentication configuration is incomplete. Please ensure AUTH_SECRET and OAuth provider credentials are set in environment variables.');
+      } else if (errorParam === 'OAuthCallbackError' || errorParam === 'OAuthSignin' || errorParam === 'OAuthCreateAccount') {
+        setAuthError('OAuth authentication error: Could not complete login with the provider. Please verify provider credentials and redirect URI.');
       } else if (errorParam) {
         setAuthError('Authentication failed. Please try signing in again.');
       }
