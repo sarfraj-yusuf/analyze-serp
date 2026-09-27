@@ -1,10 +1,7 @@
-'use client';
-
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { ProUpgradeModal } from '@/components/ProUpgradeModal';
 import {
   ShieldCheck,
   Lock,
@@ -19,11 +16,9 @@ import {
 } from 'lucide-react';
 
 export default function PrivacyPage() {
-  const [isProModalOpen, setIsProModalOpen] = useState(false);
-
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-slate-900 dark:text-gray-100 selection:bg-emerald-500 selection:text-black transition-colors duration-200">
-      <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
+      <Navbar />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-10">
         {/* Legal Hub Navigation Switcher */}
@@ -337,7 +332,6 @@ export default function PrivacyPage() {
       </main>
 
       <Footer />
-      <ProUpgradeModal isOpen={isProModalOpen} onClose={() => setIsProModalOpen(false)} />
     </div>
   );
 }

@@ -1,10 +1,7 @@
-'use client';
-
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { ProUpgradeModal } from '@/components/ProUpgradeModal';
 import {
   History,
   Sparkles,
@@ -199,11 +196,9 @@ const CHANGELOG_RELEASES: ChangelogEntry[] = [
 ];
 
 export default function ChangelogPage() {
-  const [isProModalOpen, setIsProModalOpen] = useState(false);
-
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-slate-900 dark:text-gray-100 selection:bg-emerald-500 selection:text-black transition-colors duration-200">
-      <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
+      <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
         {/* Hero Section */}
@@ -334,7 +329,6 @@ export default function ChangelogPage() {
       </main>
 
       <Footer />
-      <ProUpgradeModal isOpen={isProModalOpen} onClose={() => setIsProModalOpen(false)} />
     </div>
   );
 }

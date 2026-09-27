@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { ProUpgradeModal } from '@/components/ProUpgradeModal';
 import {
   Mail,
   Send,
@@ -51,7 +50,6 @@ const SUPPORT_FAQS: FaqItem[] = [
 ];
 
 export default function ContactPage() {
-  const [isProModalOpen, setIsProModalOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -135,7 +133,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-slate-900 dark:text-gray-100 selection:bg-emerald-500 selection:text-black transition-colors duration-200">
-      <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
+      <Navbar />
 
       {/* Structured JSON-LD Schema */}
       <script
@@ -580,7 +578,6 @@ export default function ContactPage() {
       </main>
 
       <Footer />
-      <ProUpgradeModal isOpen={isProModalOpen} onClose={() => setIsProModalOpen(false)} />
     </div>
   );
 }

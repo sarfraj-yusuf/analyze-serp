@@ -1,10 +1,8 @@
-'use client';
-
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { ProUpgradeModal } from '@/components/ProUpgradeModal';
+import { FaqAccordion } from '@/components/FaqAccordion';
 import {
   Sparkles,
   Zap,
@@ -59,16 +57,9 @@ const FAQ_ITEMS: FaqItem[] = [
 ];
 
 export default function AboutPage() {
-  const [isProModalOpen, setIsProModalOpen] = useState(false);
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-
-  const toggleFaq = (idx: number) => {
-    setOpenFaqIndex(openFaqIndex === idx ? null : idx);
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-slate-900 dark:text-gray-100 selection:bg-emerald-500 selection:text-black transition-colors duration-200">
-      <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
+      <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-20">
         {/* Section 1: Hero & Strategic Differentiator */}
@@ -446,35 +437,7 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
-            {FAQ_ITEMS.map((faq, index) => {
-              const isOpen = openFaqIndex === index;
-              return (
-                <div key={index} className="transition-colors">
-                  <button
-                    type="button"
-                    onClick={() => toggleFaq(index)}
-                    aria-expanded={isOpen}
-                    className="w-full p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors"
-                  >
-                    <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100">
-                      {faq.question}
-                    </span>
-                    <ChevronDown
-                      className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
-                        isOpen ? 'rotate-180 text-emerald-500' : ''
-                      }`}
-                    />
-                  </button>
-                  {isOpen && (
-                    <div className="px-5 pb-5 pt-1 text-xs text-slate-600 dark:text-gray-300 leading-relaxed animate-in fade-in duration-150">
-                      {faq.answer}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <FaqAccordion items={FAQ_ITEMS} />
         </section>
 
         {/* Section 8: Final Enterprise Action Banner */}
@@ -507,7 +470,6 @@ export default function AboutPage() {
       </main>
 
       <Footer />
-      <ProUpgradeModal isOpen={isProModalOpen} onClose={() => setIsProModalOpen(false)} />
     </div>
   );
 }
