@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { reserveUserCredit, refundUserCredit } from '@/lib/user-credits';
 import { saveUserAiActivity, getUserByEmail } from '@/lib/db';
 import { aiRateLimiter } from '@/lib/rate-limiter';
+import { verifySameOrigin } from '@/lib/csrf';
 import {
   generateMetaRewrite,
   generateFixRecommendation,
@@ -15,6 +16,15 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
+    // 0. CSRF / Origin Guard
+    const originCheck = verifySameOrigin(req);
+    if (!originCheck.valid) {
+      return NextResponse.json(
+        { error: originCheck.reason || 'Forbidden: Cross-site request rejected.' },
+        { status: 403 }
+      );
+    }
+
     // 1. IP Burst Rate Limiting Guard (max 10 AI generations per minute per IP)
     const clientIp = aiRateLimiter.getClientIp(req);
     const rateLimit = aiRateLimiter.check(clientIp);
@@ -84,6 +94,14 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Parse and validate payload first (before credit reservation)
+    const contentLength = req.headers.get('content-length');
+    if (contentLength && Number(contentLength) > 200 * 1024) {
+      return NextResponse.json(
+        { error: 'Request payload too large (maximum 200 KB).' },
+        { status: 413 }
+      );
+    }
+
     let body: Record<string, unknown>;
     try {
       body = await req.json();

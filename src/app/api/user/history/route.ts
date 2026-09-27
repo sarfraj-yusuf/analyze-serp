@@ -9,6 +9,7 @@ import {
   deleteUserAudit,
   getUserByEmail,
 } from '@/lib/db';
+import { verifySameOrigin } from '@/lib/csrf';
 
 export async function GET() {
   try {
@@ -94,6 +95,15 @@ export async function GET() {
 
 export async function DELETE(req: NextRequest) {
   try {
+    // 1. CSRF / ORIGIN PROTECTION
+    const originCheck = verifySameOrigin(req);
+    if (!originCheck.valid) {
+      return NextResponse.json(
+        { success: false, error: originCheck.reason || 'Forbidden: Cross-site request rejected.' },
+        { status: 403 }
+      );
+    }
+
     const session = await auth();
 
     if (!session?.user?.email) {
@@ -121,9 +131,9 @@ export async function DELETE(req: NextRequest) {
     }
 
     const auditId = parseInt(auditIdStr, 10);
-    if (isNaN(auditId)) {
+    if (isNaN(auditId) || auditId <= 0) {
       return NextResponse.json(
-        { success: false, error: 'Invalid audit id' },
+        { success: false, error: 'Invalid audit id parameter' },
         { status: 400 }
       );
     }

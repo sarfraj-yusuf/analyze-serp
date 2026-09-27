@@ -1,22 +1,48 @@
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
-import { saveUserFeedback, getAllFeedback, logSecurityIncident } from '@/lib/db';
+import { saveUserFeedback, getAllFeedback } from '@/lib/db';
 import { getTrustedClientIp } from '@/lib/client-ip';
+import { verifySameOrigin } from '@/lib/csrf';
 
 // Basic sliding window memory rate limiter for feedback submissions (5 per IP / 24h)
 const feedbackIpMap = new Map<string, { count: number; resetTime: number }>();
 
 export async function POST(req: Request) {
   try {
-    const ip = getTrustedClientIp(req);
-    const body = await req.json();
+    // 1. CSRF / ORIGIN PROTECTION
+    const originCheck = verifySameOrigin(req);
+    if (!originCheck.valid) {
+      return NextResponse.json(
+        { error: originCheck.reason || 'Forbidden: Cross-site request rejected.' },
+        { status: 403 }
+      );
+    }
 
+    // 2. REQUEST PAYLOAD SIZE LIMIT (Max 50 KB)
+    const contentLength = req.headers.get('content-length');
+    if (contentLength && Number(contentLength) > 50 * 1024) {
+      return NextResponse.json(
+        { error: 'Payload too large. Maximum feedback size is 50 KB.' },
+        { status: 413 }
+      );
+    }
+
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid JSON request payload.' },
+        { status: 400 }
+      );
+    }
+
+    const ip = getTrustedClientIp(req);
     const { rating, category, message, email, user_type, hp_website } = body;
 
-    // 1. HONEYPOT ANTI-SPAM CHECK:
+    // 3. HONEYPOT ANTI-SPAM CHECK:
     // If the hidden honeypot field is filled out, a bot triggered it.
     // Return a silent fake success response without writing to the database!
-    if (hp_website && hp_website.trim().length > 0) {
+    if (hp_website && typeof hp_website === 'string' && hp_website.trim().length > 0) {
       console.warn(`[Anti-Spam] Honeypot field triggered from IP ${ip}. Silently dropping spam.`);
       return NextResponse.json(
         { success: true, message: 'Thank you for your feedback!' },
@@ -24,7 +50,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2. IP RATE LIMITING (Max 5 submissions per IP per 24 hours)
+    // 4. IP RATE LIMITING (Max 5 submissions per IP per 24 hours)
     const now = Date.now();
     const windowMs = 24 * 60 * 60 * 1000;
     const ipData = feedbackIpMap.get(ip) || { count: 0, resetTime: now + windowMs };
@@ -41,27 +67,44 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. INPUT VALIDATION
+    // 5. STRICT INPUT SCHEMA & BOUNDS VALIDATION
     const parsedRating = Number(rating);
-    if (isNaN(parsedRating) || parsedRating < 1 || parsedRating > 5) {
+    if (!Number.isInteger(parsedRating) || parsedRating < 1 || parsedRating > 5) {
       return NextResponse.json({ error: 'Please select a valid star rating (1 to 5).' }, { status: 400 });
     }
 
-    if (!category || typeof category !== 'string' || category.trim().length === 0) {
-      return NextResponse.json({ error: 'Please select a feedback category.' }, { status: 400 });
+    if (!category || typeof category !== 'string' || category.trim().length === 0 || category.trim().length > 50) {
+      return NextResponse.json({ error: 'Please select a valid feedback category (maximum 50 characters).' }, { status: 400 });
     }
 
     if (!message || typeof message !== 'string' || message.trim().length < 5) {
       return NextResponse.json({ error: 'Please enter a message of at least 5 characters.' }, { status: 400 });
     }
 
-    // 4. SAVE TO DATABASE
+    if (message.trim().length > 2000) {
+      return NextResponse.json({ error: 'Feedback message cannot exceed 2,000 characters.' }, { status: 400 });
+    }
+
+    let cleanEmail: string | null = null;
+    if (email && typeof email === 'string' && email.trim().length > 0) {
+      const trimmedEmail = email.trim();
+      if (trimmedEmail.length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+        return NextResponse.json({ error: 'Please enter a valid email address (maximum 255 characters).' }, { status: 400 });
+      }
+      cleanEmail = trimmedEmail;
+    }
+
+    const cleanUserType = typeof user_type === 'string' && user_type.trim().length > 0
+      ? user_type.trim().slice(0, 50)
+      : 'Guest';
+
+    // 6. SAVE TO DATABASE
     await saveUserFeedback({
-      user_type: user_type || 'Guest',
+      user_type: cleanUserType,
       rating: parsedRating,
       category: category.trim(),
       message: message.trim(),
-      email: email ? email.trim() : null,
+      email: cleanEmail,
       ip_address: ip,
     });
 

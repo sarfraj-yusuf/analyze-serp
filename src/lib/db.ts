@@ -30,6 +30,22 @@ function getPool(): mysql.Pool | null {
   // Force IPv4 127.0.0.1 if 'localhost' is passed to prevent 'user'@'::1' IPv6 Access Denied on Hostinger
   const host = rawHost === 'localhost' ? '127.0.0.1' : rawHost;
 
+  // Explicit TLS / SSL transport encryption configuration
+  // Activated when MYSQL_SSL is 'true'/'1' or MYSQL_SSL_MODE is configured
+  let sslConfig: mysql.SslOptions | undefined = undefined;
+  const isSslRequested =
+    process.env.MYSQL_SSL === 'true' ||
+    process.env.MYSQL_SSL === '1' ||
+    process.env.MYSQL_SSL_MODE === 'REQUIRED';
+
+  if (isSslRequested) {
+    sslConfig = {
+      rejectUnauthorized: process.env.MYSQL_SSL_REJECT_UNAUTHORIZED !== 'false',
+      minVersion: 'TLSv1.2',
+      ...(process.env.MYSQL_SSL_CA ? { ca: process.env.MYSQL_SSL_CA } : {}),
+    };
+  }
+
   if (!pool) {
     pool = mysql.createPool({
       host,
@@ -37,6 +53,7 @@ function getPool(): mysql.Pool | null {
       password,
       database,
       port,
+      ssl: sslConfig,
       connectionLimit: 10, // Strict connection limit for Hostinger
       waitForConnections: true,
       queueLimit: 0,

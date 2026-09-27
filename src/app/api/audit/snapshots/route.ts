@@ -6,6 +6,7 @@ import {
   getUserAuditSnapshotById,
   deleteUserAuditSnapshot,
 } from '@/lib/db';
+import { verifySameOrigin } from '@/lib/csrf';
 
 export async function GET(req: NextRequest) {
   try {
@@ -30,7 +31,7 @@ export async function GET(req: NextRequest) {
 
     if (idParam) {
       const snapshotId = parseInt(idParam, 10);
-      if (isNaN(snapshotId)) {
+      if (isNaN(snapshotId) || snapshotId <= 0) {
         return NextResponse.json({ success: false, error: 'Invalid snapshot ID' }, { status: 400 });
       }
 
@@ -73,6 +74,16 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. CSRF / ORIGIN PROTECTION
+    const originCheck = verifySameOrigin(req);
+    if (!originCheck.valid) {
+      return NextResponse.json(
+        { success: false, error: originCheck.reason || 'Forbidden: Cross-site request rejected.' },
+        { status: 403 }
+      );
+    }
+
+    // 2. AUTHENTICATION & ACCESS CONTROL
     const session = await auth();
 
     if (!session?.user?.email) {
@@ -89,12 +100,111 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
+    // 3. REQUEST PAYLOAD SIZE LIMIT (Max 1 MB)
+    const contentLength = req.headers.get('content-length');
+    if (contentLength && Number(contentLength) > 1024 * 1024) {
+      return NextResponse.json(
+        { success: false, error: 'Snapshot payload too large. Maximum size is 1 MB.' },
+        { status: 413 }
+      );
+    }
+
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Invalid JSON request payload.' },
+        { status: 400 }
+      );
+    }
+
     const { url, label, score, targetKeyword, snapshotJson } = body;
 
-    if (!url || !label || typeof score !== 'number' || !snapshotJson) {
+    // 4. STRICT SCHEMA & FIELD BOUNDS VALIDATION
+    if (!url || typeof url !== 'string' || url.trim().length === 0 || url.trim().length > 500) {
       return NextResponse.json(
-        { success: false, error: 'Invalid snapshot payload. URL, label, score, and snapshotJson are required.' },
+        { success: false, error: 'Valid URL is required (maximum 500 characters).' },
+        { status: 400 }
+      );
+    }
+
+    try {
+      const parsedUrl = new URL(url.trim());
+      if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+        return NextResponse.json(
+          { success: false, error: 'URL must use http or https protocol.' },
+          { status: 400 }
+        );
+      }
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Invalid URL format.' },
+        { status: 400 }
+      );
+    }
+
+    if (!label || typeof label !== 'string' || label.trim().length === 0 || label.trim().length > 255) {
+      return NextResponse.json(
+        { success: false, error: 'Label is required (maximum 255 characters).' },
+        { status: 400 }
+      );
+    }
+
+    const numScore = Number(score);
+    if (!Number.isFinite(numScore) || numScore < 0 || numScore > 100) {
+      return NextResponse.json(
+        { success: false, error: 'Score must be a valid number between 0 and 100.' },
+        { status: 400 }
+      );
+    }
+
+    let cleanTargetKeyword: string | null = null;
+    if (targetKeyword && typeof targetKeyword === 'string' && targetKeyword.trim().length > 0) {
+      if (targetKeyword.trim().length > 255) {
+        return NextResponse.json(
+          { success: false, error: 'Target keyword cannot exceed 255 characters.' },
+          { status: 400 }
+        );
+      }
+      cleanTargetKeyword = targetKeyword.trim();
+    }
+
+    let serializedJson: string;
+    if (typeof snapshotJson === 'string') {
+      if (snapshotJson.length > 500000) {
+        return NextResponse.json(
+          { success: false, error: 'Snapshot data exceeds maximum size limit (500 KB).' },
+          { status: 400 }
+        );
+      }
+      try {
+        JSON.parse(snapshotJson);
+        serializedJson = snapshotJson;
+      } catch {
+        return NextResponse.json(
+          { success: false, error: 'Snapshot data is not valid JSON.' },
+          { status: 400 }
+        );
+      }
+    } else if (typeof snapshotJson === 'object' && snapshotJson !== null) {
+      try {
+        serializedJson = JSON.stringify(snapshotJson);
+        if (serializedJson.length > 500000) {
+          return NextResponse.json(
+            { success: false, error: 'Snapshot data exceeds maximum size limit (500 KB).' },
+            { status: 400 }
+          );
+        }
+      } catch {
+        return NextResponse.json(
+          { success: false, error: 'Failed to serialize snapshot data.' },
+          { status: 400 }
+        );
+      }
+    } else {
+      return NextResponse.json(
+        { success: false, error: 'snapshotJson must be a valid JSON string or object.' },
         { status: 400 }
       );
     }
@@ -103,9 +213,9 @@ export async function POST(req: NextRequest) {
       user_email: session.user.email,
       url: url.trim(),
       label: label.trim(),
-      score,
-      target_keyword: targetKeyword ? targetKeyword.trim() : null,
-      snapshot_json: typeof snapshotJson === 'string' ? snapshotJson : JSON.stringify(snapshotJson),
+      score: Math.round(numScore),
+      target_keyword: cleanTargetKeyword,
+      snapshot_json: serializedJson,
     });
 
     return NextResponse.json({
@@ -123,6 +233,15 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    // 1. CSRF / ORIGIN PROTECTION
+    const originCheck = verifySameOrigin(req);
+    if (!originCheck.valid) {
+      return NextResponse.json(
+        { success: false, error: originCheck.reason || 'Forbidden: Cross-site request rejected.' },
+        { status: 403 }
+      );
+    }
+
     const session = await auth();
 
     if (!session?.user?.email) {
@@ -150,9 +269,9 @@ export async function DELETE(req: NextRequest) {
     }
 
     const snapshotId = parseInt(snapshotIdStr, 10);
-    if (isNaN(snapshotId)) {
+    if (isNaN(snapshotId) || snapshotId <= 0) {
       return NextResponse.json(
-        { success: false, error: 'Invalid snapshot id' },
+        { success: false, error: 'Invalid snapshot id parameter' },
         { status: 400 }
       );
     }

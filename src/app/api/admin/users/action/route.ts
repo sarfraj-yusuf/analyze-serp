@@ -3,9 +3,20 @@ import crypto from 'crypto';
 import { getUserByEmail, adminUpdateUser, banIp, unbanIp, getBannedIps, updateSiteConfigurations, logSecurityIncident } from '@/lib/db';
 
 import { verifyAdminSession } from '@/lib/auth-admin';
+import { verifySameOrigin } from '@/lib/csrf';
 
 export async function POST(req: Request) {
   try {
+    // 1. CSRF / ORIGIN PROTECTION
+    const originCheck = verifySameOrigin(req);
+    if (!originCheck.valid) {
+      return NextResponse.json(
+        { error: originCheck.reason || 'Forbidden: Cross-site request rejected.' },
+        { status: 403 }
+      );
+    }
+
+    // 2. ADMIN AUTHENTICATION
     const authResult = await verifyAdminSession(req, '/api/admin/users/action');
     if (!authResult.authorized) {
       return NextResponse.json(
@@ -14,7 +25,25 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json();
+    // 3. PAYLOAD LIMIT & PARSING
+    const contentLength = req.headers.get('content-length');
+    if (contentLength && Number(contentLength) > 100 * 1024) {
+      return NextResponse.json(
+        { error: 'Payload too large (maximum 100 KB).' },
+        { status: 413 }
+      );
+    }
+
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid JSON request payload.' },
+        { status: 400 }
+      );
+    }
+
     const { action, email, ip, reason, value, siteConfig, applyToExistingFreeUsers } = body;
 
     // 1. IP Blacklist Security Actions
