@@ -3,6 +3,8 @@ export interface CoreWebVitalsMetric {
   displayValue: string;
   category: 'FAST' | 'AVERAGE' | 'SLOW'; // Good, Needs Improvement, Poor
   score: number; // 0 - 1
+  source?: 'field' | 'origin' | 'lab';
+  label?: string;
 }
 
 export interface SpeedOpportunity {
@@ -55,6 +57,7 @@ export async function fetchGooglePageSpeedData(
     const json = await res.json();
     const lighthouse = json.lighthouseResult;
     const crux = json.loadingExperience;
+    const originCrux = json.originLoadingExperience;
 
     if (!lighthouse) return null;
 
@@ -76,20 +79,73 @@ export async function fetchGooglePageSpeedData(
       displayValue: lcpAudit.displayValue || `${lcpVal.toFixed(1)} s`,
       category: lcpCategory,
       score: lcpAudit.score || 0,
+      source: 'lab',
     };
 
-    // 2. INP / TBT (Interaction to Next Paint / Total Blocking Time)
-    const inpAudit = audits['interactive'] || audits['total-blocking-time'] || {};
-    const inpVal = inpAudit.numericValue || 150;
-    const inpCategory: 'FAST' | 'AVERAGE' | 'SLOW' =
-      inpVal <= 200 ? 'FAST' : inpVal <= 500 ? 'AVERAGE' : 'SLOW';
+    // 2. INP (Interaction to Next Paint) - Authentic CrUX Field metric with explicit TBT Lab Fallback
+    const cruxInp = crux?.metrics?.INTERACTION_TO_NEXT_PAINT;
+    const originInp = originCrux?.metrics?.INTERACTION_TO_NEXT_PAINT;
+    const tbtAudit = audits['total-blocking-time'] || {};
 
-    const inp: CoreWebVitalsMetric = {
-      value: Math.round(inpVal),
-      displayValue: `${Math.round(inpVal)} ms`,
-      category: inpCategory,
-      score: inpAudit.score || 0,
-    };
+    let inp: CoreWebVitalsMetric;
+
+    if (cruxInp && typeof cruxInp.percentile === 'number') {
+      const inpVal = Math.round(cruxInp.percentile);
+      const inpCategory: 'FAST' | 'AVERAGE' | 'SLOW' =
+        cruxInp.category === 'FAST'
+          ? 'FAST'
+          : cruxInp.category === 'SLOW'
+          ? 'SLOW'
+          : inpVal <= 200
+          ? 'FAST'
+          : inpVal <= 500
+          ? 'AVERAGE'
+          : 'SLOW';
+
+      inp = {
+        value: inpVal,
+        displayValue: `${inpVal} ms`,
+        category: inpCategory,
+        score: inpCategory === 'FAST' ? 1 : inpCategory === 'AVERAGE' ? 0.65 : 0.2,
+        source: 'field',
+        label: 'CrUX Field Data',
+      };
+    } else if (originInp && typeof originInp.percentile === 'number') {
+      const inpVal = Math.round(originInp.percentile);
+      const inpCategory: 'FAST' | 'AVERAGE' | 'SLOW' =
+        originInp.category === 'FAST'
+          ? 'FAST'
+          : originInp.category === 'SLOW'
+          ? 'SLOW'
+          : inpVal <= 200
+          ? 'FAST'
+          : inpVal <= 500
+          ? 'AVERAGE'
+          : 'SLOW';
+
+      inp = {
+        value: inpVal,
+        displayValue: `${inpVal} ms`,
+        category: inpCategory,
+        score: inpCategory === 'FAST' ? 1 : inpCategory === 'AVERAGE' ? 0.65 : 0.2,
+        source: 'origin',
+        label: 'Origin CrUX Field',
+      };
+    } else {
+      // When URL has insufficient real-user CrUX field traffic, use Lighthouse Total Blocking Time as honest lab proxy
+      const tbtVal = Math.round(tbtAudit.numericValue ?? 150);
+      const tbtCategory: 'FAST' | 'AVERAGE' | 'SLOW' =
+        tbtVal <= 200 ? 'FAST' : tbtVal <= 600 ? 'AVERAGE' : 'SLOW';
+
+      inp = {
+        value: tbtVal,
+        displayValue: `${tbtVal} ms (Lab TBT)`,
+        category: tbtCategory,
+        score: tbtAudit.score ?? (tbtCategory === 'FAST' ? 1 : tbtCategory === 'AVERAGE' ? 0.65 : 0.2),
+        source: 'lab',
+        label: 'TBT Lab Proxy (No CrUX Field Data)',
+      };
+    }
 
     // 3. CLS (Cumulative Layout Shift)
     const clsAudit = audits['cumulative-layout-shift'] || {};

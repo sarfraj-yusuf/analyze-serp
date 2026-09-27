@@ -55,21 +55,24 @@ const toolSchema = [
   {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
+    '@id': 'https://analyzeserp.com/featured-snippet-optimizer#app',
     name: 'Google Featured Snippet Optimizer & Position 0 Bait Studio',
     url: 'https://analyzeserp.com/featured-snippet-optimizer',
     description:
       'Audit Google Position 0 featured snippet opportunities, generate high-converting snippet bait definitions, and classify search intent.',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'All',
+    isPartOf: {
+      '@id': 'https://analyzeserp.com/#webapp',
+    },
+    provider: {
+      '@id': 'https://analyzeserp.com/#organization',
+    },
     offers: {
       '@type': 'Offer',
-      price: '0',
+      price: '0.00',
       priceCurrency: 'USD',
-    },
-    author: {
-      '@type': 'Organization',
-      name: 'AnalyzeSERP',
-      url: 'https://analyzeserp.com',
+      availability: 'https://schema.org/InStock',
     },
   },
 ];

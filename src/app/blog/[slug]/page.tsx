@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { MDXRemote } from 'next-mdx-remote/rsc';
@@ -108,7 +109,9 @@ export default async function SingleBlogPostPage({ params }: SingleBlogPageProps
     '@type': 'BlogPosting',
     headline: meta.title,
     description: meta.description,
-    image: `https://analyzeserp.com${meta.image}`,
+    image: meta.image
+      ? (meta.image.startsWith('http') ? meta.image : `https://analyzeserp.com${meta.image}`)
+      : 'https://analyzeserp.com/og-image.jpg',
     datePublished: meta.date,
     dateModified: meta.lastModified || meta.date,
     author: {
@@ -397,11 +400,14 @@ export default async function SingleBlogPostPage({ params }: SingleBlogPageProps
           <div className="w-full min-w-0 max-w-full">
             {/* Featured Editorial Cover Image: Proportional to reading column, flanked by sidebar with zero empty space */}
             {meta.image && (
-              <div className="w-full rounded-2xl overflow-hidden border border-slate-200/80 dark:border-white/10 shadow-sm bg-slate-100 dark:bg-slate-900 mb-8 aspect-[16/9] sm:aspect-[21/10] max-h-[360px]">
-                <img
+              <div className="w-full rounded-2xl overflow-hidden border border-slate-200/80 dark:border-white/10 shadow-sm bg-slate-100 dark:bg-slate-900 mb-8 aspect-[16/9] sm:aspect-[21/10] max-h-[360px] relative">
+                <Image
                   src={meta.image}
                   alt={meta.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 840px"
+                  className="object-cover"
                 />
               </div>
             )}

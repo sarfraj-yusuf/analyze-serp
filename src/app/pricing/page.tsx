@@ -170,22 +170,6 @@ export default function PricingPage() {
           availability: 'https://schema.org/InStock',
           description: 'Unlimited competitor SEO audits, Core Web Vitals checks, and white-label vector PDF exports.',
         },
-        {
-          '@type': 'Offer',
-          name: 'Pro Auditor Plan',
-          price: '19.00',
-          priceCurrency: 'USD',
-          availability: 'https://schema.org/PreOrder',
-          description: '5 competitor URLs, unlimited audit history, and priority crawling.',
-        },
-        {
-          '@type': 'Offer',
-          name: 'Agency Scale Plan',
-          price: '49.00',
-          priceCurrency: 'USD',
-          availability: 'https://schema.org/PreOrder',
-          description: 'Up to 25 competitor URLs, unbranded client reporting, and dedicated crawler queue.',
-        },
       ],
     },
   ];

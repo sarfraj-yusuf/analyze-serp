@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { BlogPostMeta } from '@/lib/blog';
 import {
   Search,
@@ -286,11 +287,14 @@ export const BlogExplorer: React.FC<BlogExplorerProps> = ({
 
             {/* Right Visual Image Column */}
             <div className="w-full lg:w-5/12 relative rounded-2xl overflow-hidden border border-slate-200/80 dark:border-white/10 shadow-lg min-h-[240px] sm:min-h-[300px]">
-              <Link href={`/blog/${featuredPost.slug}`} className="block w-full h-full">
-                <img
+              <Link href={`/blog/${featuredPost.slug}`} className="block w-full h-full relative">
+                <Image
                   src={featuredPost.image}
                   alt={featuredPost.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 42vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </Link>
             </div>
@@ -309,12 +313,14 @@ export const BlogExplorer: React.FC<BlogExplorerProps> = ({
               >
                 {/* Visual Header Thumbnail */}
                 <div className="relative aspect-[16/9] w-full overflow-hidden border-b border-slate-200/80 dark:border-white/10 bg-slate-100 dark:bg-slate-900">
-                  <Link href={`/blog/${post.slug}`} className="block w-full h-full">
+                  <Link href={`/blog/${post.slug}`} className="block w-full h-full relative">
                     {post.image ? (
-                      <img
+                      <Image
                         src={post.image}
                         alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-tr from-emerald-500/10 via-slate-900/10 to-teal-500/20 flex items-center justify-center">

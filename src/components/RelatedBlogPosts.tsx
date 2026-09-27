@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { BlogPostMeta } from '@/lib/blog';
 import { ArrowRight, BookOpen, Clock, Calendar } from 'lucide-react';
 
@@ -56,12 +57,14 @@ export const RelatedBlogPosts: React.FC<RelatedBlogPostsProps> = ({
           >
             {/* Thumbnail */}
             <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
-              <Link href={`/blog/${post.slug}`} className="block w-full h-full">
+              <Link href={`/blog/${post.slug}`} className="block w-full h-full relative">
                 {post.image ? (
-                  <img
+                  <Image
                     src={post.image}
                     alt={post.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
                   <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">

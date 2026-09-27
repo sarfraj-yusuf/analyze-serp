@@ -289,9 +289,22 @@ export const CoreWebVitalsCard: React.FC<CoreWebVitalsCardProps> = ({ initialUrl
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-slate-100">
                   <MousePointerClick className="w-4 h-4 text-cyan-500" />
-                  <span>INP (Responsiveness)</span>
-                  <SEOExplanationTooltip text="Interaction to Next Paint: Measures user click, tap, and keyboard response latency. Good: <= 200ms" />
+                  <span>{data.inp.source === 'lab' ? 'TBT / INP' : 'INP (Responsiveness)'}</span>
+                  <SEOExplanationTooltip text={
+                    data.inp.source === 'lab'
+                      ? 'Total Blocking Time (Lab Diagnostic): Because this URL has insufficient CrUX field traffic, Lighthouse TBT is measured as an interactivity proxy. Good: <= 200ms'
+                      : 'Interaction to Next Paint: Real-user field responsiveness measured from actual Chrome user sessions (CrUX). Good: <= 200ms'
+                  } />
                 </div>
+                {data.inp.source && (
+                  <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider ${
+                    data.inp.source === 'field' || data.inp.source === 'origin'
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                      : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-white/10'
+                  }`}>
+                    {data.inp.source === 'lab' ? 'Lab TBT' : 'CrUX Field'}
+                  </span>
+                )}
               </div>
 
               <div className="flex items-baseline justify-between">

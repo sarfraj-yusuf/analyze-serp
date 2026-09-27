@@ -5,13 +5,11 @@ import "./globals.css";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  adjustFontFallback: false,
 });
 
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
-  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
@@ -112,7 +110,6 @@ const jsonLdSchema = {
       },
       "sameAs": [
         "https://twitter.com/analyzeserp",
-        "https://twitter.com/sarfrajyusuf",
         "https://github.com/sarfraj-yusuf/analyze-serp"
       ]
     },
@@ -128,7 +125,7 @@ const jsonLdSchema = {
       "inLanguage": "en-US"
     },
     {
-      "@type": "WebApplication",
+      "@type": ["SoftwareApplication", "WebApplication"],
       "@id": "https://analyzeserp.com/#webapp",
       "url": "https://analyzeserp.com",
       "name": "AnalyzeSERP Competitor SEO Analyzer",

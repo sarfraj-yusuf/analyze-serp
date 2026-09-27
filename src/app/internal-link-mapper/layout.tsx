@@ -55,21 +55,24 @@ const toolSchema = [
   {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
+    '@id': 'https://analyzeserp.com/internal-link-mapper#app',
     name: 'Internal Link Topology Mapper & PageRank Silo Analyzer',
     url: 'https://analyzeserp.com/internal-link-mapper',
     description:
       'Map internal link architecture, destination target hubs, and 5-tier anchor text distribution.',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'All',
+    isPartOf: {
+      '@id': 'https://analyzeserp.com/#webapp',
+    },
+    provider: {
+      '@id': 'https://analyzeserp.com/#organization',
+    },
     offers: {
       '@type': 'Offer',
-      price: '0',
+      price: '0.00',
       priceCurrency: 'USD',
-    },
-    author: {
-      '@type': 'Organization',
-      name: 'AnalyzeSERP',
-      url: 'https://analyzeserp.com',
+      availability: 'https://schema.org/InStock',
     },
   },
 ];

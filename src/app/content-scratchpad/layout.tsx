@@ -55,21 +55,24 @@ const toolSchema = [
   {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
+    '@id': 'https://analyzeserp.com/content-scratchpad#app',
     name: 'Live SEO Content Scratchpad & Real-Time Lexical Density Scorer',
     url: 'https://analyzeserp.com/content-scratchpad',
     description:
       'Real-time lexical scoring studio with competitor keyword checklist, keyword density guard, and Flesch reading ease analyzer.',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'All',
+    isPartOf: {
+      '@id': 'https://analyzeserp.com/#webapp',
+    },
+    provider: {
+      '@id': 'https://analyzeserp.com/#organization',
+    },
     offers: {
       '@type': 'Offer',
-      price: '0',
+      price: '0.00',
       priceCurrency: 'USD',
-    },
-    author: {
-      '@type': 'Organization',
-      name: 'AnalyzeSERP',
-      url: 'https://analyzeserp.com',
+      availability: 'https://schema.org/InStock',
     },
   },
 ];
