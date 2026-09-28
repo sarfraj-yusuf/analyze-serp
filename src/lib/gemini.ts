@@ -81,13 +81,13 @@ export interface SnippetBaitResult {
   rationale: string;
 }
 
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 
 // Fallback cascade capped at maximum 2 attempts (Primary + 1 fallback) to prevent retry storms
 const FALLBACK_MODELS = [
   DEFAULT_MODEL,
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
+  'gemini-3.8-flash',
+  'gemini-2.5-flash',
 ];
 
 const MAX_FALLBACK_ATTEMPTS = 2; // Strict limit: 1 primary attempt + 1 single fallback
