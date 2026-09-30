@@ -2098,7 +2098,7 @@ let cachedLiveHealth: {
 async function checkLiveGeminiHealth(apiKey: string): Promise<{ live: boolean; pingMs: number }> {
   try {
     const start = Date.now();
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash?key=${apiKey}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite?key=${apiKey}`, {
       method: 'GET',
       headers: { Accept: 'application/json' },
       signal: AbortSignal.timeout(3000),

@@ -90,6 +90,8 @@ export default function DashboardPage() {
   const [copiedId, setCopiedId] = useState<string | number | null>(null);
   const [deletingAuditId, setDeletingAuditId] = useState<number | null>(null);
   const [deletingSnapshotId, setDeletingSnapshotId] = useState<number | null>(null);
+  const [confirmDeleteAuditId, setConfirmDeleteAuditId] = useState<number | null>(null);
+  const [confirmDeleteSnapshotId, setConfirmDeleteSnapshotId] = useState<number | null>(null);
   const [isSuspended, setIsSuspended] = useState(false);
 
   // Enhancement 1: Instant URL Audit Bar state
@@ -289,7 +291,6 @@ export default function DashboardPage() {
 
   // Delete an audit history record
   const handleDeleteAudit = async (id: number) => {
-    if (!window.confirm('Are you sure you want to remove this audit from your history?')) return;
     setDeletingAuditId(id);
     try {
       const res = await fetch(`/api/user/history?id=${id}`, {
@@ -319,7 +320,6 @@ export default function DashboardPage() {
 
   // Delete a saved snapshot record
   const handleDeleteSnapshot = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this saved snapshot?')) return;
     setDeletingSnapshotId(id);
     try {
       const res = await fetch(`/api/audit/snapshots?id=${id}`, {
@@ -1172,17 +1172,41 @@ export default function DashboardPage() {
                                 <span className="hidden sm:inline">Compare Diff</span>
                               </Link>
 
-                              {/* Delete Snapshot */}
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteSnapshot(item.id)}
-                                disabled={deletingSnapshotId === item.id}
-                                aria-label={`Delete snapshot for ${item.url}`}
-                                className="p-1.5 rounded-xl bg-slate-100 hover:bg-rose-500/10 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 dark:bg-white/5 dark:hover:bg-rose-500/20 transition-all cursor-pointer disabled:opacity-40"
-                                title="Delete saved snapshot"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              {/* Delete Snapshot with Inline Confirmation */}
+                              {confirmDeleteSnapshotId === item.id ? (
+                                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-rose-500/10 border border-rose-500/30 animate-in fade-in zoom-in-95 duration-150">
+                                  <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 pl-1.5 whitespace-nowrap">Delete?</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setConfirmDeleteSnapshotId(null);
+                                      handleDeleteSnapshot(item.id);
+                                    }}
+                                    disabled={deletingSnapshotId === item.id}
+                                    className="px-2 py-0.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+                                  >
+                                    {deletingSnapshotId === item.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Yes'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setConfirmDeleteSnapshotId(null)}
+                                    className="px-2 py-0.5 rounded-lg bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-slate-700 dark:text-slate-300 text-[11px] font-medium transition-all cursor-pointer whitespace-nowrap"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirmDeleteSnapshotId(item.id)}
+                                  disabled={deletingSnapshotId === item.id}
+                                  aria-label={`Delete snapshot for ${item.url}`}
+                                  className="p-1.5 rounded-xl bg-slate-100 hover:bg-rose-500/10 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 dark:bg-white/5 dark:hover:bg-rose-500/20 transition-all cursor-pointer disabled:opacity-40"
+                                  title="Delete saved snapshot"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
                             </div>
                           </div>
                         );
@@ -1568,17 +1592,41 @@ export default function DashboardPage() {
             )}
           </button>
 
-          {/* Delete Audit History Row */}
-          <button
-            type="button"
-            onClick={() => handleDeleteAudit(item.id)}
-            disabled={deletingAuditId === item.id}
-            aria-label={`Delete audit for ${item.url}`}
-            className="p-1.5 rounded-xl bg-slate-100 hover:bg-rose-500/10 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 dark:bg-white/5 dark:hover:bg-rose-500/20 transition-all cursor-pointer disabled:opacity-40"
-            title="Remove from history"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          {/* Delete Audit History Row with Inline Confirmation */}
+          {confirmDeleteAuditId === item.id ? (
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-rose-500/10 border border-rose-500/30 animate-in fade-in zoom-in-95 duration-150">
+              <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 pl-1.5 whitespace-nowrap">Delete?</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmDeleteAuditId(null);
+                  handleDeleteAudit(item.id);
+                }}
+                disabled={deletingAuditId === item.id}
+                className="px-2 py-0.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+              >
+                {deletingAuditId === item.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Yes'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteAuditId(null)}
+                className="px-2 py-0.5 rounded-lg bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-slate-700 dark:text-slate-300 text-[11px] font-medium transition-all cursor-pointer whitespace-nowrap"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmDeleteAuditId(item.id)}
+              disabled={deletingAuditId === item.id}
+              aria-label={`Delete audit for ${item.url}`}
+              className="p-1.5 rounded-xl bg-slate-100 hover:bg-rose-500/10 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 dark:bg-white/5 dark:hover:bg-rose-500/20 transition-all cursor-pointer disabled:opacity-40"
+              title="Remove from history"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     );

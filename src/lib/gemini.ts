@@ -81,16 +81,17 @@ export interface SnippetBaitResult {
   rationale: string;
 }
 
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
-// Fallback cascade capped at maximum 2 attempts (Primary + 1 fallback) to prevent retry storms
+// High-availability fallback cascade prioritizing active, high-capacity models
 const FALLBACK_MODELS = [
   DEFAULT_MODEL,
-  'gemini-3.8-flash',
-  'gemini-2.5-flash',
+  'gemini-3.5-flash-lite',
+  'gemini-3.6-flash',
+  'gemini-3.5-flash',
 ];
 
-const MAX_FALLBACK_ATTEMPTS = 2; // Strict limit: 1 primary attempt + 1 single fallback
+const MAX_FALLBACK_ATTEMPTS = 3; // Allows primary attempt + up to 2 distinct fallbacks
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -190,15 +191,19 @@ export async function callGeminiApi(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestBody),
+      signal: AbortSignal.timeout(18000),
     });
   } catch (netErr) {
     const canRetry = attemptIndex < MAX_FALLBACK_ATTEMPTS - 1;
     if (canRetry) {
-      console.warn(`[Gemini Network Retry] Transient network failure on attempt ${attemptIndex + 1}. Backing off...`);
-      await sleep(600);
+      const nextAttempt = attemptIndex + 1;
+      const nextModel = FALLBACK_MODELS[nextAttempt % FALLBACK_MODELS.length];
+      console.warn(`[Gemini Network/Timeout Retry] Transient failure on ${model} (attempt ${attemptIndex + 1}). Switching to ${nextModel}...`);
+      await sleep(400);
       return callGeminiApi(prompt, {
         ...options,
-        attemptIndex: attemptIndex + 1,
+        model: nextModel,
+        attemptIndex: nextAttempt,
       });
     }
     throw new Error(`Network error contacting Gemini API: ${netErr instanceof Error ? netErr.message : 'Unknown network failure'}`);
