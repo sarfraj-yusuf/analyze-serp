@@ -242,7 +242,9 @@ export default function DashboardPage() {
       const query = searchQuery.toLowerCase();
       const match =
         item.url.toLowerCase().includes(query) ||
-        (item.title && item.title.toLowerCase().includes(query));
+        (item.title && item.title.toLowerCase().includes(query)) ||
+        (item.target_keyword && item.target_keyword.toLowerCase().includes(query)) ||
+        (item.competitor_urls && item.competitor_urls.toLowerCase().includes(query));
       if (!match) return false;
     }
 
@@ -1387,6 +1389,20 @@ export default function DashboardPage() {
       year: 'numeric',
     });
 
+    let competitors: string[] = [];
+    if (item.competitor_urls) {
+      try {
+        const parsed = JSON.parse(item.competitor_urls);
+        if (Array.isArray(parsed)) {
+          competitors = parsed;
+        }
+      } catch {
+        competitors = [];
+      }
+    }
+
+    const allSessionUrls = [item.url, ...competitors];
+    const isMultiUrlSession = competitors.length > 0;
     const matchingSnapshot = (data?.snapshots || []).find((s) => s.url === item.url);
 
     return (
@@ -1395,7 +1411,7 @@ export default function DashboardPage() {
         className="py-3 sm:py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 first:pt-0 last:pb-0"
       >
         <div className="space-y-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {/* Enhancement 2: Star / Pin Toggle Button */}
             <button
               type="button"
@@ -1432,10 +1448,46 @@ export default function DashboardPage() {
             {item.title || 'Audited Webpage'}
           </p>
 
-          <div className="flex items-center gap-3 text-[11px] text-slate-600 dark:text-slate-400 font-mono pt-0.5">
+          <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-600 dark:text-slate-400 font-mono pt-0.5">
             <span>{dateStr}</span>
             {item.word_count && <span>&bull; {item.word_count.toLocaleString()} words</span>}
+            {item.target_keyword && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-slate-100 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-300">
+                <Target className="w-3 h-3 text-emerald-500" />
+                <span>&ldquo;{item.target_keyword}&rdquo;</span>
+              </span>
+            )}
           </div>
+
+          {/* Competitor Cohort badges */}
+          {isMultiUrlSession && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20">
+                <GitCompare className="w-3 h-3" />
+                <span>vs {competitors.length} Competitors</span>
+              </span>
+              {competitors.slice(0, 3).map((compUrl, idx) => {
+                let hostname = compUrl;
+                try {
+                  hostname = new URL(compUrl).hostname.replace(/^www\./, '');
+                } catch {}
+                return (
+                  <span
+                    key={idx}
+                    className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200/60 dark:border-white/[0.06] truncate max-w-[120px]"
+                    title={compUrl}
+                  >
+                    {hostname}
+                  </span>
+                );
+              })}
+              {competitors.length > 3 && (
+                <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                  +{competitors.length - 3} more
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Score Badge & Quick Actions */}
@@ -1459,22 +1511,22 @@ export default function DashboardPage() {
             href={
               matchingSnapshot
                 ? `/audit?snapshotId=${matchingSnapshot.id}`
-                : `/audit?urls=${encodeURIComponent(item.url)}`
+                : `/audit?urls=${encodeURIComponent(allSessionUrls.join(','))}${item.target_keyword ? `&keyword=${encodeURIComponent(item.target_keyword)}` : ''}`
             }
             className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs"
             title={
               matchingSnapshot
-                ? 'View full saved report (0s latency, no credits used)'
+                ? 'View full saved workspace (0s latency, no credits used)'
                 : 'Open in competitor workspace'
             }
           >
             <Eye className="w-3.5 h-3.5" />
-            <span>View Report</span>
+            <span>{isMultiUrlSession ? 'Open Workspace' : 'View Report'}</span>
           </Link>
 
           {/* Enhancement 4: Quick Competitor Compare Action */}
           <Link
-            href={`/audit?urls=${encodeURIComponent(item.url)}`}
+            href={`/audit?urls=${encodeURIComponent(allSessionUrls.join(','))}${item.target_keyword ? `&keyword=${encodeURIComponent(item.target_keyword)}` : ''}`}
             className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200/80 dark:border-white/10"
             title="Open in side-by-side competitor audit studio"
           >
@@ -1484,9 +1536,9 @@ export default function DashboardPage() {
 
           {/* Re-run Audit Action */}
           <Link
-            href={`/?url=${encodeURIComponent(item.url)}`}
+            href={`/audit?urls=${encodeURIComponent(allSessionUrls.join(','))}${item.target_keyword ? `&keyword=${encodeURIComponent(item.target_keyword)}` : ''}`}
             className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200/80 dark:border-white/10"
-            title="Re-run live audit"
+            title="Re-run live competitor audit session"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Re-run</span>

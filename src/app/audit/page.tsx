@@ -100,7 +100,10 @@ function AuditWorkspaceClient() {
         const res = await fetch('/api/audit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ urls: normalizedUrls }),
+          body: JSON.stringify({
+            urls: normalizedUrls,
+            keyword: keyword.trim() || undefined,
+          }),
         });
 
         if (!res.ok) {
@@ -182,15 +185,31 @@ function AuditWorkspaceClient() {
       fetch(`/api/audit/snapshots?id=${encodeURIComponent(querySnapshotId)}`)
         .then((res) => res.json())
         .then((json) => {
-          if (json.success && json.snapshot?.parsed?.audit) {
+          if (json.success && (json.snapshot?.parsed?.results || json.snapshot?.parsed?.audit)) {
             const snap = json.snapshot.parsed;
-            setUrls([snap.url]);
-            setTargetKeyword(snap.targetKeyword || '');
-            setAuditResponse({
-              timestamp: new Date(snap.timestamp || Date.now()).toISOString(),
-              totalUrls: 1,
-              results: [snap.audit],
-            });
+            if (snap.results && Array.isArray(snap.results) && snap.results.length > 0) {
+              // Version 2: Multi-URL Competitor Workspace restoration
+              const restoredUrls =
+                Array.isArray(snap.urls) && snap.urls.length > 0
+                  ? snap.urls
+                  : snap.results.map((r: SinglePageAudit) => r.url);
+              setUrls(restoredUrls);
+              setTargetKeyword(snap.targetKeyword || '');
+              setAuditResponse({
+                timestamp: new Date(snap.timestamp || Date.now()).toISOString(),
+                totalUrls: snap.results.length,
+                results: snap.results,
+              });
+            } else if (snap.audit) {
+              // Legacy Version 1: Single-URL restoration
+              setUrls([snap.url]);
+              setTargetKeyword(snap.targetKeyword || '');
+              setAuditResponse({
+                timestamp: new Date(snap.timestamp || Date.now()).toISOString(),
+                totalUrls: 1,
+                results: [snap.audit],
+              });
+            }
             setViewingSnapshotInfo({
               id: json.snapshot.id,
               label: json.snapshot.label || 'Saved Snapshot',

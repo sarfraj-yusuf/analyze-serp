@@ -115,6 +115,10 @@ export interface DbUserAudit {
   score: number | null;
   word_count: number | null;
   status: string;
+  competitor_urls?: string | null;
+  competitor_count?: number | null;
+  target_keyword?: string | null;
+  session_id?: string | null;
   created_at: string | Date;
 }
 
@@ -286,11 +290,65 @@ export async function initDatabaseTables(): Promise<void> {
           score INT NULL,
           word_count INT NULL,
           status VARCHAR(50) DEFAULT 'success',
+          competitor_urls TEXT NULL,
+          competitor_count INT DEFAULT 0,
+          target_keyword VARCHAR(255) NULL,
+          session_id VARCHAR(64) NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           INDEX idx_audit_email (user_email),
-          INDEX idx_audit_created (created_at)
+          INDEX idx_audit_created (created_at),
+          INDEX idx_audit_session (session_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
+
+      // Safe non-destructive column additions for user_audit_history
+      try {
+        const [compUrlsCol] = (await connection.query(`
+          SELECT COUNT(*) as cnt FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_audit_history' AND COLUMN_NAME = 'competitor_urls'
+        `)) as any;
+        if (compUrlsCol && compUrlsCol[0] && Number(compUrlsCol[0].cnt) === 0) {
+          await connection.query(`ALTER TABLE user_audit_history ADD COLUMN competitor_urls TEXT NULL`);
+        }
+      } catch (colErr) {
+        console.error('[DB Migration Error] competitor_urls check:', colErr);
+      }
+
+      try {
+        const [compCountCol] = (await connection.query(`
+          SELECT COUNT(*) as cnt FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_audit_history' AND COLUMN_NAME = 'competitor_count'
+        `)) as any;
+        if (compCountCol && compCountCol[0] && Number(compCountCol[0].cnt) === 0) {
+          await connection.query(`ALTER TABLE user_audit_history ADD COLUMN competitor_count INT DEFAULT 0`);
+        }
+      } catch (colErr) {
+        console.error('[DB Migration Error] competitor_count check:', colErr);
+      }
+
+      try {
+        const [targetKwCol] = (await connection.query(`
+          SELECT COUNT(*) as cnt FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_audit_history' AND COLUMN_NAME = 'target_keyword'
+        `)) as any;
+        if (targetKwCol && targetKwCol[0] && Number(targetKwCol[0].cnt) === 0) {
+          await connection.query(`ALTER TABLE user_audit_history ADD COLUMN target_keyword VARCHAR(255) NULL`);
+        }
+      } catch (colErr) {
+        console.error('[DB Migration Error] target_keyword check:', colErr);
+      }
+
+      try {
+        const [sessIdCol] = (await connection.query(`
+          SELECT COUNT(*) as cnt FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_audit_history' AND COLUMN_NAME = 'session_id'
+        `)) as any;
+        if (sessIdCol && sessIdCol[0] && Number(sessIdCol[0].cnt) === 0) {
+          await connection.query(`ALTER TABLE user_audit_history ADD COLUMN session_id VARCHAR(64) NULL`);
+        }
+      } catch (colErr) {
+        console.error('[DB Migration Error] session_id check:', colErr);
+      }
 
       await connection.query(`
         CREATE TABLE IF NOT EXISTS user_ai_history (
@@ -1156,6 +1214,10 @@ export async function saveUserAudit(data: {
   score?: number | null;
   word_count?: number | null;
   status?: string;
+  competitor_urls?: string | null;
+  competitor_count?: number | null;
+  target_keyword?: string | null;
+  session_id?: string | null;
 }): Promise<boolean> {
   const db = getPool();
 
@@ -1165,7 +1227,7 @@ export async function saveUserAudit(data: {
       const connection = await db.getConnection();
       try {
         await connection.execute(
-          `INSERT INTO user_audit_history (user_email, url, title, score, word_count, status) VALUES (?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO user_audit_history (user_email, url, title, score, word_count, status, competitor_urls, competitor_count, target_keyword, session_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             data.user_email,
             data.url,
@@ -1173,6 +1235,10 @@ export async function saveUserAudit(data: {
             data.score ?? null,
             data.word_count ?? null,
             data.status || 'success',
+            data.competitor_urls || null,
+            data.competitor_count ?? 0,
+            data.target_keyword || null,
+            data.session_id || null,
           ]
         );
         return true;
@@ -1193,6 +1259,10 @@ export async function saveUserAudit(data: {
     score: data.score ?? null,
     word_count: data.word_count ?? null,
     status: data.status || 'success',
+    competitor_urls: data.competitor_urls || null,
+    competitor_count: data.competitor_count ?? 0,
+    target_keyword: data.target_keyword || null,
+    session_id: data.session_id || null,
     created_at: new Date().toISOString(),
   });
   return true;

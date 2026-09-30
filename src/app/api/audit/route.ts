@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON request payload' }, { status: 400 });
     }
 
-    const { urls } = body as { urls: string[] };
+    const { urls, keyword } = body as { urls: string[]; keyword?: string };
 
     if (!urls || !Array.isArray(urls) || urls.length === 0) {
       return NextResponse.json(
@@ -241,47 +241,71 @@ export async function POST(req: NextRequest) {
 
     const results = await Promise.all(auditPromises);
 
-    // If authenticated, persist audit history and full snapshot for user
+    // If authenticated, persist unified audit session history and full multi-URL snapshot for user
     if (userEmail) {
       try {
-        for (const r of results) {
-          if (r.status === 'success') {
-            await saveUserAudit({
-              user_email: userEmail,
-              url: r.url,
-              title: r.meta?.title || 'Audited Webpage',
-              score: r.technicalAudit?.technicalScore ?? null,
-              word_count: r.wordCount,
-              status: r.status,
-            });
+        const successfulResults = results.filter((r) => r.status === 'success');
+        if (successfulResults.length > 0) {
+          // Primary target is the first successful result or results[0]
+          const primaryResult = results[0].status === 'success' ? results[0] : successfulResults[0];
+          const competitorResults = results.filter((r) => r !== primaryResult && r.status === 'success');
+          const competitorUrls = competitorResults.map((r) => r.url);
 
-            const targetKw = r.keywords?.oneGram?.[0]?.phrase || undefined;
-            const now = Date.now();
-            const dateLabel = new Date(now).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            });
+          const targetKw =
+            typeof keyword === 'string' && keyword.trim()
+              ? keyword.trim()
+              : primaryResult.keywords?.oneGram?.[0]?.phrase || undefined;
 
-            await saveUserAuditSnapshot({
-              user_email: userEmail,
-              url: r.url,
-              label: `Crawl (${dateLabel})`,
-              score: r.technicalAudit?.technicalScore ?? 0,
-              target_keyword: targetKw || null,
-              snapshot_json: JSON.stringify({
-                id: `snap-${now}-${Math.random().toString(36).slice(2, 7)}`,
-                url: r.url,
-                label: `Crawl (${dateLabel})`,
-                timestamp: now,
-                score: r.technicalAudit?.technicalScore ?? 0,
-                targetKeyword: targetKw,
-                audit: r,
-                isCloudSynced: true,
-              }),
-            });
-          }
+          const now = Date.now();
+          const dateLabel = new Date(now).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+
+          const sessionId = `audit-sess-${now}-${Math.random().toString(36).slice(2, 7)}`;
+
+          // 1. Save unified audit session to user_audit_history
+          await saveUserAudit({
+            user_email: userEmail,
+            url: primaryResult.url,
+            title: primaryResult.meta?.title || 'Audited Webpage',
+            score: primaryResult.technicalAudit?.technicalScore ?? null,
+            word_count: primaryResult.wordCount,
+            status: primaryResult.status,
+            competitor_urls: competitorUrls.length > 0 ? JSON.stringify(competitorUrls) : null,
+            competitor_count: competitorUrls.length,
+            target_keyword: targetKw || null,
+            session_id: sessionId,
+          });
+
+          // 2. Save full multi-URL snapshot to user_audit_snapshots
+          const snapshotLabel =
+            competitorUrls.length > 0
+              ? `Competitor Audit vs ${competitorUrls.length} Rivals (${dateLabel})`
+              : `Audit (${dateLabel})`;
+
+          await saveUserAuditSnapshot({
+            user_email: userEmail,
+            url: primaryResult.url,
+            label: snapshotLabel,
+            score: primaryResult.technicalAudit?.technicalScore ?? 0,
+            target_keyword: targetKw || null,
+            snapshot_json: JSON.stringify({
+              version: 2,
+              id: `snap-${now}-${Math.random().toString(36).slice(2, 7)}`,
+              sessionId,
+              primaryUrl: primaryResult.url,
+              urls: targetUrls,
+              targetKeyword: targetKw,
+              timestamp: now,
+              score: primaryResult.technicalAudit?.technicalScore ?? 0,
+              audit: primaryResult, // For backwards compatibility with single-URL inspectors
+              results: results, // Preserves complete cohort of all audited URLs!
+              isCloudSynced: true,
+            }),
+          });
         }
       } catch (auditSaveErr) {
         console.error('[User Audit History Save Warning]:', auditSaveErr);
