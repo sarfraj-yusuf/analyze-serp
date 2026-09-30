@@ -285,21 +285,21 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
       )}
 
       {/* 1. EXECUTIVE SERP PARITY COCKPIT */}
-      <div className="rounded-2xl p-4 sm:p-5 glass-panel border border-slate-200/80 dark:border-white/[0.08] shadow-sm relative z-40 backdrop-blur-md">
+      <div className="rounded-2xl p-5 bg-white dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/[0.06] shadow-2xs relative z-40">
         
         {/* Tier 1: Top Context Strip & Command Toolbar */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-200/70 dark:border-white/[0.06]">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
           {/* Left Context: Status & Focus Keyword */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+              <span className="size-1.5 rounded-full bg-emerald-500" />
               BENCHMARK AUDIT ACTIVE
             </span>
             {targetKeyword && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-mono bg-slate-100 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06] text-slate-700 dark:text-slate-300">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-mono bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.05] text-slate-700 dark:text-slate-300">
                 <Target className="size-3 text-emerald-500" />
                 <span className="text-slate-500 dark:text-slate-400">Query:</span>
-                <strong className="font-semibold text-slate-800 dark:text-slate-200">"{targetKeyword}"</strong>
+                <strong className="font-semibold text-slate-900 dark:text-slate-100">"{targetKeyword}"</strong>
               </span>
             )}
           </div>
@@ -324,7 +324,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowAuthModal(true)}
-                    className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                    className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
                     aria-label="Save to Cloud"
                   >
                     <Cloud className="size-4" />
@@ -336,7 +336,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsShareModalOpen(true)}
-                  className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
                   aria-label="Share benchmark audit"
                 >
                   <Share2 className="size-4" />
@@ -347,7 +347,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                 <button
                   type="button"
                   onClick={handleCopySummary}
-                  className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
                   aria-label="Copy executive summary"
                 >
                   {copied ? <Check className="size-4 text-emerald-500" /> : <Copy className="size-4" />}
@@ -358,7 +358,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsDiffModalOpen(true)}
-                  className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
                   aria-label="Compare Before vs After"
                 >
                   <GitCompare className="size-4" />
@@ -369,7 +369,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsTopologyModalOpen(true)}
-                  className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
                   aria-label="Inspect link topology"
                 >
                   <Network className="size-4" />
@@ -378,7 +378,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             </div>
 
             {/* Subtle Divider */}
-            <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block" />
+            <div className="h-4 w-px bg-slate-200/60 dark:bg-white/10 mx-1 hidden sm:block" />
 
             {/* Unified Export Hub Dropdown */}
             <ExportDropdown
@@ -391,14 +391,14 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
         </div>
 
         {/* Tier 2: Balanced 2-Column Cockpit Body */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 pt-3.5 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-4 items-stretch">
           
           {/* Left Column (7 Cols): Benchmark Arena (Target Page vs Competitors) */}
-          <div className="lg:col-span-7 flex flex-col justify-between space-y-3 min-w-0">
+          <div className="lg:col-span-7 flex flex-col justify-between space-y-4 min-w-0">
             {/* Target Page Details */}
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 shrink-0">
+                <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 shrink-0">
                   Target Page (Your Site)
                 </span>
                 {targetAudit?.wordCount ? (
@@ -417,7 +417,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                   title={effectiveTargetUrl}
                 >
                   <span className="truncate">{effectiveTargetUrl}</span>
-                  <ExternalLink className="size-3.5 shrink-0 text-slate-500 group-hover:text-emerald-500 dark:text-slate-400 transition-colors" />
+                  <ExternalLink className="size-3.5 shrink-0 text-slate-400 group-hover:text-emerald-500 transition-colors" />
                 </a>
               </div>
 
@@ -428,59 +428,56 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
               )}
             </div>
 
-            {/* Visual VS Divider */}
-            <div className="flex items-center gap-2 text-slate-400 dark:text-slate-600 text-[10px] font-mono font-bold">
-              <div className="h-px bg-slate-200/80 dark:bg-white/[0.06] flex-1" />
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-500 dark:text-slate-400 tracking-wider">
-                BENCHMARKED AGAINST {competitorCount} COMPETITOR{competitorCount > 1 ? 'S' : ''}
+            {/* Competitor Domain Row without heavy line clutter */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 block">
+                Benchmarked against {competitorCount} competitor{competitorCount > 1 ? 's' : ''}:
               </span>
-              <div className="h-px bg-slate-200/80 dark:bg-white/[0.06] flex-1" />
-            </div>
 
-            {/* Competitor Domain Pills */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              {competitorUrls.length > 0 ? (
-                competitorUrls.map((cUrl, cIdx) => {
-                  let host = '';
-                  try {
-                    host = new URL(cUrl).hostname.replace(/^www\./, '');
-                  } catch {
-                    host = cUrl;
-                  }
-                  const compAudit = validResults.find((r) => r.url === cUrl);
-                  return (
-                    <a
-                      key={cIdx}
-                      href={cUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-2.5 py-1 rounded-lg bg-slate-100/90 hover:bg-slate-200/80 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-slate-200/80 dark:border-white/[0.06] text-slate-700 dark:text-slate-300 font-mono text-xs flex items-center gap-1.5 transition-colors group max-w-[260px]"
-                      title={cUrl}
-                    >
-                      <span className="size-1.5 rounded-full bg-amber-500 shrink-0" />
-                      <span className="truncate">{host}</span>
-                      {compAudit?.wordCount ? (
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
-                          ({compAudit.wordCount.toLocaleString()}w)
-                        </span>
-                      ) : null}
-                      {compAudit?.technicalAudit?.ttfbMs ? (
-                        <span className="text-[10px] text-cyan-700 dark:text-cyan-400 font-mono font-semibold">
-                          • {compAudit.technicalAudit.ttfbMs}ms
-                        </span>
-                      ) : null}
-                      <ExternalLink className="size-3 text-slate-500 group-hover:text-emerald-500 dark:text-slate-400 shrink-0 transition-colors" />
-                    </a>
-                  );
-                })
-              ) : (
-                <span className="font-mono text-xs text-slate-600 dark:text-slate-400">Single URL baseline audit (no competitors added)</span>
-              )}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {competitorUrls.length > 0 ? (
+                  competitorUrls.map((cUrl, cIdx) => {
+                    let host = '';
+                    try {
+                      host = new URL(cUrl).hostname.replace(/^www\./, '');
+                    } catch {
+                      host = cUrl;
+                    }
+                    const compAudit = validResults.find((r) => r.url === cUrl);
+                    return (
+                      <a
+                        key={cIdx}
+                        href={cUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-white/[0.02] hover:bg-slate-100 dark:hover:bg-white/[0.05] border border-slate-200/50 dark:border-white/[0.05] text-slate-700 dark:text-slate-300 font-mono text-xs flex items-center gap-1.5 transition-colors group max-w-[260px]"
+                        title={cUrl}
+                      >
+                        <span className="size-1.5 rounded-full bg-amber-500 shrink-0" />
+                        <span className="truncate font-medium">{host}</span>
+                        {compAudit?.wordCount ? (
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                            ({compAudit.wordCount.toLocaleString()}w)
+                          </span>
+                        ) : null}
+                        {compAudit?.technicalAudit?.ttfbMs ? (
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                            • {compAudit.technicalAudit.ttfbMs}ms
+                          </span>
+                        ) : null}
+                        <ExternalLink className="size-3 text-slate-400 group-hover:text-emerald-500 shrink-0 transition-colors" />
+                      </a>
+                    );
+                  })
+                ) : (
+                  <span className="font-mono text-xs text-slate-500 dark:text-slate-400">Single URL baseline audit (no competitors added)</span>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Right Column (5 Cols): Elevated Executive Parity Scorecard */}
-          <div className="lg:col-span-5 rounded-xl p-4 bg-slate-50/90 dark:bg-slate-950/80 border border-slate-200/80 dark:border-white/[0.08] flex flex-col justify-between gap-3 shadow-xs">
+          <div className="lg:col-span-5 rounded-xl p-4 bg-slate-50/60 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] flex flex-col justify-between gap-3">
             
             {/* Score & Gauge Row */}
             <div className="flex items-center gap-3.5">
@@ -491,7 +488,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                     cy="28"
                     r="23"
                     stroke="currentColor"
-                    strokeWidth="4"
+                    strokeWidth="3.5"
                     className="text-slate-200 dark:text-slate-800"
                     fill="transparent"
                   />
@@ -500,7 +497,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                     cy="28"
                     r="23"
                     stroke="currentColor"
-                    strokeWidth="4"
+                    strokeWidth="3.5"
                     className={
                       (report.alignmentScore || 0) >= 70
                         ? 'text-emerald-500'
@@ -515,7 +512,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                   />
                 </svg>
                 <span
-                  className={`absolute font-heading font-extrabold text-sm sm:text-base tabular-nums ${
+                  className={`absolute font-mono font-bold text-sm sm:text-base tabular-nums ${
                     (report.alignmentScore || 0) >= 70
                       ? 'text-emerald-600 dark:text-emerald-400'
                       : (report.alignmentScore || 0) >= 50
@@ -528,10 +525,10 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
               </div>
 
               <div className="min-w-0">
-                <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <div className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   SERP Parity Index
                 </div>
-                <div className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 flex-wrap">
+                <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 flex-wrap">
                   <span
                     className={`inline-block size-1.5 rounded-full ${
                       (report.alignmentScore || 0) >= 70
@@ -548,7 +545,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                       ? 'Moderate Alignment'
                       : 'Critical Parity Gaps'}
                   </span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-mono text-[11px] font-semibold">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-mono text-[11px] font-medium">
                     • {report.opportunityCount} Priority Gaps
                   </span>
                 </div>
@@ -556,7 +553,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             </div>
 
             {/* Verdict Takeaway */}
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2" title={report.verdictHeadline}>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2" title={report.verdictHeadline}>
               {report.verdictHeadline || 'Target page benchmarked against top ranking competitors.'}
             </p>
 
@@ -564,7 +561,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             <button
               type="button"
               onClick={handleGoToActionPlan}
-              className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 inline-flex items-center gap-1 transition-colors self-start cursor-pointer group"
+              className="text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 inline-flex items-center gap-1 transition-colors self-start cursor-pointer group"
             >
               <span>Explore Prioritized Action Roadmap</span>
               <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
@@ -576,13 +573,13 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
 
       </div>
 
-      {/* 2. STICKY WORKSPACE NAVIGATION TABS (Mobile-friendly horizontal touch carousel) */}
+      {/* 2. STICKY SEGMENTED WORKSPACE NAVIGATION DOCK */}
       <div
         id="workspace-tabs-bar"
         role="tablist"
         aria-label="Competitor audit workspace sections"
         onKeyDown={handleTabsKeyDown}
-        className="sticky top-16 z-30 p-1.5 rounded-2xl glass-panel border border-slate-200/80 dark:border-white/[0.08] shadow-sm backdrop-blur-xl flex items-center gap-1.5 overflow-x-auto scrollbar-none"
+        className="sticky top-16 z-30 p-1 rounded-xl bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-white/[0.06] backdrop-blur-xl flex items-center gap-1 overflow-x-auto scrollbar-none shadow-2xs"
       >
         {/* Tab 1: Overview */}
         <Tooltip content="Overview & Action Roadmap" side="bottom">
@@ -594,10 +591,10 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             tabIndex={activeTab === 'overview' ? 0 : -1}
             type="button"
             onClick={() => handleTabSwitch('overview')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+            className={`px-3.5 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
               activeTab === 'overview'
-                ? 'bg-emerald-600 text-white shadow-xs font-bold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
+                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-white/5 font-medium border border-transparent'
             }`}
           >
             <Activity className="size-3.5" />
@@ -616,10 +613,10 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
               tabIndex={activeTab === 'keywords' ? 0 : -1}
               type="button"
               onClick={() => handleTabSwitch('keywords')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+              className={`px-3.5 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 activeTab === 'keywords'
-                  ? 'bg-emerald-600 text-white shadow-xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
+                  ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-white/5 font-medium border border-transparent'
               }`}
             >
               <Target className="size-3.5" />
@@ -639,14 +636,15 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
               tabIndex={activeTab === 'matrix' ? 0 : -1}
               type="button"
               onClick={() => handleTabSwitch('matrix')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+              className={`px-3.5 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 activeTab === 'matrix'
-                  ? 'bg-emerald-600 text-white shadow-xs font-bold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
+                  ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-white/5 font-medium border border-transparent'
               }`}
             >
               <Layers className="size-3.5" />
               <span>Multi-URL Matrix</span>
+              <span className="text-[10px] font-mono opacity-70">({validResults.length})</span>
             </button>
           </Tooltip>
         )}
@@ -661,14 +659,14 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             tabIndex={activeTab === 'inspector' ? 0 : -1}
             type="button"
             onClick={() => handleTabSwitch('inspector')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+            className={`px-3.5 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
               activeTab === 'inspector'
-                ? 'bg-emerald-600 text-white shadow-xs font-bold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
+                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-white/5 font-medium border border-transparent'
             }`}
           >
             <Search className="size-3.5" />
-            <span>URL Deep Inspector</span>
+            <span>Deep Inspector</span>
           </button>
         </Tooltip>
 
@@ -682,10 +680,10 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             tabIndex={activeTab === 'brief' ? 0 : -1}
             type="button"
             onClick={() => handleTabSwitch('brief')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+            className={`px-3.5 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
               activeTab === 'brief'
-                ? 'bg-emerald-600 text-white shadow-xs font-bold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5'
+                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-white/5 font-medium border border-transparent'
             }`}
           >
             <FileText className="size-3.5" />
@@ -733,13 +731,13 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
 
             {/* CHAPTER 03: FOUNDATIONS & COMPETITIVE SAFEGUARDS (2-COLUMN BALANCED DECK) */}
             {(report.technicalHygiene || (report.dontTouchStrengths && report.dontTouchStrengths.length > 0)) && (
-              <div id="foundations-safeguards-section" className="space-y-4">
+              <div id="foundations-safeguards-section" className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
-                    Chapter 03 · Foundations &amp; Safeguards Deck
+                  <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Foundations &amp; Safeguards Deck
                   </span>
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
                   {report.technicalHygiene && (
                     <div id="technical-hygiene-section" className="flex flex-col">
                       <TechnicalHygieneCard technicalHygiene={report.technicalHygiene} />
@@ -756,16 +754,15 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
 
             {/* Next Phase Quick Navigation Bridge */}
             {validResults.length >= 2 && (
-              <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-slate-50 to-emerald-500/15 dark:from-emerald-950/30 dark:via-slate-900 dark:to-emerald-900/30 border border-emerald-500/30 dark:border-emerald-500/20 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/[0.06] shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20">
-                    <Sparkles className="w-3 h-3" />
-                    <span>Next Workspace · Semantic &amp; Editorial Intelligence</span>
-                  </div>
-                  <h4 className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                  <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">
+                    Next Stage · Semantic &amp; Editorial Intelligence
+                  </span>
+                  <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                     Ready to close content gaps? Discover missing competitor keywords
                   </h4>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed max-w-2xl font-normal">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl font-normal">
                     You've audited technical parity. Now view the specific N-gram keyword phrases your competitors use and craft your high-ranking content outline.
                   </p>
                 </div>
@@ -773,10 +770,10 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                 <button
                   type="button"
                   onClick={() => handleTabSwitch('keywords')}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shrink-0 shadow-sm shadow-emerald-600/20 cursor-pointer active:scale-95 transition-[color,background-color,transform]"
+                  className="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-1.5 shrink-0 shadow-2xs cursor-pointer active:scale-98 transition-all"
                 >
                   <span>Explore Keyword Gaps</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="size-3.5" />
                 </button>
               </div>
             )}

@@ -408,12 +408,12 @@ function AuditWorkspaceClient() {
 
       <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* Navigation Breadcrumb Bar with Action Buttons */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200/80 dark:border-white/[0.08] text-xs">
-          <nav aria-label="Breadcrumbs" className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-white/[0.04] text-xs">
+          <nav aria-label="Breadcrumbs" className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
             <Link href="/" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
               Home
             </Link>
-            <ChevronRight className="size-3.5 text-slate-500 dark:text-slate-500" />
+            <ChevronRight className="size-3 text-slate-400" />
             <span className="font-semibold text-slate-800 dark:text-slate-200">
               Competitor SEO Audit Report
             </span>
@@ -424,7 +424,7 @@ function AuditWorkspaceClient() {
               <button
                 type="button"
                 onClick={() => setIsEditDockOpen(!isEditDockOpen)}
-                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-semibold text-xs flex items-center gap-1.5 transition-all border border-slate-200 dark:border-white/10 cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 dark:bg-white/[0.02] dark:hover:bg-white/[0.05] text-slate-700 dark:text-slate-300 font-medium text-xs flex items-center gap-1.5 transition-all border border-slate-200/60 dark:border-white/[0.06] cursor-pointer"
               >
                 <SlidersHorizontal className="size-3.5 text-emerald-500" />
                 <span>{isEditDockOpen ? 'Close URL Editor' : 'Edit URLs'}</span>
@@ -434,7 +434,7 @@ function AuditWorkspaceClient() {
               <button
                 type="button"
                 onClick={handleClearAndNew}
-                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 text-xs font-medium flex items-center gap-1.5 transition-all border border-slate-200 dark:border-white/10 cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 dark:bg-white/[0.02] dark:hover:bg-white/[0.05] text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 text-xs font-medium flex items-center gap-1.5 transition-all border border-slate-200/60 dark:border-white/[0.06] cursor-pointer"
               >
                 <RotateCcw className="size-3.5" />
                 <span>New Audit</span>
@@ -445,9 +445,9 @@ function AuditWorkspaceClient() {
 
         {/* Saved Snapshot Historical Notice Banner */}
         {viewingSnapshotInfo && (
-          <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-900 dark:text-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs animate-in fade-in duration-200">
+          <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-900 dark:text-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs animate-in fade-in duration-200">
             <div className="flex items-center gap-2.5 min-w-0">
-              <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0 animate-pulse" />
+              <span className="size-2 rounded-full bg-indigo-500 shrink-0" />
               <div className="min-w-0">
                 <span className="font-semibold text-slate-900 dark:text-white">
                   Viewing Historical Snapshot:
@@ -455,8 +455,8 @@ function AuditWorkspaceClient() {
                 <span className="font-mono text-indigo-700 dark:text-indigo-300">
                   {viewingSnapshotInfo.label} ({viewingSnapshotInfo.date})
                 </span>
-                <span className="hidden md:inline ml-2 text-[11px] font-mono text-slate-600 dark:text-slate-400">
-                  • 0s Instant Restoration • 0 Quota Used
+                <span className="hidden md:inline ml-2 text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                  • Instant Restoration • 0 Quota Used
                 </span>
               </div>
             </div>
@@ -465,14 +465,14 @@ function AuditWorkspaceClient() {
               <button
                 type="button"
                 onClick={() => runAudit(urls, targetKeyword)}
-                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+                className="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-98"
               >
                 <RotateCcw className="size-3" />
                 <span>Re-audit Live Webpage</span>
               </button>
               <Link
                 href="/dashboard"
-                className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-white/10 hover:bg-slate-50 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 font-semibold text-xs border border-slate-200 dark:border-white/10 transition-all"
+                className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 font-medium text-xs border border-slate-200/60 dark:border-white/[0.06] transition-all"
               >
                 Dashboard
               </Link>
@@ -482,14 +482,14 @@ function AuditWorkspaceClient() {
 
         {/* Collapsible Edit URLs Dock */}
         {isEditDockOpen && (
-          <div className="p-5 sm:p-6 rounded-2xl glass-panel border border-emerald-500/30 bg-emerald-500/[0.02] shadow-md space-y-4 animate-in fade-in zoom-in-98 duration-200">
+          <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/60 dark:border-white/[0.06] shadow-2xs space-y-4 animate-in fade-in duration-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                   <Sparkles className="size-4 text-emerald-500" />
                   <span>Adjust Competitor URLs &amp; Re-run Benchmark</span>
                 </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Update your target page or competitor list. The workspace will recalculate all keyword gaps and matrix signals.
                 </p>
               </div>

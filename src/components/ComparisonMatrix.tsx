@@ -118,50 +118,45 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-xs p-5 sm:p-7 space-y-6">
+    <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-slate-900/60 shadow-2xs p-5 sm:p-6 space-y-5">
       {/* 1. Control & KPI Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-200/80 dark:border-white/[0.08]">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
-              Comparative Matrix
-            </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              Comparing <strong className="text-slate-800 dark:text-slate-100">{validResults.length} audited URLs</strong>
-            </span>
-          </div>
-          <h4 className="text-base sm:text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
-            <SlidersHorizontal className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>Benchmark Matrix & Signal Alignment</span>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
+        <div className="space-y-0.5">
+          <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">
+            Comparative Matrix · {validResults.length} Audited URLs
+          </span>
+          <h4 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <SlidersHorizontal className="size-4 text-emerald-600 dark:text-emerald-400" />
+            <span>Benchmark Matrix &amp; Signal Alignment</span>
           </h4>
         </div>
 
         {/* Right side controls: Toggle Visuals + Summary Badges */}
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             type="button"
             onClick={() => setShowAnalytics(!showAnalytics)}
-            className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
             title={showAnalytics ? 'Hide Benchmark Charts' : 'Show Benchmark Charts'}
             aria-label={showAnalytics ? 'Hide Benchmark Charts' : 'Show Benchmark Charts'}
           >
             <PieChart className="size-4" />
           </button>
 
-          <div className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-left">
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">
-              Target Word Benchmark
+          <div className="px-3 py-1 rounded-lg bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] text-left">
+            <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono font-medium">
+              Word Benchmark
             </div>
-            <div className="text-xs font-bold font-mono text-emerald-700 dark:text-emerald-400 tabular-nums">
+            <div className="text-xs font-semibold font-mono text-emerald-600 dark:text-emerald-400 tabular-nums">
               ~{Math.round(avgWordCount * 1.15).toLocaleString()} words
             </div>
           </div>
 
-          <div className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-left">
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">
+          <div className="px-3 py-1 rounded-lg bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] text-left">
+            <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono font-medium">
               Avg TTFB Latency
             </div>
-            <div className="text-xs font-bold font-mono text-cyan-700 dark:text-cyan-400 tabular-nums">
+            <div className="text-xs font-semibold font-mono text-slate-700 dark:text-slate-300 tabular-nums">
               {avgTtfb} ms
             </div>
           </div>
@@ -170,40 +165,40 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
 
       {/* 2. Visual Analytics & Comparative Bar Graphs */}
       {showAnalytics && (
-        <div className="p-4 sm:p-5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/90 dark:border-white/10 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200/80 dark:border-white/[0.08]">
-            <h5 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+        <div className="p-4 rounded-xl bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-white/[0.04]">
+            <h5 className="text-xs font-semibold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <Activity className="size-3.5 text-emerald-600 dark:text-emerald-400" />
               <span>Key Signal Visual Benchmarks</span>
             </h5>
-            <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
-              <span className="text-[11px] font-medium">Sort Matrix:</span>
+            <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-[11px] font-mono">Sort:</span>
               <button
                 onClick={() => handleSort('wordCount')}
-                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors cursor-pointer ${
+                className={`px-2 py-0.5 rounded text-xs transition-colors cursor-pointer ${
                   sortMetric === 'wordCount'
-                    ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-bold'
-                    : 'bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-300/80'
+                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-medium'
+                    : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900'
                 }`}
               >
                 Words {sortMetric === 'wordCount' && (sortOrder === 'desc' ? '↓' : '↑')}
               </button>
               <button
                 onClick={() => handleSort('score')}
-                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors cursor-pointer ${
+                className={`px-2 py-0.5 rounded text-xs transition-colors cursor-pointer ${
                   sortMetric === 'score'
-                    ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-bold'
-                    : 'bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-300/80'
+                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-medium'
+                    : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900'
                 }`}
               >
                 Score {sortMetric === 'score' && (sortOrder === 'desc' ? '↓' : '↑')}
               </button>
               <button
                 onClick={() => handleSort('ttfb')}
-                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors cursor-pointer ${
+                className={`px-2 py-0.5 rounded text-xs transition-colors cursor-pointer ${
                   sortMetric === 'ttfb'
-                    ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-bold'
-                    : 'bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-300/80'
+                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-medium'
+                    : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900'
                 }`}
               >
                 Speed {sortMetric === 'ttfb' && (sortOrder === 'desc' ? '↓' : '↑')}
@@ -211,7 +206,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Word Count Bar Chart */}
             <div className="space-y-2 p-3 rounded-lg bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/5 shadow-2xs">
               <div className="flex items-center justify-between text-xs">
@@ -380,59 +375,59 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
       )}
 
       {/* 3. Category Filter Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-white/[0.06] overflow-x-auto scrollbar-none">
         <button
           onClick={() => setActiveCategory('all')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
+          className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all cursor-pointer ${
             activeCategory === 'all'
-              ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold shadow-xs'
-              : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-800 dark:text-white font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
           }`}
         >
           All Signals (13)
         </button>
         <button
           onClick={() => setActiveCategory('technical')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
             activeCategory === 'technical'
-              ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold shadow-xs'
-              : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-800 dark:text-white font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
           }`}
         >
-          <ShieldCheck className="w-3.5 h-3.5 text-blue-500" />
+          <ShieldCheck className="size-3.5 text-blue-500" />
           <span>Core Technical (3)</span>
         </button>
         <button
           onClick={() => setActiveCategory('content')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
             activeCategory === 'content'
-              ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold shadow-xs'
-              : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-800 dark:text-white font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
           }`}
         >
-          <FileText className="w-3.5 h-3.5 text-emerald-500" />
+          <FileText className="size-3.5 text-emerald-500" />
           <span>Content &amp; Readability (3)</span>
         </button>
         <button
           onClick={() => setActiveCategory('headings')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
             activeCategory === 'headings'
-              ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold shadow-xs'
-              : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-800 dark:text-white font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
           }`}
         >
-          <Layers className="w-3.5 h-3.5 text-indigo-500" />
+          <Layers className="size-3.5 text-indigo-500" />
           <span>Headings &amp; Hierarchy (2)</span>
         </button>
         <button
           onClick={() => setActiveCategory('links')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
             activeCategory === 'links'
-              ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold shadow-xs'
-              : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-800 dark:text-white font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
           }`}
         >
-          <Link2 className="w-3.5 h-3.5 text-cyan-500" />
+          <Link2 className="size-3.5 text-cyan-500" />
           <span>Links, Media &amp; Schema (5)</span>
         </button>
       </div>

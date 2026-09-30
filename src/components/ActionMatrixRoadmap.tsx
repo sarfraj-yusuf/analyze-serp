@@ -112,21 +112,19 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
   const doNextCount = actions.filter((a) => a.quadrant === 'DO_NEXT').length;
 
   return (
-    <div id="action-plan-section" className="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-sm space-y-6">
+    <div id="action-plan-section" className="rounded-2xl p-5 sm:p-6 bg-white dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/[0.06] shadow-2xs space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200/80 dark:border-white/10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50">
-              Chapter 02 · Prioritized Action Roadmap
-            </span>
-          </div>
-          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
-            <Target className="w-5 h-5 text-emerald-500" />
-            Impact × Effort Prioritized Action Roadmap
+          <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">
+            Prioritized Roadmap
+          </span>
+          <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <Target className="size-4 text-emerald-500" />
+            <span>Impact × Effort Prioritized Action Roadmap</span>
             <SEOExplanationTooltip text="Prioritizes updates by combining estimated SEO ranking impact with execution effort, backed by direct SERP consensus evidence." />
           </h3>
-          <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Step-by-step optimization recommendations prioritized by impact and empirical SERP evidence.
           </p>
         </div>
@@ -139,7 +137,7 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
             type="button"
             onClick={handleCopyChecklist}
             aria-label="Copy as Markdown Checklist"
-            className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+            className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer shrink-0 self-start sm:self-auto"
           >
             {copied ? (
               <Check className="size-4 text-emerald-500" />
@@ -151,134 +149,136 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
       </div>
 
       {/* Segmented Control Filter Tabs */}
-      <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/50 overflow-x-auto">
+      <div className="flex items-center p-1 rounded-xl bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-white/[0.06] overflow-x-auto scrollbar-none gap-1">
         <button
           onClick={() => handleFilterChange('ALL')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer whitespace-nowrap ${
             activeFilter === 'ALL'
-              ? 'bg-white text-slate-800 shadow-xs dark:bg-slate-700 dark:text-slate-100 font-bold'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
+              ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-800 dark:text-white font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
           }`}
         >
-          All Opportunities ({actions.length})
+          All ({actions.length})
         </button>
 
         <button
           onClick={() => handleFilterChange('DO_FIRST')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
             activeFilter === 'DO_FIRST'
-              ? 'bg-white text-slate-800 shadow-xs dark:bg-slate-700 dark:text-slate-100 font-bold'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
+              ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-800 dark:text-white font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
           }`}
         >
-          <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+          <span className="size-1.5 rounded-full bg-rose-500 shrink-0" />
           <span>DO FIRST ({doFirstCount})</span>
         </button>
 
         <button
           onClick={() => handleFilterChange('PLAN_THIS')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
             activeFilter === 'PLAN_THIS'
-              ? 'bg-white text-slate-800 shadow-xs dark:bg-slate-700 dark:text-slate-100 font-bold'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
+              ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-800 dark:text-white font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
           }`}
         >
-          <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+          <span className="size-1.5 rounded-full bg-amber-500 shrink-0" />
           <span>PLAN THIS ({planThisCount})</span>
         </button>
 
         <button
           onClick={() => handleFilterChange('DO_NEXT')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
             activeFilter === 'DO_NEXT'
-              ? 'bg-white text-slate-800 shadow-xs dark:bg-slate-700 dark:text-slate-100 font-bold'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
+              ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-800 dark:text-white font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
           }`}
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+          <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
           <span>DO NEXT ({doNextCount})</span>
         </button>
       </div>
 
-      {/* Action Cards List - Contained In-Card Scroll Viewport */}
+      {/* Action Cards List - Clean Neutral Cards with Subtle Left Accent Line */}
       <div
         ref={listContainerRef}
-        className="space-y-4 pt-1 max-h-[560px] sm:max-h-[600px] overflow-y-auto modal-scroll pr-1.5 focus:outline-none"
+        className="space-y-3 pt-1 max-h-[560px] sm:max-h-[600px] overflow-y-auto modal-scroll pr-1 focus:outline-none"
         tabIndex={0}
         aria-label="Prioritized action roadmap items"
       >
         {filteredActions.map((item, idx) => {
-          let cardColorClass = 'bg-slate-50/80 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/60 border-l-slate-400';
-          let badgeColorClass = 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700';
-          let impactColorClass = 'text-slate-700 dark:text-slate-300';
+          let accentBorderClass = 'border-l-slate-400';
+          let indicatorTag = null;
 
           if (item.quadrant === 'DO_FIRST') {
-            cardColorClass = 'bg-rose-50/60 dark:bg-rose-950/25 border-rose-200/80 dark:border-rose-900/40 border-l-rose-500';
-            badgeColorClass = 'bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200 border-rose-200/80 dark:border-rose-800/50';
-            impactColorClass = 'text-rose-700 dark:text-rose-400 font-bold';
+            accentBorderClass = 'border-l-rose-500';
+            indicatorTag = (
+              <span className="text-[10px] font-mono font-medium text-rose-600 dark:text-rose-400">
+                • Quick Win
+              </span>
+            );
           } else if (item.quadrant === 'PLAN_THIS') {
-            cardColorClass = 'bg-amber-50/60 dark:bg-amber-950/25 border-amber-200/80 dark:border-amber-900/40 border-l-amber-500';
-            badgeColorClass = 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 border-amber-200/80 dark:border-amber-800/50';
-            impactColorClass = 'text-amber-700 dark:text-amber-400 font-bold';
+            accentBorderClass = 'border-l-amber-500';
+            indicatorTag = (
+              <span className="text-[10px] font-mono font-medium text-amber-600 dark:text-amber-400">
+                • Strategic
+              </span>
+            );
           } else if (item.quadrant === 'DO_NEXT') {
-            cardColorClass = 'bg-emerald-50/60 dark:bg-emerald-950/25 border-emerald-200/80 dark:border-emerald-900/40 border-l-emerald-500';
-            badgeColorClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 border-emerald-200/80 dark:border-emerald-800/50';
-            impactColorClass = 'text-emerald-700 dark:text-emerald-400 font-bold';
+            accentBorderClass = 'border-l-emerald-500';
+            indicatorTag = (
+              <span className="text-[10px] font-mono font-medium text-emerald-600 dark:text-emerald-400">
+                • Enhancement
+              </span>
+            );
           }
 
           return (
             <div
               key={item.id || idx}
-              className={`p-4 sm:p-5 rounded-xl border border-l-4 space-y-3.5 transition-all shadow-xs hover:shadow-sm ${cardColorClass}`}
+              className={`p-4 rounded-xl bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] border-l-2 ${accentBorderClass} space-y-2.5 transition-all hover:bg-slate-50 dark:hover:bg-white/[0.03]`}
             >
+              {/* Top Tag Row */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <span className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider border ${badgeColorClass}`}>
+                  <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     {item.category}
                   </span>
-                  {activeFilter === 'ALL' && (
-                    <span className={`text-[10px] font-mono uppercase tracking-wider ${impactColorClass}`}>
-                      • {item.quadrant === 'DO_FIRST' ? 'High Impact Quick Win' : item.quadrant === 'PLAN_THIS' ? 'Strategic Milestone' : 'Operational Next'}
-                    </span>
-                  )}
+                  {activeFilter === 'ALL' && indicatorTag}
                 </div>
 
-                <div className="text-[11px] font-mono font-semibold text-slate-700 dark:text-slate-300">
-                  Effort: <strong className="text-slate-900 dark:text-white uppercase font-bold">{item.effort}</strong>
+                <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                  Effort: <strong className="text-slate-700 dark:text-slate-300 font-medium">{item.effort}</strong>
                 </div>
               </div>
 
-              {/* Title & Action Step */}
-              <div className="space-y-2">
-                <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
+              {/* Title & Action Step - Calm, No Nested Box Inside Box */}
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   {item.title}
                 </h4>
-                <div className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed shadow-2xs">
-                  <span className="font-bold text-slate-900 dark:text-white uppercase font-mono text-[10px] tracking-wider block text-slate-500 dark:text-slate-400 mb-1">
-                    Recommended Implementation:
-                  </span>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                   {item.action}
-                </div>
+                </p>
               </div>
 
               {/* Plain-English Business Impact Callout */}
               {item.businessImpact && (
-                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-500/[0.04] dark:bg-emerald-950/20 border border-emerald-500/20 text-xs text-slate-800 dark:text-slate-200">
-                  <TrendingUp className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                  <div className="leading-relaxed">
-                    <strong className="font-bold text-emerald-800 dark:text-emerald-300">Expected Ranking Impact:</strong>{' '}
+                <div className="flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-300">
+                  <TrendingUp className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <p className="leading-relaxed">
+                    <strong className="font-semibold text-slate-800 dark:text-slate-200">Expected Impact:</strong>{' '}
                     <span>{item.businessImpact}</span>
-                  </div>
+                  </p>
                 </div>
               )}
 
-              {/* Empirical SERP Evidence Tag & AI Fix Guide Action */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-200/60 dark:border-white/10">
-                <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 min-w-0">
-                  <Info className="size-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+              {/* Empirical SERP Evidence Tag & Actions */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-white/[0.04]">
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 min-w-0">
+                  <Info className="size-3.5 text-slate-400 shrink-0" />
                   <span className="truncate">
-                    <strong className="font-semibold text-slate-900 dark:text-slate-100">SERP Evidence:</strong>{' '}
-                    <span className="font-mono text-slate-600 dark:text-slate-300">{item.evidence}</span>
+                    <span className="font-medium text-slate-700 dark:text-slate-300">Evidence:</span>{' '}
+                    <span className="font-mono text-slate-500 dark:text-slate-400">{item.evidence}</span>
                   </span>
                 </div>
 
@@ -287,7 +287,7 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
                     <button
                       type="button"
                       onClick={() => setIsSchemaModalOpen(true)}
-                      className="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+                      className="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-98"
                     >
                       <FileCode className="size-3.5" />
                       <span>Build Schema</span>
@@ -297,7 +297,7 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
                   <button
                     type="button"
                     onClick={() => setSelectedActionForAi(item)}
-                    className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+                    className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-98"
                   >
                     <Sparkles className="size-3.5" />
                     <span>AI Fix Guide</span>
@@ -310,9 +310,9 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
       </div>
 
       {/* Task Summary Footer */}
-      <div className="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] font-mono font-medium text-slate-700 dark:text-slate-300 border-t border-slate-200/80 dark:border-white/10">
+      <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] font-mono text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-white/[0.04]">
         <span>Showing {filteredActions.length} prioritized recommendations</span>
-        <span className="text-slate-500 dark:text-slate-400">All actions backed by real Page 1 SERP consensus</span>
+        <span>Backed by real Page 1 SERP consensus</span>
       </div>
 
       {selectedActionForAi && (

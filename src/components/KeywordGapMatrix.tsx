@@ -214,22 +214,15 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
   const targetHost = getHostname(currentTargetUrl);
 
   return (
-    <div className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-xs p-5 sm:p-7 space-y-6">
+    <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-slate-900/60 shadow-2xs p-5 sm:p-6 space-y-5">
       {/* 1. Control & Action Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-200/80 dark:border-white/[0.08]">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
-              Semantic Gap Engine
-            </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              Anchored to{' '}
-              <strong className="text-emerald-700 dark:text-emerald-400 font-semibold">{targetHost}</strong>{' '}
-              vs {validResults.length - 1} competitors
-            </span>
-          </div>
-          <h4 className="text-base sm:text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
-            <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
+        <div className="space-y-0.5">
+          <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">
+            Semantic Gap Engine · {targetHost} vs {validResults.length - 1} competitors
+          </span>
+          <h4 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <Target className="size-4 text-emerald-600 dark:text-emerald-400" />
             <span>Keyword Gap &amp; Topical Coverage Alignment</span>
           </h4>
         </div>
@@ -240,14 +233,14 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
             <button
               type="button"
               onClick={() => handleDraftWithAi()}
-              className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+              className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
               aria-label="AI Topic Draft"
             >
               <Sparkles className="size-4" />
             </button>
           </Tooltip>
 
-          <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5 hidden sm:block" />
+          <div className="h-4 w-px bg-slate-200/60 dark:bg-white/10 mx-0.5 hidden sm:block" />
 
           {/* Unified Export Gaps Dropdown */}
           <div className="relative shrink-0" ref={exportDropdownRef}>
@@ -255,12 +248,12 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
               <button
                 type="button"
                 onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
-                className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-50 dark:bg-white/[0.02] hover:bg-slate-100 dark:hover:bg-white/[0.05] border border-slate-200/50 dark:border-white/[0.05] text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
               >
-                <Download className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                <Download className="size-3.5 text-slate-400" />
                 <span>Export</span>
                 <ChevronDown
-                  className={`w-3 h-3 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${
+                  className={`size-3 text-slate-400 transition-transform duration-200 ${
                     isExportDropdownOpen ? 'rotate-180' : ''
                   }`}
                 />
@@ -279,7 +272,7 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                   className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-xs flex items-center justify-between text-slate-700 dark:text-slate-200 transition-colors cursor-pointer group"
                 >
                   <div className="flex items-center gap-2">
-                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <FileSpreadsheet className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                     <span className="font-medium">Export CSV</span>
                   </div>
                   <span className="text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-300 px-1 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40">
@@ -298,9 +291,9 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                 >
                   <div className="flex items-center gap-2">
                     {copiedMarkdown ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      <Check className="size-3.5 text-emerald-500 shrink-0" />
                     ) : (
-                      <FileText className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                      <FileText className="size-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
                     )}
                     <span className={copiedMarkdown ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'font-medium'}>
                       {copiedMarkdown ? 'Copied Table!' : 'Copy Markdown'}
@@ -322,9 +315,9 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                 >
                   <div className="flex items-center gap-2">
                     {copiedWords ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      <Check className="size-3.5 text-emerald-500 shrink-0" />
                     ) : (
-                      <Copy className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                      <Copy className="size-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
                     )}
                     <span className={copiedWords ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'font-medium'}>
                       {copiedWords ? 'Copied Phrases!' : 'Copy Phrases Only'}
@@ -340,70 +333,70 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
         </div>
       </div>
 
-      {/* 2. Semantic Tinted Overview KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* 2. Quiet Overview KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {/* Missing Gaps Card */}
-        <div className="p-4 rounded-xl bg-rose-50/80 dark:bg-rose-950/25 border border-rose-200/80 dark:border-rose-900/40 flex flex-col justify-between space-y-2">
+        <div className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] flex flex-col justify-between space-y-1.5">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-bold text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
+            <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
               <span>Gaps Missing on Your Page</span>
               <SEOExplanationTooltip text="Significant terms used repeatedly by top-ranking competitor URLs where your target page has 0% or inadequate presence." />
             </div>
-            <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+            <span className="size-2 rounded-full bg-rose-500 shrink-0" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-rose-800 dark:text-rose-300 tabular-nums">
+            <span className="text-2xl font-bold font-mono text-slate-900 dark:text-slate-100 tabular-nums">
               {yourPageMissingGaps.length}
             </span>
-            <span className="text-xs font-semibold text-rose-700 dark:text-rose-400">
+            <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
               critical keyword gaps
             </span>
           </div>
-          <p className="text-[11px] text-rose-700/90 dark:text-rose-300/80 leading-snug">
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
             Immediate semantic opportunities to weave into headings and body paragraphs.
           </p>
         </div>
 
         {/* Common Core Topics Card */}
-        <div className="p-4 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/25 border border-emerald-200/80 dark:border-emerald-900/40 flex flex-col justify-between space-y-2">
+        <div className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] flex flex-col justify-between space-y-1.5">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+            <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
               <span>Shared Common Core Topics</span>
               <SEOExplanationTooltip text="Industry baseline vocabulary that both your target page and ranking competitors cover extensively." />
             </div>
-            <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span className="size-2 rounded-full bg-emerald-500 shrink-0" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-emerald-800 dark:text-emerald-300 tabular-nums">
+            <span className="text-2xl font-bold font-mono text-slate-900 dark:text-slate-100 tabular-nums">
               {commonCoreKeywords.length}
             </span>
-            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
               common core terms
             </span>
           </div>
-          <p className="text-[11px] text-emerald-700/90 dark:text-emerald-300/80 leading-snug">
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
             Topical parity maintained — protect these baseline concepts from being pruned.
           </p>
         </div>
 
         {/* Total Discovered Vocabulary Card */}
-        <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/90 dark:border-white/10 flex flex-col justify-between space-y-2">
+        <div className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] flex flex-col justify-between space-y-1.5">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+            <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
               <span>Total Discovered Terms</span>
               <SEOExplanationTooltip text="Complete corpus of 1-gram, 2-gram, and 3-gram search terms discovered across all analyzed competitor URLs." />
             </div>
-            <Layers className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
+            <span className="size-2 rounded-full bg-slate-400 shrink-0" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-slate-800 dark:text-slate-100 tabular-nums">
+            <span className="text-2xl font-bold font-mono text-slate-900 dark:text-slate-100 tabular-nums">
               {totalUniqueKeywords}
             </span>
-            <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
               extracted N-gram phrases
             </span>
           </div>
-          <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
             Indexed vocabulary across 1-gram entities, 2-gram modifiers, and 3-gram long-tail.
           </p>
         </div>
@@ -413,37 +406,37 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
       <div className="space-y-3 pt-1">
         {/* Primary Status Segmented Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-white/[0.06] overflow-x-auto scrollbar-none">
             <button
               onClick={() => setActiveTab('yourGaps')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'yourGaps'
-                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold shadow-xs'
-                  : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-800 dark:text-white font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
               }`}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+              <span className="size-1.5 rounded-full bg-rose-500 shrink-0" />
               <span>Missing on Your Page ({yourPageMissingGaps.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('common')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'common'
-                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold shadow-xs'
-                  : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-800 dark:text-white font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
               }`}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
               <span>Common Core ({commonCoreKeywords.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('allGaps')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'allGaps'
-                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold shadow-xs'
-                  : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-800 dark:text-white font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
               }`}
             >
               <span>All Competitor Gaps ({keywordGaps.length})</span>
@@ -451,10 +444,10 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
 
             <button
               onClick={() => setActiveTab('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'all'
-                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold shadow-xs'
-                  : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-800 dark:text-white font-semibold border border-slate-200/50 dark:border-white/[0.06]'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
               }`}
             >
               <span>All Terms ({allItems.length})</span>
@@ -463,25 +456,26 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
 
           {/* Search Input with Result Count Badge */}
           <div className="relative w-full sm:w-64 shrink-0">
-            <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="size-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search phrases..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-8 pr-7 py-1.5 rounded-lg text-xs border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
+              className="w-full pl-8 pr-7 py-1.5 rounded-lg text-xs border border-slate-200/60 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
                 title="Clear search"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="size-3.5" />
               </button>
             )}
           </div>
         </div>
+
 
         {/* Secondary N-Gram Length Filter Chips */}
         <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-200/60 dark:border-white/5 text-xs text-slate-600 dark:text-slate-400">
