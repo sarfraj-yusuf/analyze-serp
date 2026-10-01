@@ -13,6 +13,7 @@ import {
   assistContentScratchpad,
   generateInternalLinkStrategy,
   generateTopicalGapBlueprint,
+  generateActionRoadmapPlan,
 } from '@/lib/gemini';
 
 export async function POST(req: NextRequest) {
@@ -329,10 +330,36 @@ export async function POST(req: NextRequest) {
         break;
       }
 
+      case 'action-roadmap-plan': {
+        const { targetUrl, targetTitle, targetDomain, competitorDomains, actions } = body;
+        if (!targetUrl || typeof targetUrl !== 'string') {
+          return NextResponse.json(
+            { error: 'Missing required "targetUrl" parameter' },
+            { status: 400 }
+          );
+        }
+        if (!Array.isArray(actions) || actions.length === 0) {
+          return NextResponse.json(
+            { error: 'Missing required "actions" list for sprint roadmap' },
+            { status: 400 }
+          );
+        }
+        generatedData = await generateActionRoadmapPlan({
+          targetUrl: targetUrl.slice(0, 1000),
+          targetTitle: typeof targetTitle === 'string' ? targetTitle.slice(0, 300) : undefined,
+          targetDomain: typeof targetDomain === 'string' ? targetDomain.slice(0, 200) : 'target domain',
+          competitorDomains: Array.isArray(competitorDomains)
+            ? competitorDomains.slice(0, 5).filter((c): c is string => typeof c === 'string').map((c) => c.slice(0, 200))
+            : [],
+          actions: actions.slice(0, 15),
+        });
+        break;
+      }
+
       default:
         await refundUserCredit(userEmail);
         return NextResponse.json(
-          { error: `Unsupported generation type: "${type}". Supported: meta-rewrite, fix-recommendation, content-section, simplify-tone, snippet-bait, scratchpad-assist, internal-link-strategy, topical-gap-blueprint.` },
+          { error: `Unsupported generation type: "${type}". Supported: meta-rewrite, fix-recommendation, content-section, simplify-tone, snippet-bait, scratchpad-assist, internal-link-strategy, topical-gap-blueprint, action-roadmap-plan.` },
           { status: 400 }
         );
       }
@@ -359,6 +386,8 @@ export async function POST(req: NextRequest) {
           ? (typeof body.targetKeyword === 'string' ? `Link Topology: "${body.targetKeyword}"` : 'Internal Link Topic Cluster')
           : type === 'topical-gap-blueprint'
           ? (typeof body.targetTitle === 'string' ? `Topical Blueprint: ${body.targetTitle.slice(0, 50)}` : 'Topical Content Gap Blueprint')
+          : type === 'action-roadmap-plan'
+          ? (typeof body.targetDomain === 'string' ? `Sprint Roadmap: ${body.targetDomain}` : '4-Week Action Sprint Plan')
           : (typeof body.topic === 'string' ? body.topic : 'SEO Topic');
 
       const resultSummary =
@@ -376,6 +405,8 @@ export async function POST(req: NextRequest) {
           ? 'Generated Hub & Spoke Topic Cluster Architecture'
           : type === 'topical-gap-blueprint'
           ? 'Generated Full Topical Gap Blueprint & EEAT Section Copy'
+          : type === 'action-roadmap-plan'
+          ? 'Generated 4-Week Technical & Editorial Sprint Execution Plan'
           : 'Generated EEAT section copy and FAQ schema';
 
       await saveUserAiActivity({

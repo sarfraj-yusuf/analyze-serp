@@ -6,17 +6,27 @@ import { Target, Zap, Clock, CheckCircle2, AlertTriangle, ArrowRight, Filter, In
 import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
 import { AiFixModal } from './AiFixModal';
 import { JsonLdSchemaModal } from './JsonLdSchemaModal';
+import { AiActionRoadmapModal } from './AiActionRoadmapModal';
 import { Tooltip } from './Tooltip';
 
 interface ActionMatrixRoadmapProps {
   actions: EvidenceRecommendation[];
+  targetUrl?: string;
+  targetTitle?: string;
+  competitorUrls?: string[];
 }
 
-export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ actions }) => {
+export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({
+  actions,
+  targetUrl = '',
+  targetTitle,
+  competitorUrls = [],
+}) => {
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'DO_FIRST' | 'PLAN_THIS' | 'DO_NEXT'>('ALL');
   const [copied, setCopied] = useState(false);
   const [selectedActionForAi, setSelectedActionForAi] = useState<EvidenceRecommendation | null>(null);
   const [isSchemaModalOpen, setIsSchemaModalOpen] = useState(false);
+  const [isSprintModalOpen, setIsSprintModalOpen] = useState(false);
   const listContainerRef = React.useRef<HTMLDivElement>(null);
 
   const handleFilterChange = (filter: 'ALL' | 'DO_FIRST' | 'PLAN_THIS' | 'DO_NEXT') => {
@@ -129,23 +139,35 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
           </p>
         </div>
 
-        <Tooltip
-          content={copied ? 'Checklist Copied!' : 'Copy Checklist'}
-          side="top"
-        >
+        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
           <button
             type="button"
-            onClick={handleCopyChecklist}
-            aria-label="Copy as Markdown Checklist"
-            className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer shrink-0 self-start sm:self-auto"
+            onClick={() => setIsSprintModalOpen(true)}
+            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-98"
           >
-            {copied ? (
-              <Check className="size-4 text-emerald-500" />
-            ) : (
-              <Copy className="size-4" />
-            )}
+            <Sparkles className="size-3.5" />
+            <span>AI Sprint Execution Plan</span>
+            <span className="text-[10px] font-mono bg-emerald-700/60 px-1 py-0.5 rounded text-emerald-100">1 Credit</span>
           </button>
-        </Tooltip>
+
+          <Tooltip
+            content={copied ? 'Checklist Copied!' : 'Copy Checklist'}
+            side="top"
+          >
+            <button
+              type="button"
+              onClick={handleCopyChecklist}
+              aria-label="Copy as Markdown Checklist"
+              className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer shrink-0"
+            >
+              {copied ? (
+                <Check className="size-4 text-emerald-500" />
+              ) : (
+                <Copy className="size-4" />
+              )}
+            </button>
+          </Tooltip>
+        </div>
       </div>
 
       {/* Segmented Control Filter Tabs */}
@@ -325,6 +347,30 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
           initialDescription="Clarify page semantics and entity relationships for search engines with valid JSON-LD schema markup."
         />
       )}
+
+      {/* 4-Week Strategic AI Sprint Execution Plan Modal */}
+      <AiActionRoadmapModal
+        isOpen={isSprintModalOpen}
+        onClose={() => setIsSprintModalOpen(false)}
+        targetUrl={targetUrl}
+        targetTitle={targetTitle}
+        competitorDomains={competitorUrls.map((u) => {
+          try {
+            return new URL(u).hostname.replace(/^www\./, '');
+          } catch {
+            return u;
+          }
+        })}
+        actions={actions.map((a) => ({
+          title: a.title,
+          category: a.category,
+          quadrant: a.quadrant,
+          impact: a.businessImpact || a.quadrant,
+          effort: a.effort,
+          recommendation: a.action,
+          evidence: a.evidence,
+        }))}
+      />
     </div>
   );
 };

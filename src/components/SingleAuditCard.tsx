@@ -547,7 +547,10 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
               )
             )}
             {contentSubTab === 'readability' && readability && (
-              <ReadabilityCard readability={readability} />
+              <ReadabilityCard
+                readability={readability}
+                sampleText={audit.headings?.map((h) => h.text).join('. ') || audit.meta?.description || ''}
+              />
             )}
             {contentSubTab === 'keywords' && <KeywordTable keywords={keywords} />}
           </div>

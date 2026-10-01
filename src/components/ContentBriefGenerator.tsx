@@ -399,20 +399,19 @@ ${aggregatedHeadings
               </button>
             </Tooltip>
 
-            <Tooltip content="AI Draft Section" side="top">
-              <button
-                type="button"
-                onClick={() => {
-                  setAiModalHeading(`Comprehensive Guide to ${activeTargetKeyword}`);
-                  setAiModalTopic(activeTargetKeyword);
-                  setIsAiWriterOpen(true);
-                }}
-                className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                aria-label="AI Draft Section"
-              >
-                <Sparkles className="size-4" />
-              </button>
-            </Tooltip>
+            <button
+              type="button"
+              onClick={() => {
+                setAiModalHeading(`Comprehensive Guide to ${activeTargetKeyword}`);
+                setAiModalTopic(activeTargetKeyword);
+                setIsAiWriterOpen(true);
+              }}
+              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-98"
+            >
+              <Sparkles className="size-3.5" />
+              <span>AI Section Drafter</span>
+              <span className="text-[10px] font-mono bg-emerald-700/60 px-1 py-0.5 rounded text-emerald-100">1 Credit</span>
+            </button>
           </div>
 
           <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5 hidden sm:block" />
@@ -813,38 +812,28 @@ ${aggregatedHeadings
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleCopySingleHeading(h.text, idx)}
-                    className="p-1 px-2 rounded text-[11px] text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                    title="Copy heading text"
-                  >
-                    {copiedHeadingIdx === idx ? <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                  </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Tooltip content="Copy heading text" side="top">
+                    <button
+                      type="button"
+                      onClick={() => handleCopySingleHeading(h.text, idx)}
+                      aria-label="Copy heading text"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                    >
+                      {copiedHeadingIdx === idx ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+                    </button>
+                  </Tooltip>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSnippetModalHeading(`## ${h.text}`);
-                      setIsSnippetModalOpen(true);
-                    }}
-                    className="p-1 px-2 rounded text-[11px] font-medium text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/60 flex items-center gap-1 transition-colors cursor-pointer"
-                    title="Optimize this question heading for Google Position 0"
-                  >
-                    <Award className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                    <span className="hidden sm:inline">Pos 0</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleTriggerAiForHeading(h.text)}
-                    className="px-2 py-1 rounded text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 flex items-center gap-1 transition-colors cursor-pointer"
-                    title="Generate section text using Gemini AI"
-                  >
-                    <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                    <span>Draft with AI</span>
-                  </button>
+                  <Tooltip content="Draft this section with AI" side="top">
+                    <button
+                      type="button"
+                      onClick={() => handleTriggerAiForHeading(h.text)}
+                      className="px-2 py-1 rounded-lg text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-300/60 dark:border-emerald-800/60 flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <Sparkles className="size-3 text-emerald-500" />
+                      <span className="hidden sm:inline">Draft</span>
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
             );

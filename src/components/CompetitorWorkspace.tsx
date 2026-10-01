@@ -725,7 +725,12 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             {/* Impact x Effort Action Roadmap */}
             {report.evidenceActions && report.evidenceActions.length > 0 && (
               <div id="action-plan-section">
-                <ActionMatrixRoadmap actions={report.evidenceActions} />
+                <ActionMatrixRoadmap
+                  actions={report.evidenceActions}
+                  targetUrl={effectiveTargetUrl}
+                  targetTitle={targetAudit?.meta?.title}
+                  competitorUrls={competitorUrls}
+                />
               </div>
             )}
 

@@ -1,0 +1,543 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { useSession } from 'next-auth/react';
+import {
+  Sparkles,
+  X,
+  Check,
+  Copy,
+  Zap,
+  AlertCircle,
+  Loader2,
+  RefreshCw,
+  FileText,
+  Calendar,
+  Code2,
+  CheckCircle2,
+  ArrowRight,
+  TrendingUp,
+  Layers,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
+import { AuthModal } from './AuthModal';
+import { ActionRoadmapPlanResult } from '@/lib/gemini';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { broadcastCreditUpdate } from '@/lib/credit-events';
+
+interface ActionItemPayload {
+  id?: string;
+  title: string;
+  quadrant?: string;
+  impact?: string;
+  effort?: string;
+  category?: string;
+  recommendation?: string;
+  evidence?: string;
+}
+
+interface AiActionRoadmapModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  targetUrl: string;
+  targetTitle?: string;
+  targetDomain?: string;
+  competitorDomains?: string[];
+  actions: ActionItemPayload[];
+}
+
+export const AiActionRoadmapModal: React.FC<AiActionRoadmapModalProps> = ({
+  isOpen,
+  onClose,
+  targetUrl,
+  targetTitle,
+  targetDomain,
+  competitorDomains = [],
+  actions = [],
+}) => {
+  const { data: session, update: updateSession } = useSession();
+  const [mounted, setMounted] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<ActionRoadmapPlanResult | null>(null);
+  const [activeWeekTab, setActiveWeekTab] = useState<number>(1);
+  const [copiedSection, setCopiedSection] = useState<string | null>(null);
+  const [remainingCredits, setRemainingCredits] = useState<number | null>(
+    session?.user?.credits?.remainingCredits ?? null
+  );
+
+  const modalRef = useFocusTrap({ isOpen, onClose });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
+
+  const resolvedDomain =
+    targetDomain ||
+    (() => {
+      try {
+        return new URL(targetUrl).hostname.replace(/^www\./, '');
+      } catch {
+        return targetUrl;
+      }
+    })();
+
+  const triggerAuthModal = () => {
+    setShowAuthModal(true);
+  };
+
+  const handleGenerate = async () => {
+    if (!session) {
+      triggerAuthModal();
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const res = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'action-roadmap-plan',
+          targetUrl,
+          targetTitle,
+          targetDomain: resolvedDomain,
+          competitorDomains,
+          actions,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.requiresAuth) {
+          triggerAuthModal();
+          return;
+        }
+        throw new Error(data.error || 'Failed to generate sprint roadmap');
+      }
+
+      setResult(data.data as ActionRoadmapPlanResult);
+      if (data.credits?.remaining !== undefined) {
+        setRemainingCredits(data.credits.remaining);
+        broadcastCreditUpdate(data.credits);
+      }
+      updateSession();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error generating action sprint plan.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopyText = (text: string, sectionKey: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedSection(sectionKey);
+    setTimeout(() => setCopiedSection(null), 2000);
+  };
+
+  const handleCopyFullMarkdown = () => {
+    if (!result) return;
+    const lines = [
+      `# 4-Week SEO Implementation Sprint: ${resolvedDomain}`,
+      `**Target URL**: ${targetUrl}`,
+      `**Projected Impact**: ${result.projectedImpact}`,
+      ``,
+      `## Executive Strategy`,
+      result.executiveSummary,
+      ``,
+      `---`,
+      ``,
+      `## 4-Week Sprint Schedule`,
+      ...result.sprintWeeks.flatMap((w) => [
+        `### Week ${w.week}: ${w.title} (${w.focusArea})`,
+        ...w.tasks.flatMap((t, i) => [
+          `#### Task ${w.week}.${i + 1}: ${t.title} [${t.priority.toUpperCase()}]`,
+          `*Category*: ${t.category}`,
+          `*Details*: ${t.description}`,
+          t.codeSnippet ? `\`\`\`html\n${t.codeSnippet}\n\`\`\`` : '',
+          `*Verification*: ${t.verificationStep}`,
+          ``,
+        ]),
+      ]),
+      `---`,
+      ``,
+      `## Quick-Fix Directives`,
+      result.quickFixDirectives?.canonicalTag ? `**Canonical Tag**:\n\`\`\`html\n${result.quickFixDirectives.canonicalTag}\n\`\`\`\n` : '',
+      result.quickFixDirectives?.metaRobots ? `**Robots Directive**:\n\`\`\`html\n${result.quickFixDirectives.metaRobots}\n\`\`\`\n` : '',
+      result.quickFixDirectives?.schemaSnippet ? `**JSON-LD Schema**:\n\`\`\`html\n${result.quickFixDirectives.schemaSnippet}\n\`\`\`\n` : '',
+      `*Generated by AnalyzeSERP Strategic Sprint Planner*`,
+    ].filter(Boolean);
+
+    handleCopyText(lines.join('\n'), 'full-markdown');
+  };
+
+  const currentWeek = result?.sprintWeeks?.find((w) => w.week === activeWeekTab) || result?.sprintWeeks?.[0];
+
+  const modalContent = (
+    <>
+      <div
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-black/75 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto"
+        onClick={onClose}
+      >
+        <div
+          ref={modalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="roadmap-sprint-title"
+          className="relative w-full max-w-4xl rounded-2xl p-5 sm:p-7 border border-slate-200 dark:border-white/15 shadow-2xl space-y-6 bg-white dark:bg-slate-900 my-auto max-h-[92vh] overflow-y-auto modal-scroll text-slate-800 dark:text-slate-100 transition-all"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            aria-label="Close Sprint Roadmap Modal"
+            className="absolute top-5 right-5 p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pr-10">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 mb-1">
+                <Sparkles className="w-3 h-3 text-emerald-500" />
+                <span>AI Engineering Sprint Lead</span>
+              </div>
+              <h3 id="roadmap-sprint-title" className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
+                4-Week Strategic SEO Sprint Execution Plan
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Consolidates all <strong className="text-slate-800 dark:text-slate-200">{actions.length} prioritized audit actions</strong> for <span className="font-mono text-emerald-600 dark:text-emerald-400">{resolvedDomain}</span> into developer tickets.
+              </p>
+            </div>
+
+            {session && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-slate-300 self-start sm:self-auto shrink-0">
+                <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                <span>
+                  {remainingCredits !== null ? remainingCredits : session.user?.credits?.remainingCredits ?? 5} / 5 Credits
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Unauthenticated Notification Banner */}
+          {!session && (
+            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5">
+                <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span className="text-slate-700 dark:text-slate-200 font-medium">
+                  Sign in with Google or GitHub to unlock <strong>5 daily AI credits</strong> and generate this sprint roadmap.
+                </span>
+              </div>
+              <button
+                onClick={triggerAuthModal}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs shrink-0 transition-all cursor-pointer shadow-xs active:scale-95"
+              >
+                Sign In Free
+              </button>
+            </div>
+          )}
+
+          {error && (
+            <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Initial State / Generation Launcher */}
+          {!result && !loading && (
+            <div className="p-6 sm:p-8 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 text-center space-y-4">
+              <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                <Calendar className="size-6" />
+              </div>
+              <div className="space-y-1.5 max-w-md mx-auto">
+                <h4 className="text-base font-bold text-slate-800 dark:text-slate-100">
+                  Ready to Turn Audit Deficits Into an Engineering Sprint
+                </h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Gemini analyzes your technical bottlenecks, content gaps, and ranking signals to sequence tasks week-by-week with ready-to-copy code directives.
+                </p>
+              </div>
+
+              {/* Action item sample pill preview */}
+              <div className="flex flex-wrap items-center justify-center gap-1.5 pt-2 max-w-xl mx-auto">
+                {actions.slice(0, 5).map((a, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    {a.title}
+                  </span>
+                ))}
+                {actions.length > 5 && (
+                  <span className="text-[11px] text-slate-500 font-mono">
+                    +{actions.length - 5} more items
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Generated Result Container */}
+          {result && (
+            <div className="space-y-6 text-xs">
+              {/* Executive Diagnosis & Impact Header */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/40 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                    <TrendingUp className="size-3.5" />
+                    <span>Projected Organic Uplift</span>
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800 w-fit">
+                    {result.projectedImpact}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
+                  {result.executiveSummary}
+                </p>
+              </div>
+
+              {/* 4-Week Segmented Tab Switcher */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <Calendar className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span>Sprint Roadmap Schedule</span>
+                  </span>
+                  <button
+                    onClick={handleCopyFullMarkdown}
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 text-[11px] font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    {copiedSection === 'full-markdown' ? (
+                      <>
+                        <Check className="size-3 text-emerald-500" />
+                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">Copied Plan!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="size-3" />
+                        <span>Copy Full Sprint (Markdown)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10">
+                  {result.sprintWeeks.map((week) => (
+                    <button
+                      key={week.week}
+                      onClick={() => setActiveWeekTab(week.week)}
+                      className={`px-3 py-2 rounded-lg text-xs font-semibold flex flex-col items-start transition-all cursor-pointer ${
+                        activeWeekTab === week.week
+                          ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs border border-slate-200/80 dark:border-white/10'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                      }`}
+                    >
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                        Week 0{week.week}
+                      </span>
+                      <span className="truncate w-full text-left font-bold text-slate-800 dark:text-slate-100">
+                        {week.title}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Active Week Task Breakdown */}
+              {currentWeek && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 space-y-4 shadow-2xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-3 border-b border-slate-200/80 dark:border-white/5">
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                        Week {currentWeek.week}: {currentWeek.title}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Focus Area: <strong className="text-slate-700 dark:text-slate-300">{currentWeek.focusArea}</strong>
+                      </p>
+                    </div>
+                    <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                      {currentWeek.tasks.length} Actionable Tasks
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {currentWeek.tasks.map((task, tIdx) => (
+                      <div
+                        key={task.id || tIdx}
+                        className="p-3.5 rounded-xl border border-slate-200/70 dark:border-white/5 bg-slate-50/60 dark:bg-white/[0.02] space-y-2.5"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider ${
+                                task.priority === 'high'
+                                  ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20'
+                                  : task.priority === 'medium'
+                                  ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
+                                  : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
+                              }`}
+                            >
+                              {task.priority} Priority
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-[9px] font-mono uppercase bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400">
+                              {task.category}
+                            </span>
+                            <h5 className="font-bold text-xs text-slate-800 dark:text-slate-100">
+                              {task.title}
+                            </h5>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                          {task.description}
+                        </p>
+
+                        {/* Code snippet if provided */}
+                        {task.codeSnippet && (
+                          <div className="space-y-1 pt-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-mono text-slate-500 uppercase flex items-center gap-1">
+                                <Code2 className="size-3 text-emerald-500" />
+                                <span>Code Directive / Fix</span>
+                              </span>
+                              <button
+                                onClick={() => handleCopyText(task.codeSnippet!, `code-${task.id || tIdx}`)}
+                                className="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+                              >
+                                {copiedSection === `code-${task.id || tIdx}` ? (
+                                  <>
+                                    <Check className="size-3" />
+                                    <span>Copied</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="size-3" />
+                                    <span>Copy Code</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                            <pre className="p-2.5 rounded-lg bg-slate-900 text-slate-100 font-mono text-[11px] overflow-x-auto whitespace-pre-wrap leading-tight">
+                              <code>{task.codeSnippet}</code>
+                            </pre>
+                          </div>
+                        )}
+
+                        <div className="flex items-start gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/50 dark:border-white/5">
+                          <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                          <span>
+                            <strong>Verification Step:</strong> {task.verificationStep}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Quick-Fix Directives Deck */}
+              {result.quickFixDirectives && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 space-y-3 shadow-2xs">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                    <Code2 className="size-4 text-emerald-500" />
+                    <span>Ready-to-Deploy Technical Directives</span>
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {result.quickFixDirectives.canonicalTag && (
+                      <div className="p-3 rounded-xl border border-slate-200/70 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">Canonical Tag</span>
+                          <button
+                            onClick={() => handleCopyText(result.quickFixDirectives.canonicalTag!, 'canonical')}
+                            className="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+                          >
+                            {copiedSection === 'canonical' ? <Check className="size-3" /> : <Copy className="size-3" />}
+                            <span>{copiedSection === 'canonical' ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <pre className="p-2 rounded bg-slate-900 text-slate-100 font-mono text-[10px] overflow-x-auto">
+                          <code>{result.quickFixDirectives.canonicalTag}</code>
+                        </pre>
+                      </div>
+                    )}
+
+                    {result.quickFixDirectives.metaRobots && (
+                      <div className="p-3 rounded-xl border border-slate-200/70 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">Meta Robots</span>
+                          <button
+                            onClick={() => handleCopyText(result.quickFixDirectives.metaRobots!, 'robots')}
+                            className="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+                          >
+                            {copiedSection === 'robots' ? <Check className="size-3" /> : <Copy className="size-3" />}
+                            <span>{copiedSection === 'robots' ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <pre className="p-2 rounded bg-slate-900 text-slate-100 font-mono text-[10px] overflow-x-auto">
+                          <code>{result.quickFixDirectives.metaRobots}</code>
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Footer Actions */}
+          <div className="flex items-center justify-between pt-4 border-t border-slate-200/80 dark:border-white/10">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-all cursor-pointer"
+            >
+              Close
+            </button>
+
+            <button
+              onClick={handleGenerate}
+              disabled={loading}
+              className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-slate-950 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-[0.98]"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Planning Sprint (Gemini)...</span>
+                </>
+              ) : result ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Regenerate Sprint (1 Credit)</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Generate 4-Week Sprint Plan (1 Credit)</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        featureTitle="SEO Sprint Execution Planner"
+      />
+    </>
+  );
+
+  return createPortal(modalContent, document.body);
+};

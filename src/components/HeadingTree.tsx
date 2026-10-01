@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { HeadingItem } from '@/types/seo';
-import { ChevronDown, ChevronRight, ListOrdered, FileText } from 'lucide-react';
+import { ChevronDown, ChevronRight, ListOrdered, FileText, AlertCircle } from 'lucide-react';
 
 interface HeadingTreeProps {
   headings: HeadingItem[];
@@ -47,6 +47,20 @@ export const HeadingTree: React.FC<HeadingTreeProps> = ({ headings }) => {
           <span>{isExpanded ? 'Collapse Tree' : 'Expand Tree'}</span>
         </button>
       </div>
+
+      {/* Semantic Hierarchy Alert */}
+      {(h1Count === 0 || h1Count > 1) && (
+        <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-950 dark:text-amber-200 flex items-center gap-2.5">
+          <AlertCircle className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
+          <span>
+            <strong>Semantic Hierarchy Alert:</strong>{' '}
+            {h1Count === 0
+              ? 'No H1 heading detected. A clear, single H1 is critical for search engine document parsing.'
+              : `${h1Count} H1 headings detected. Best practice is to reserve H1 for the primary document topic.`}
+          </span>
+        </div>
+      )}
+
 
       {/* Tree Content */}
       {isExpanded && (

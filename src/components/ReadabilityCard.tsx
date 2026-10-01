@@ -1,12 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ReadabilityMetrics } from '@/types/seo';
 import { BookOpen, Award, AlignLeft, Hash, Percent, Sparkles, MessageSquare } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const AiSimplifyModal = dynamic(
+  () => import('./AiSimplifyModal').then((mod) => mod.AiSimplifyModal),
+  { ssr: false }
+);
 
 interface ReadabilityCardProps {
   readability: ReadabilityMetrics;
+  sampleText?: string;
 }
 
-export const ReadabilityCard: React.FC<ReadabilityCardProps> = ({ readability }) => {
+export const ReadabilityCard: React.FC<ReadabilityCardProps> = ({ readability, sampleText = '' }) => {
+  const [isSimplifyModalOpen, setIsSimplifyModalOpen] = useState(false);
+  const [customText, setCustomText] = useState(sampleText);
   const {
     fleschReadingEase,
     fleschGradeLevel,
@@ -45,7 +54,7 @@ export const ReadabilityCard: React.FC<ReadabilityCardProps> = ({ readability })
                 {gradeLabel}
               </span>
             </div>
-            <h4 className="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1">Readability & Tone Profile</h4>
+            <h4 className="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1">Readability &amp; Tone Profile</h4>
             <p className="text-xs text-slate-500 dark:text-gray-400">
               Evaluated via Flesch-Kincaid sentence length and syllable metrics.
             </p>
@@ -64,6 +73,28 @@ export const ReadabilityCard: React.FC<ReadabilityCardProps> = ({ readability })
           </div>
         </div>
       </div>
+
+      {/* Contextual AI Plain-English Rewriter Opportunity */}
+      {(fleschReadingEase < 65 || fleschGradeLevel > 10) && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-950 dark:text-amber-200">
+          <div className="flex items-start sm:items-center gap-2.5">
+            <Sparkles className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+            <span>
+              <strong>Readability Opportunity:</strong> Text is currently rated at <strong>{gradeLabel}</strong>. Simplifying sentences to 7th–8th grade increases comprehension and lowers dwell bounce rate.
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsSimplifyModalOpen(true)}
+            className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs flex items-center gap-1.5 shrink-0 transition-all cursor-pointer shadow-2xs self-start sm:self-auto active:scale-98"
+          >
+            <Sparkles className="size-3.5" />
+            <span>AI Plain-English Rewriter</span>
+            <span className="text-[10px] font-mono bg-amber-700/60 px-1 py-0.5 rounded text-amber-100">1 Credit</span>
+          </button>
+        </div>
+      )}
 
       {/* Detail Metrics Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -99,6 +130,16 @@ export const ReadabilityCard: React.FC<ReadabilityCardProps> = ({ readability })
           <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{totalSentences} <span className="text-xs font-normal text-slate-500 dark:text-gray-400">sentences</span></div>
         </div>
       </div>
+
+      {/* AI Plain-English Simplify Modal */}
+      {isSimplifyModalOpen && (
+        <AiSimplifyModal
+          isOpen={isSimplifyModalOpen}
+          onClose={() => setIsSimplifyModalOpen(false)}
+          text={customText || 'Enter or paste complex website sentences here to simplify them for web searchers.'}
+          onApply={(simplified) => setCustomText(simplified)}
+        />
+      )}
     </div>
   );
 };
