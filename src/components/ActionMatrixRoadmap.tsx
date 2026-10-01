@@ -282,8 +282,8 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-                  {(item.category === 'SCHEMA' || item.id === 'schema-markup-gap') && (
+                {item.category === 'SCHEMA' || item.id === 'schema-markup-gap' ? (
+                  <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
                     <button
                       type="button"
                       onClick={() => setIsSchemaModalOpen(true)}
@@ -292,17 +292,8 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({ action
                       <FileCode className="size-3.5" />
                       <span>Build Schema</span>
                     </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedActionForAi(item)}
-                    className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-98"
-                  >
-                    <Sparkles className="size-3.5" />
-                    <span>AI Fix Guide</span>
-                  </button>
-                </div>
+                  </div>
+                ) : null}
               </div>
             </div>
           );

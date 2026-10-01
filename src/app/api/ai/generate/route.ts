@@ -12,6 +12,7 @@ import {
   generateSnippetBait,
   assistContentScratchpad,
   generateInternalLinkStrategy,
+  generateTopicalGapBlueprint,
 } from '@/lib/gemini';
 
 export async function POST(req: NextRequest) {
@@ -292,10 +293,46 @@ export async function POST(req: NextRequest) {
         break;
       }
 
+      case 'topical-gap-blueprint': {
+        const { targetUrl, targetTitle, targetDescription, targetHeadings, competitorUrls, missingKeywords, searchIntent } = body;
+        if (!targetUrl || typeof targetUrl !== 'string') {
+          return NextResponse.json(
+            { error: 'Missing required "targetUrl" parameter' },
+            { status: 400 }
+          );
+        }
+        if (targetUrl.length > 1000) {
+          return NextResponse.json({ error: 'targetUrl exceeds 1,000 characters limit' }, { status: 400 });
+        }
+        if (!Array.isArray(missingKeywords) || missingKeywords.length === 0) {
+          return NextResponse.json(
+            { error: 'Missing required "missingKeywords" list for topical blueprint' },
+            { status: 400 }
+          );
+        }
+        generatedData = await generateTopicalGapBlueprint({
+          targetUrl: targetUrl.slice(0, 1000),
+          targetTitle: typeof targetTitle === 'string' ? targetTitle.slice(0, 300) : undefined,
+          targetDescription: typeof targetDescription === 'string' ? targetDescription.slice(0, 1000) : undefined,
+          targetHeadings: Array.isArray(targetHeadings)
+            ? targetHeadings.slice(0, 15).filter((h): h is string => typeof h === 'string').map((h) => h.slice(0, 200))
+            : [],
+          competitorUrls: Array.isArray(competitorUrls)
+            ? competitorUrls.slice(0, 5).filter((u): u is string => typeof u === 'string').map((u) => u.slice(0, 500))
+            : [],
+          missingKeywords: missingKeywords
+            .slice(0, 20)
+            .filter((k): k is string => typeof k === 'string')
+            .map((k) => k.slice(0, 100)),
+          searchIntent: typeof searchIntent === 'string' ? searchIntent.slice(0, 100) : undefined,
+        });
+        break;
+      }
+
       default:
         await refundUserCredit(userEmail);
         return NextResponse.json(
-          { error: `Unsupported generation type: "${type}". Supported: meta-rewrite, fix-recommendation, content-section, simplify-tone, snippet-bait, scratchpad-assist, internal-link-strategy.` },
+          { error: `Unsupported generation type: "${type}". Supported: meta-rewrite, fix-recommendation, content-section, simplify-tone, snippet-bait, scratchpad-assist, internal-link-strategy, topical-gap-blueprint.` },
           { status: 400 }
         );
       }
@@ -320,6 +357,8 @@ export async function POST(req: NextRequest) {
           ? (typeof body.targetKeyword === 'string' ? `SEO Scratchpad: "${body.targetKeyword}"` : 'SEO Scratchpad Assist')
           : type === 'internal-link-strategy'
           ? (typeof body.targetKeyword === 'string' ? `Link Topology: "${body.targetKeyword}"` : 'Internal Link Topic Cluster')
+          : type === 'topical-gap-blueprint'
+          ? (typeof body.targetTitle === 'string' ? `Topical Blueprint: ${body.targetTitle.slice(0, 50)}` : 'Topical Content Gap Blueprint')
           : (typeof body.topic === 'string' ? body.topic : 'SEO Topic');
 
       const resultSummary =
@@ -335,6 +374,8 @@ export async function POST(req: NextRequest) {
           ? `Generated live writing assist for ${body.action || 'keywords'}`
           : type === 'internal-link-strategy'
           ? 'Generated Hub & Spoke Topic Cluster Architecture'
+          : type === 'topical-gap-blueprint'
+          ? 'Generated Full Topical Gap Blueprint & EEAT Section Copy'
           : 'Generated EEAT section copy and FAQ schema';
 
       await saveUserAiActivity({

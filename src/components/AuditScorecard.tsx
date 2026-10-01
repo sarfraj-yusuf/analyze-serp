@@ -122,10 +122,6 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
       title: 'Missing H1 Heading',
       desc: 'No H1 tag found. Ensure your page includes a clear single H1 main title.',
       status: 'fail',
-      aiAction: {
-        label: 'AI Fix Guide',
-        type: 'fix-headings',
-      },
     });
   } else if (h1Count > 1) {
     score += 10;
@@ -134,10 +130,6 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
       title: 'Multiple H1 Headings Detected',
       desc: `Detected ${h1Count} H1 tags. Best practice is to use a single H1 tag and structure sub-topics with H2/H3 tags.`,
       status: 'warn',
-      aiAction: {
-        label: 'AI Fix Guide',
-        type: 'fix-headings',
-      },
     });
   } else {
     score += 10;
@@ -146,10 +138,6 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
       title: 'Limited Sub-Headings',
       desc: 'Few H2 headings detected. Break up your article with H2 and H3 headings to improve readability.',
       status: 'warn',
-      aiAction: {
-        label: 'AI Fix Guide',
-        type: 'fix-headings',
-      },
     });
   }
 
@@ -177,10 +165,6 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
       title: 'Short Content Volume',
       desc: `Content contains ${wordCount} words. Suitable for short pages, but may lack depth for competitive topics.`,
       status: 'warn',
-      aiAction: {
-        label: 'AI Fix Guide',
-        type: 'fix-content',
-      },
     });
   } else {
     score += 4;
@@ -189,10 +173,6 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
       title: 'Thin Content Volume',
       desc: `Content body contains only ${wordCount} words. Expand your article to compete effectively on SERPs.`,
       status: 'fail',
-      aiAction: {
-        label: 'AI Fix Guide',
-        type: 'fix-content',
-      },
     });
   }
 
@@ -221,10 +201,6 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
       title: `${imageAudit.missingAltCount} Images Missing Alt Text`,
       desc: `Found ${imageAudit.missingAltCount} image(s) lacking alt attributes. Add descriptive alt text for accessibility & image search SEO.`,
       status: imageAudit.missingAltCount > 3 ? 'fail' : 'warn',
-      aiAction: {
-        label: 'AI Fix Guide',
-        type: 'fix-images',
-      },
     });
   }
 
@@ -255,10 +231,6 @@ export const AuditScorecard: React.FC<AuditScorecardProps> = ({ audit }) => {
       title: 'High Keyword Density Warning',
       desc: `Keyword phrase "${overusedPhrase}" shows high density. Reduce frequency to ensure natural reading flow.`,
       status: 'warn',
-      aiAction: {
-        label: 'AI Fix Guide',
-        type: 'fix-content',
-      },
     });
   }
 

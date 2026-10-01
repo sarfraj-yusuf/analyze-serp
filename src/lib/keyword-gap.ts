@@ -1,4 +1,5 @@
 import { SinglePageAudit, KeywordGapAnalysis, KeywordGapItem, KeywordItem } from '@/types/seo';
+import { STOP_WORDS } from './stopwords';
 
 /**
  * Calculates Keyword Gap and Topic Overlap analysis across 2 to 5 competitor URLs.
@@ -38,8 +39,26 @@ export function analyzeKeywordGaps(
     auditUrl: string,
     type: '1-gram' | '2-gram' | '3-gram'
   ) => {
-    items.forEach((item) => {
-      const key = item.phrase.toLowerCase();
+    (items || []).forEach((item) => {
+      const phrase = (item.phrase || '').trim();
+      const key = phrase.toLowerCase();
+      if (!key || key.length <= 1) return;
+
+      const tokens = key.split(/\s+/).filter(Boolean);
+      if (tokens.length === 0) return;
+
+      // Filter out 1-gram stopwords or pure numeric tokens
+      if (type === '1-gram') {
+        if (STOP_WORDS.has(key) || /^\d+$/.test(key)) return;
+      } else {
+        // For multi-word phrases, the first and last word cannot be a stopword
+        const first = tokens[0];
+        const last = tokens[tokens.length - 1];
+        if (STOP_WORDS.has(first) || STOP_WORDS.has(last)) return;
+        // Must contain at least one non-numeric token
+        if (tokens.every((t) => /^\d+$/.test(t))) return;
+      }
+
       if (!gapMap.has(key)) {
         const presenceMap: { [url: string]: { count: number; density: number } } = {};
         urls.forEach((u) => {

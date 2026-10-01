@@ -31,10 +31,15 @@ export const STOP_WORDS = new Set([
   'werent', 'whats', 'whens', 'wheres', 'whos', 'wont', 'wouldnt', 'youd', 'youll',
   'youre', 'youve',
 
+  // ── Contraction prefix stems (leaked when apostrophes are split into separate tokens) ──
+  'couldn', 'wouldn', 'shouldn', 'doesn', 'didn', 'hasn', 'hadn', 'aren', 'weren', 'isn', 'don', 'won', 'mustn',
+
   // ── Orphaned contraction fragments (leaked when apostrophes are split into separate tokens) ──
   've', 're', 'll', 'd', 's', 'm', 't',
 
   // ── Common web UI / boilerplate words ──
   'read', 'click', 'share', 'tweet', 'comment',
   'menu', 'search', 'home', 'privacy', 'policy', 'terms', 'service', 'copyright', 'rights', 'reserved',
+  'browser', 'browsers', 'javascript', 'cookies', 'cookie', 'please', 'enable', 'load', 'loading',
+  'site', 'website', 'page', 'pages', 'error', 'failed', 'support', 'views', 'download', 'login', 'signup',
 ]);

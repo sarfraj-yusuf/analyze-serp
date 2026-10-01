@@ -39,20 +39,14 @@ function calculateNGrams(
       }
 
       // 2-Gram rules (n = 2):
-      // Must contain at least ONE non-stopword of length > 1.
-      // Cannot be composed entirely of stopwords (e.g. reject "is a", "and the", "in of").
+      // Must start AND end with a non-stopword token of length > 1.
       if (n === 2) {
         const [w1, w2] = ngramTokens;
-        const isW1Stop = STOP_WORDS.has(w1) || w1.length <= 1 || /^\d+$/.test(w1);
-        const isW2Stop = STOP_WORDS.has(w2) || w2.length <= 1 || /^\d+$/.test(w2);
+        const isW1Invalid = STOP_WORDS.has(w1) || w1.length <= 1 || /^\d+$/.test(w1);
+        const isW2Invalid = STOP_WORDS.has(w2) || w2.length <= 1 || /^\d+$/.test(w2);
 
-        // If BOTH words are stopwords/noise, skip
-        if (isW1Stop && isW2Stop) continue;
-
-        // Ensure neither token is single char or purely numeric noise
-        if (w1.length <= 1 || w2.length <= 1 || (/^\d+$/.test(w1) && /^\d+$/.test(w2))) {
-          continue;
-        }
+        // Reject if either token is a stopword, single character, or numeric noise
+        if (isW1Invalid || isW2Invalid) continue;
 
         const phrase = ngramTokens.join(' ');
         frequencyMap.set(phrase, (frequencyMap.get(phrase) || 0) + 1);
@@ -60,7 +54,21 @@ function calculateNGrams(
       }
 
       // 3-Gram rules (n = 3):
+      // Must start AND end with a non-stopword token (prevents "a required part" or "required part of").
       // Must contain at least TWO non-stopword tokens of length > 1.
+      const firstToken = ngramTokens[0];
+      const lastToken = ngramTokens[2];
+      if (
+        STOP_WORDS.has(firstToken) ||
+        firstToken.length <= 1 ||
+        /^\d+$/.test(firstToken) ||
+        STOP_WORDS.has(lastToken) ||
+        lastToken.length <= 1 ||
+        /^\d+$/.test(lastToken)
+      ) {
+        continue;
+      }
+
       const nonStopTokens = ngramTokens.filter((token) => !STOP_WORDS.has(token) && token.length > 1 && !/^\d+$/.test(token));
       if (nonStopTokens.length < 2) continue;
 

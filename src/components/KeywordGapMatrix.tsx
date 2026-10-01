@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { SEOExplanationTooltip } from '@/components/SEOExplanationTooltip';
 import { AiSectionWriterModal } from './AiSectionWriterModal';
+import { AiTopicalGapModal } from './AiTopicalGapModal';
 import { Tooltip } from './Tooltip';
 
 interface KeywordGapMatrixProps {
@@ -74,8 +75,9 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
     };
   }, [isExportDropdownOpen]);
 
-  // AI Section Writer Modal State
+  // AI Section Writer & Topical Blueprint States
   const [isAiWriterOpen, setIsAiWriterOpen] = useState(false);
+  const [isTopicalBlueprintOpen, setIsTopicalBlueprintOpen] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
   const [aiTargetKeyword, setAiTargetKeyword] = useState('');
   const [aiContext, setAiContext] = useState('');
@@ -83,6 +85,17 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
   if (validResults.length < 2) return null;
 
   const currentTargetUrl = targetUrl || validResults[0].url;
+
+  const targetAudit = useMemo(
+    () => validResults.find((r) => r.url === currentTargetUrl) || validResults[0],
+    [validResults, currentTargetUrl]
+  );
+
+  const competitorAudits = useMemo(
+    () => validResults.filter((r) => r.url !== currentTargetUrl),
+    [validResults, currentTargetUrl]
+  );
+
   const gapAnalysis = analyzeKeywordGaps(validResults, currentTargetUrl);
   const {
     totalUniqueKeywords,
@@ -228,15 +241,19 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
         </div>
 
         {/* 1-Click Action Buttons */}
-        <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap shrink-0">
-          <Tooltip content="AI Topic Draft" side="top">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap shrink-0">
+          <Tooltip content="Generate unified AI content blueprint for all missing competitor entities" side="top">
             <button
               type="button"
-              onClick={() => handleDraftWithAi()}
-              className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
-              aria-label="AI Topic Draft"
+              onClick={() => setIsTopicalBlueprintOpen(true)}
+              className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 shadow-2xs transition-all active:scale-98 cursor-pointer"
+              aria-label="Generate AI Topical Gap Blueprint"
             >
-              <Sparkles className="size-4" />
+              <Sparkles className="size-3.5" />
+              <span>Topical Gap Blueprint</span>
+              <span className="text-[10px] font-mono px-1 py-0.5 rounded bg-emerald-700/80 text-emerald-100">
+                1 Credit
+              </span>
             </button>
           </Tooltip>
 
@@ -644,21 +661,9 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                 >
                   {/* Sticky Left Column: Keyword Term */}
                   <td className="py-2.5 px-4 font-medium text-slate-800 dark:text-slate-100 max-w-xs sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-semibold truncate" title={item.phrase}>
-                        {item.phrase}
-                      </span>
-                      {item.isTargetPageMissing && (
-                        <button
-                          type="button"
-                          onClick={() => handleDraftWithAi(item.phrase)}
-                          className="p-1 rounded text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-950/60 border border-emerald-300/60 dark:border-emerald-800/60 transition-colors cursor-pointer shrink-0"
-                          title="Draft content section for this missing gap with AI"
-                        >
-                          <Sparkles className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
+                    <span className="font-semibold truncate block" title={item.phrase}>
+                      {item.phrase}
+                    </span>
                   </td>
 
                   {/* N-Gram Length */}
@@ -755,6 +760,19 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
         targetKeyword={aiTargetKeyword}
         sectionHeading={aiTopic}
         context={aiContext}
+      />
+
+      {/* AI Topical Authority Blueprint Modal */}
+      <AiTopicalGapModal
+        isOpen={isTopicalBlueprintOpen}
+        onClose={() => setIsTopicalBlueprintOpen(false)}
+        targetUrl={currentTargetUrl}
+        targetTitle={targetAudit?.meta?.title}
+        targetDescription={targetAudit?.meta?.description}
+        targetHeadings={targetAudit?.headings?.map((h) => h.text)}
+        competitorUrls={competitorAudits.map((c) => c.url)}
+        missingKeywords={yourPageMissingGaps.map((g) => g.phrase)}
+        searchIntent={targetAudit?.searchIntent?.primaryIntent}
       />
     </div>
   );
