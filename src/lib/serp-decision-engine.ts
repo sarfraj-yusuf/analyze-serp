@@ -114,7 +114,103 @@ export function analyzeSerpAlignment(
     isPresentOnTarget: isIntentMatched,
   });
 
-  // B. Structural Heading Clusters Across Competitors
+  // B. Content Word Count Depth Consensus
+  const avgCompWords = compCount > 0
+    ? Math.round(competitors.reduce((acc, c) => acc + (c.wordCount || 0), 0) / compCount)
+    : 1000;
+  const compAboveDepthCount = competitors.filter((c) => (c.wordCount || 0) >= 800).length;
+  const targetHasSufficientDepth = (targetAudit.wordCount || 0) >= avgCompWords * 0.8;
+
+  serpConsensusPatterns.push({
+    frequencyRatio: `${Math.max(compAboveDepthCount, compCount)}/${compCount}`,
+    frequencyPercent: Math.round((Math.max(compAboveDepthCount, compCount) / compCount) * 100),
+    patternType: 'STRUCTURE',
+    title: 'Content Depth & Word Count Benchmark',
+    description: `Competitors average ${avgCompWords.toLocaleString()} words (target page: ${(targetAudit.wordCount || 0).toLocaleString()} words).`,
+    isPresentOnTarget: targetHasSufficientDepth,
+  });
+
+  // C. Structural Elements (FAQ & Schema)
+  let compFaqCount = 0;
+  let compSchemaCount = 0;
+  competitors.forEach((c) => {
+    const hasFaqHeading = c.headings.some((h) => /faq|frequently asked|questions/i.test(h.text));
+    if (hasFaqHeading) compFaqCount++;
+    if (c.meta.hasJsonLdSchema) compSchemaCount++;
+  });
+
+  const targetHasFaq = targetAudit.headings.some((h) => /faq|frequently asked|questions/i.test(h.text));
+  if (compFaqCount >= 1 || targetHasFaq) {
+    serpConsensusPatterns.push({
+      frequencyRatio: `${compFaqCount}/${compCount}`,
+      frequencyPercent: Math.round((compFaqCount / compCount) * 100),
+      patternType: 'STRUCTURE',
+      title: 'Dedicated FAQ / User Question Section',
+      description: `${compFaqCount} of ${compCount} competitors feature a structured FAQ section.`,
+      isPresentOnTarget: targetHasFaq,
+    });
+  }
+
+  serpConsensusPatterns.push({
+    frequencyRatio: `${compSchemaCount}/${compCount}`,
+    frequencyPercent: Math.round((compSchemaCount / compCount) * 100),
+    patternType: 'SCHEMA',
+    title: 'JSON-LD Structured Data Schema',
+    description: `${compSchemaCount} of ${compCount} competitors implement JSON-LD schema markup.`,
+    isPresentOnTarget: targetAudit.meta.hasJsonLdSchema,
+  });
+
+  // D. Multi-Tier Heading Hierarchy (H2 & H3 Depth)
+  const compHeadingHierarchyCount = competitors.filter(
+    (c) => c.headings.some((h) => h.level === 'h2') && c.headings.some((h) => h.level === 'h3')
+  ).length;
+  const targetHasHierarchy =
+    targetAudit.headings.some((h) => h.level === 'h2') && targetAudit.headings.some((h) => h.level === 'h3');
+
+  serpConsensusPatterns.push({
+    frequencyRatio: `${compHeadingHierarchyCount}/${compCount}`,
+    frequencyPercent: Math.round((compHeadingHierarchyCount / compCount) * 100),
+    patternType: 'STRUCTURE',
+    title: 'Multi-Tier Heading Structure (H2 & H3)',
+    description: `${compHeadingHierarchyCount} of ${compCount} competitors organize content with structured H2 sections and nested H3 subheadings.`,
+    isPresentOnTarget: targetHasHierarchy,
+  });
+
+  // E. Image Alt Text Coverage
+  const compAltCoverageCount = competitors.filter(
+    (c) => c.imageAudit.totalImages > 0 && c.imageAudit.missingAltCount === 0
+  ).length;
+  const targetHasAltCoverage = targetAudit.imageAudit.totalImages === 0 || targetAudit.imageAudit.missingAltCount === 0;
+
+  serpConsensusPatterns.push({
+    frequencyRatio: `${compAltCoverageCount}/${compCount}`,
+    frequencyPercent: Math.round((compAltCoverageCount / compCount) * 100),
+    patternType: 'STRUCTURE',
+    title: 'Descriptive Image Alt Text Attributes',
+    description: `${compAltCoverageCount} of ${compCount} competitors maintain complete descriptive ALT attributes across all images.`,
+    isPresentOnTarget: targetHasAltCoverage,
+  });
+
+  // ── 3. EVIDENCE-BASED ACTION RECOMMENDATIONS (IMPACT x EFFORT) ──
+  const evidenceActions: EvidenceRecommendation[] = [];
+
+  // Action 1: Intent Mismatch
+  if (!isIntentMatched) {
+    evidenceActions.push({
+      id: 'intent-mismatch',
+      title: 'Align Content Search Intent',
+      action: `Refactor page structure from ${targetIntent.toLowerCase()} to ${dominantIntent.toLowerCase()} focus to match user expectation.`,
+      evidence: `${intentCounts[dominantIntent]}/${totalAuditsCount} ranking pages target ${dominantIntent.toLowerCase()} intent.`,
+      businessImpact: 'Prevents immediate visitor bounce-backs caused by mismatched search intent, protecting search engagement metrics and dwell time.',
+      isMissing: true,
+      impact: 'HIGH',
+      effort: 'HIGH',
+      quadrant: 'PLAN_THIS',
+      category: 'INTENT',
+    });
+  }
+
+  // Action 2: Sub-topic Gaps (Heading Themes)
   const competitorHeadingsList = competitors.flatMap((c) =>
     c.headings.filter((h) => h.level === 'h2' || h.level === 'h3')
   );
@@ -143,102 +239,48 @@ export function analyzeSerpAlignment(
   const minCompThreshold = Math.max(2, Math.ceil(compCount * 0.5));
   const commonHeadingThemes = headingClusters.filter((c) => c.count >= (compCount >= 2 ? minCompThreshold : 1));
 
-  commonHeadingThemes.slice(0, 6).forEach((theme) => {
-    const targetHasTheme = targetAudit.headings.some(
-      (th) => calculateSimilarity(normalizeHeadingText(th.text), theme.theme) > 0.4
-    );
-    const ratio = Math.min(compCount, theme.count);
+  const missingThemes = commonHeadingThemes.filter(
+    (theme) => !targetAudit.headings.some((th) => calculateSimilarity(normalizeHeadingText(th.text), theme.theme) > 0.4)
+  );
 
-    serpConsensusPatterns.push({
-      frequencyRatio: `${ratio}/${compCount + 1}`,
-      frequencyPercent: Math.round((ratio / (compCount + 1)) * 100),
-      patternType: 'TOPIC',
-      title: `Subtopic: "${theme.originalText}"`,
-      description: `Covered by ${ratio} ranking competitors.`,
-      isPresentOnTarget: targetHasTheme,
-    });
-  });
+  missingThemes.forEach((theme, idx) => {
+    const ratioStr = `${Math.min(compCount, theme.count)}/${compCount} ranking competitors`;
+    const isTopPriority = idx < 2;
 
-  // C. Structural Elements (FAQ & Tables & Schema)
-  let compFaqCount = 0;
-  let compSchemaCount = 0;
-  competitors.forEach((c) => {
-    const hasFaqHeading = c.headings.some((h) => /faq|frequently asked|questions/i.test(h.text));
-    if (hasFaqHeading) compFaqCount++;
-    if (c.meta.hasJsonLdSchema) compSchemaCount++;
-  });
-
-  const targetHasFaq = targetAudit.headings.some((h) => /faq|frequently asked|questions/i.test(h.text));
-  if (compFaqCount >= 1) {
-    serpConsensusPatterns.push({
-      frequencyRatio: `${compFaqCount}/${compCount}`,
-      frequencyPercent: Math.round((compFaqCount / compCount) * 100),
-      patternType: 'STRUCTURE',
-      title: 'Dedicated FAQ / User Question Section',
-      description: `${compFaqCount} of ${compCount} competitors feature a structured FAQ section.`,
-      isPresentOnTarget: targetHasFaq,
-    });
-  }
-
-  if (compSchemaCount >= 1) {
-    serpConsensusPatterns.push({
-      frequencyRatio: `${compSchemaCount}/${compCount}`,
-      frequencyPercent: Math.round((compSchemaCount / compCount) * 100),
-      patternType: 'SCHEMA',
-      title: 'JSON-LD Structured Data Schema',
-      description: `${compSchemaCount} of ${compCount} competitors implement JSON-LD schema markup.`,
-      isPresentOnTarget: targetAudit.meta.hasJsonLdSchema,
-    });
-  }
-
-  // ── 3. EVIDENCE-BASED ACTION RECOMMENDATIONS (IMPACT x EFFORT) ──
-  const evidenceActions: EvidenceRecommendation[] = [];
-
-  // Action 1: Intent Mismatch
-  if (!isIntentMatched) {
     evidenceActions.push({
-      id: 'intent-mismatch',
-      title: 'Align Content Search Intent',
-      action: `Refactor page structure from ${targetIntent.toLowerCase()} to ${dominantIntent.toLowerCase()} focus to match user expectation.`,
-      evidence: `${intentCounts[dominantIntent]}/${totalAuditsCount} ranking pages target ${dominantIntent.toLowerCase()} intent.`,
-      businessImpact: 'Prevents immediate visitor bounce-backs caused by mismatched search intent, protecting search engagement metrics and dwell time.',
+      id: `subtopic-gap-${idx}`,
+      title: `Add Subtopic: "${theme.originalText}"`,
+      action: `Add a dedicated H2 section covering "${theme.originalText}" with supporting details.`,
+      evidence: `${ratioStr} cover this subtopic section.`,
+      businessImpact: 'Answering this expected subtopic keeps potential customers on your page rather than bouncing back to Google to check a competitor.',
       isMissing: true,
-      impact: 'HIGH',
-      effort: 'HIGH',
-      quadrant: 'PLAN_THIS',
-      category: 'INTENT',
+      impact: isTopPriority ? 'HIGH' : 'MEDIUM',
+      effort: 'LOW',
+      quadrant: isTopPriority ? 'DO_FIRST' : 'DO_NEXT',
+      category: 'TOPIC',
     });
-  }
-
-  // Action 2: Sub-topic Gaps (Heading Themes)
-  commonHeadingThemes.forEach((theme, idx) => {
-    const targetHasTheme = targetAudit.headings.some(
-      (th) => calculateSimilarity(normalizeHeadingText(th.text), theme.theme) > 0.4
-    );
-
-    if (!targetHasTheme) {
-      const ratioStr = `${Math.min(compCount, theme.count)}/${compCount} ranking competitors`;
-      evidenceActions.push({
-        id: `subtopic-gap-${idx}`,
-        title: `Add Subtopic: "${theme.originalText}"`,
-        action: `Add a dedicated H2 section covering "${theme.originalText}" with supporting details.`,
-        evidence: `${ratioStr} cover this subtopic section.`,
-        businessImpact: 'Answering this expected subtopic keeps potential customers on your page rather than bouncing back to Google to check a competitor.',
-        isMissing: true,
-        impact: theme.count >= compCount ? 'HIGH' : 'MEDIUM',
-        effort: 'LOW',
-        quadrant: theme.count >= compCount ? 'DO_FIRST' : 'DO_NEXT',
-        category: 'TOPIC',
-      });
-    }
   });
 
   // Action 3: Keyword Gaps (Entities & Questions)
   const gapAnalysis = analyzeKeywordGaps(validResults, targetAudit.url);
-  const topMissingGaps = (gapAnalysis.yourPageMissingGaps || []).slice(0, 5);
+  const topMissingGaps = (gapAnalysis.yourPageMissingGaps || []).slice(0, 6);
 
   topMissingGaps.forEach((gap, idx) => {
     const compPresenceCount = Object.values(gap.presenceMap).filter((p) => p.count > 0).length;
+    let impact: 'HIGH' | 'MEDIUM' | 'LOW' = 'MEDIUM';
+    let quadrant: 'DO_FIRST' | 'DO_NEXT' | 'PLAN_THIS' | 'OPTIONAL' = 'DO_NEXT';
+
+    if (idx < 2) {
+      impact = 'HIGH';
+      quadrant = 'DO_FIRST';
+    } else if (idx < 4) {
+      impact = 'MEDIUM';
+      quadrant = 'DO_NEXT';
+    } else {
+      impact = 'LOW';
+      quadrant = 'DO_NEXT';
+    }
+
     evidenceActions.push({
       id: `keyword-gap-${idx}`,
       title: `Integrate Core Entity: "${gap.phrase}"`,
@@ -246,9 +288,9 @@ export function analyzeSerpAlignment(
       evidence: `Used frequently across ${compPresenceCount} competitors (max density ${gap.maxDensity}%).`,
       businessImpact: 'Builds Google topical authority score so your content can outrank established domain competitors for core entity terms.',
       isMissing: true,
-      impact: 'HIGH',
+      impact,
       effort: 'LOW',
-      quadrant: 'DO_FIRST',
+      quadrant,
       category: 'QUESTION',
     });
   });
@@ -339,11 +381,17 @@ export function analyzeSerpAlignment(
     });
   }
 
-  // Check HTTPS
-  if (hasHttps) {
+  // Check HTML Payload Weight (SSL is already verified in Technical Hygiene)
+  const targetHtmlKb = Math.round(targetAudit.technicalAudit?.htmlSizeKb || 0);
+  if (targetHtmlKb > 0 && targetHtmlKb <= 120) {
     dontTouchStrengths.push({
-      title: 'SSL / HTTPS Security Protocol',
-      reason: 'Your site is fully encrypted with secure HTTPS.',
+      title: `HTML Payload Weight (${targetHtmlKb} KB)`,
+      reason: 'Your HTML document weight is lightweight and transfers quickly over mobile connections. No bloated markup cleanup required.',
+    });
+  } else if (targetAudit.meta.descriptionLength >= 110 && targetAudit.meta.descriptionLength <= 165 && !targetAudit.meta.descriptionTruncated) {
+    dontTouchStrengths.push({
+      title: `Meta Description Length (${targetAudit.meta.descriptionLength} chars)`,
+      reason: 'Your meta description length is calibrated within Google’s 120–160 character boundary. No rewrite needed.',
     });
   }
 

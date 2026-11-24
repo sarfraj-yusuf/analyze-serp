@@ -6,9 +6,18 @@ import { FeedbackModal } from './FeedbackModal';
 
 export const ClientFeedbackWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [hasCompletedAudit, setHasCompletedAudit] = useState(false);
 
   useEffect(() => {
+    // Only display the floating feedback widget if the user has performed at least one audit
+    if (localStorage.getItem('has_completed_audit') === 'true') {
+      setHasCompletedAudit(true);
+    }
+
     const handleToolExecuted = () => {
+      localStorage.setItem('has_completed_audit', 'true');
+      setHasCompletedAudit(true);
+
       const hasSubmitted = localStorage.getItem('has_submitted_feedback') === 'true';
       if (!hasSubmitted) {
         setIsFeedbackOpen(true);
@@ -22,7 +31,9 @@ export const ClientFeedbackWrapper: React.FC<{ children: React.ReactNode }> = ({
   return (
     <>
       {children}
-      <FloatingFeedbackButton onOpenFeedback={() => setIsFeedbackOpen(true)} />
+      {hasCompletedAudit && (
+        <FloatingFeedbackButton onOpenFeedback={() => setIsFeedbackOpen(true)} />
+      )}
       <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
     </>
   );

@@ -476,8 +476,8 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             </div>
           </div>
 
-          {/* Right Column (5 Cols): Elevated Executive Parity Scorecard */}
-          <div className="lg:col-span-5 rounded-xl p-4 bg-slate-50/60 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] flex flex-col justify-between gap-3">
+          {/* Right Column (5 Cols): Clean Executive Parity Scorecard */}
+          <div className="lg:col-span-5 flex flex-col justify-between gap-3 lg:border-l lg:border-slate-100 dark:lg:border-white/5 lg:pl-6 pt-3 lg:pt-0">
             
             {/* Score & Gauge Row */}
             <div className="flex items-center gap-3.5">
@@ -563,7 +563,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
               onClick={handleGoToActionPlan}
               className="text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 inline-flex items-center gap-1 transition-colors self-start cursor-pointer group"
             >
-              <span>Explore Prioritized Action Roadmap</span>
+              <span>Explore Prioritized Action Plan</span>
               <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
             </button>
 
@@ -582,7 +582,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
         className="sticky top-16 z-30 p-1 rounded-xl bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-white/[0.06] backdrop-blur-xl flex items-center gap-1 overflow-x-auto scrollbar-none shadow-2xs"
       >
         {/* Tab 1: Overview */}
-        <Tooltip content="Overview & Action Roadmap" side="bottom">
+        <Tooltip content="Overview & Action Plan" side="bottom">
           <button
             id="tab-overview"
             role="tab"
@@ -598,7 +598,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             }`}
           >
             <Activity className="size-3.5" />
-            <span>Overview &amp; Roadmap</span>
+            <span>Overview &amp; Action Plan</span>
           </button>
         </Tooltip>
 

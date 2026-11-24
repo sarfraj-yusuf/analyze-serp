@@ -4,7 +4,6 @@ import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
 import { CompetitorWorkspace } from '@/components/CompetitorWorkspace';
 import { AuditSkeleton } from '@/components/AuditSkeleton';
 import { BatchAuditResponse, SinglePageAudit, KeywordGapAnalysis } from '@/types/seo';
@@ -838,8 +837,39 @@ function AuditWorkspaceClient() {
         )}
       </main>
 
-      <Footer />
+      <AuditWorkspaceFooter />
     </div>
+  );
+}
+
+function AuditWorkspaceFooter() {
+  const currentYear = new Date().getFullYear();
+  return (
+    <footer className="border-t border-slate-200/80 dark:border-white/10 py-5 px-4 sm:px-6 lg:px-8 text-xs text-slate-500 dark:text-gray-400 bg-white/40 dark:bg-slate-900/40 mt-12">
+      <div className="max-w-7xl w-full mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px]">
+        <div>
+          &copy; {currentYear} <strong>AnalyzeSERP</strong> &bull; Competitor SEO Audit Workspace
+        </div>
+        <div className="flex items-center flex-wrap gap-4">
+          <Link href="/privacy" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+            Privacy
+          </Link>
+          <span className="text-slate-300 dark:text-slate-700">&bull;</span>
+          <Link href="/terms" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+            Terms
+          </Link>
+          <span className="text-slate-300 dark:text-slate-700">&bull;</span>
+          <Link href="/changelog" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+            Changelog
+          </Link>
+          <span className="text-slate-300 dark:text-slate-700">&bull;</span>
+          <div className="inline-flex items-center gap-1.5 font-medium text-emerald-700 dark:text-emerald-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>All Systems Operational</span>
+          </div>
+        </div>
+      </div>
+    </footer>
   );
 }
 
@@ -852,7 +882,7 @@ export default function AuditPage() {
           <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-12">
             <AuditSkeleton />
           </main>
-          <Footer />
+          <AuditWorkspaceFooter />
         </div>
       }
     >

@@ -40,18 +40,18 @@ export const DontTouchStrengthsCard: React.FC<DontTouchStrengthsCardProps> = ({ 
         </div>
       </div>
 
-      {/* Grid of Strengths - Clean Neutral Cards with Subtle Left Accent Line */}
-      <div className="grid grid-cols-1 gap-2 flex-1 content-start">
+      {/* Lightweight Dividers List of Strengths - No Nested Boxes, No Heavy Left Borders */}
+      <div className="divide-y divide-slate-100 dark:divide-white/[0.04] flex-1">
         {strengths.map((s, idx) => (
           <div
             key={idx}
-            className="p-3 rounded-xl bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] border-l-2 border-l-emerald-500 space-y-1 transition-all"
+            className="py-2.5 first:pt-0 last:pb-0 space-y-0.5"
           >
             <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
               <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>{s.title}</span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed pl-5 font-normal">
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed pl-5.5 font-normal">
               {s.reason}
             </p>
           </div>

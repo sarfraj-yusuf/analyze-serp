@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -44,7 +46,7 @@ const PRICING_FAQS: FaqItem[] = [
   },
   {
     q: 'How does AnalyzeSERP extract search data in under 500 milliseconds without AI latency?',
-    a: 'AnalyzeSERP bypasses heavy headless browsers and generative LLMs in favor of a specialized, high-concurrency Node.js Cheerio DOM engine. We extract raw HTML tags, heading hierarchies, schema markup, and keyword n-grams directly from the document AST with deterministic accuracy.',
+    a: 'AnalyzeSERP bypasses heavy headless browsers and generative LLMs in favor of a specialized, high-concurrency Node.js parsing engine. We extract live HTML tags, heading hierarchies, schema markup, and keyword phrases directly from the page source with 100% accuracy and zero AI hallucinations.',
   },
   {
     q: 'How will pricing work once AnalyzeSERP transitions out of Public Beta?',
@@ -75,9 +77,9 @@ const FEATURE_CATEGORIES: FeatureCategory[] = [
     category: '1. Crawling & Velocity Engine',
     icon: <Zap className="w-4 h-4 text-emerald-500" />,
     features: [
-      { name: 'Core Engine Architecture', starter: 'Cheerio Raw DOM AST', proBeta: 'Cheerio Raw DOM AST', agency: 'Dedicated Cluster' },
+      { name: 'Core Engine Architecture', starter: 'Direct HTML Parser', proBeta: 'Direct HTML Parser', agency: 'Dedicated Cluster' },
       { name: 'Average Extraction Latency', starter: '< 500ms TTFB', proBeta: '< 450ms TTFB', agency: '< 350ms TTFB' },
-      { name: 'Extraction Mode', starter: 'Deterministic AST', proBeta: 'Deterministic AST', agency: 'Deterministic AST' },
+      { name: 'Extraction Mode', starter: 'Live Page Analysis', proBeta: 'Live Page Analysis', agency: 'Live Page Analysis' },
       { name: 'Raw HTML Payload & Status Codes', starter: true, proBeta: true, agency: true },
       { name: 'Priority Server Crawl Queue', starter: false, proBeta: true, agency: true, highlight: true },
     ],
@@ -87,7 +89,7 @@ const FEATURE_CATEGORIES: FeatureCategory[] = [
     icon: <Compass className="w-4 h-4 text-emerald-500" />,
     features: [
       { name: 'Competitor Multi-URL Batching', starter: '1 URL at a time', proBeta: 'Up to 5 URLs', agency: 'Up to 25 URLs', highlight: true },
-      { name: '1-Gram, 2-Gram & 3-Gram Keyword Gaps', starter: true, proBeta: true, agency: true },
+      { name: 'Single & Multi-Word Keyword Gap Analysis', starter: true, proBeta: true, agency: true },
       { name: 'Heading Tree Hierarchy (H1–H6 Depth)', starter: true, proBeta: true, agency: true },
       { name: 'SERP & Social Card Pixel Simulator (600px)', starter: true, proBeta: true, agency: true },
       { name: 'Content Economics & Word Count Maps', starter: true, proBeta: true, agency: true },
@@ -128,6 +130,7 @@ const FEATURE_CATEGORIES: FeatureCategory[] = [
 ];
 
 export default function PricingPage() {
+  const [isRoadmapOpen, setIsRoadmapOpen] = useState(false);
   const faqAccordionItems = PRICING_FAQS.map((faq) => ({
     question: faq.q,
     answer: faq.a,
@@ -218,195 +221,144 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* Section 2: 3-Tier Enterprise Pricing Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
-          {/* Card 1: Free Starter (Post-Beta Base) */}
-          <div className="glass-panel p-6 sm:p-7 rounded-2xl border border-slate-200/80 dark:border-white/10 flex flex-col justify-between space-y-6 shadow-sm">
+        {/* Section 2: Current Beta Access (2 Clear Options) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-stretch max-w-4xl mx-auto">
+          {/* Card 1: Instant Guest Access */}
+          <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-200/80 dark:border-white/10 flex flex-col justify-between space-y-6 shadow-sm">
             <div className="space-y-4">
-              <div className="space-y-1">
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">
-                  Starter Tier
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]">
+                  <span>Instant Access</span>
                 </div>
+                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                  Guest Auditor
+                </h2>
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-100">$0</span>
-                  <span className="text-xs text-slate-500 dark:text-gray-400 font-medium">/ forever free</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">/ no signup required</span>
                 </div>
               </div>
 
               <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
-                Essential single-page audits for bloggers, indie hackers, and site owners running occasional health checks.
+                Run immediate multi-URL competitor audits and test standalone utilities with zero friction.
               </p>
 
               <ul className="space-y-2.5 text-xs text-slate-700 dark:text-gray-300 pt-4 border-t border-slate-200/80 dark:border-white/10">
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>5 Single-URL Audits per day</span>
+                  <span><strong>Multi-URL Competitor Audits</strong> (up to 5 URLs in parallel)</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Raw DOM Cheerio Extraction</span>
+                  <span>All 10 Standalone Micro-Diagnostic Utilities</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Google 2026 Core Web Vitals</span>
+                  <span>Keyword Gap &amp; Missing Search Intent Matrices</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>SERP & Social Snippet Simulator</span>
+                  <span>Executive Vector PDF Report Generator</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Flesch Readability Scoring</span>
+                  <span>Direct HTML Extraction (&lt;500ms TTFB)</span>
                 </li>
-                <li className="flex items-start gap-2 text-slate-400 dark:text-gray-500 line-through">
-                  <X className="w-4 h-4 shrink-0 mt-0.5 text-slate-400 dark:text-gray-600" />
-                  <span>White-Label PDF Reports (Post-Beta)</span>
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>Complete Client-Side Privacy (Zero URL Tracking)</span>
                 </li>
               </ul>
             </div>
 
-            <Link
-              href="/"
-              className="w-full py-3 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 font-bold text-xs text-center border border-slate-200 dark:border-white/10 transition-all cursor-pointer block"
-            >
-              Start Free Audits
-            </Link>
+            <div className="space-y-2 pt-2">
+              <Link
+                href="/"
+                className="w-full py-3.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 font-bold text-xs text-center border border-slate-200 dark:border-white/10 transition-all cursor-pointer block"
+              >
+                Run an Instant Audit →
+              </Link>
+              <p className="text-[11px] text-center text-slate-500 dark:text-gray-400">
+                No credit card &bull; No login required
+              </p>
+            </div>
           </div>
 
-          {/* Card 2: Pro Auditor (Featured Focal Point - Public Beta Active) */}
-          <div className="glass-panel p-6 sm:p-7 rounded-2xl border-2 border-emerald-500/80 bg-emerald-500/[0.04] flex flex-col justify-between space-y-6 shadow-xl relative">
+          {/* Card 2: Free Beta Account (Featured) */}
+          <div className="glass-panel p-6 sm:p-8 rounded-2xl border-2 border-emerald-500/80 bg-emerald-500/[0.04] flex flex-col justify-between space-y-6 shadow-xl relative">
             {/* Active Beta Badge */}
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-600 text-white shadow-md flex items-center gap-1.5 whitespace-nowrap">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              <span>ACTIVE IN PUBLIC BETA • 100% UNLOCKED</span>
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-600 text-white shadow-md flex items-center gap-1.5 whitespace-nowrap">
+              <Sparkles className="w-3 h-3" />
+              <span>RECOMMENDED FOR AGENCIES &amp; TEAMS</span>
             </div>
 
             <div className="space-y-4 pt-1">
-              <div className="space-y-1">
-                <div className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Pro Auditor (Featured)</span>
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                  <span>Free Account</span>
                 </div>
+                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                  <span>Beta Member Workspace</span>
+                </h2>
                 <div className="flex items-baseline gap-2 flex-wrap">
                   <span className="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-100">$0</span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">/ month</span>
-                  <span className="line-through text-xs text-slate-400 font-medium">($19 value)</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                    Public Beta Free
-                  </span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">/ 100% free beta access</span>
                 </div>
               </div>
 
               <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
-                Full access to our deterministic crawler and unbranded agency PDF engine. Zero credit card required during Public Beta.
+                Save your agency branding, keep persistent audit history across devices, and lock in grandfathered perks.
               </p>
 
               <ul className="space-y-2.5 text-xs text-slate-700 dark:text-gray-300 pt-4 border-t border-slate-200/80 dark:border-white/10">
                 <li className="flex items-start gap-2 font-semibold text-emerald-700 dark:text-emerald-300">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Unlimited Audits (with 120s Cooldown Reset)</span>
+                  <span>Everything in Guest Auditor, plus:</span>
                 </li>
                 <li className="flex items-start gap-2 font-semibold">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Batch Multi-URL Competitor Analysis</span>
+                  <span><strong>Persistent Workspace Audit History</strong> (access past runs anytime)</span>
+                </li>
+                <li className="flex items-start gap-2 font-semibold">
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span><strong>Saved Agency Branding</strong> (custom logo &amp; name on all PDF reports)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>Custom Brand Accent Colors for White-Label Briefs</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>Consultant Recommendation Notes &amp; Action Items</span>
                 </li>
                 <li className="flex items-start gap-2 font-semibold text-emerald-700 dark:text-emerald-300">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Executive White-Label PDF Reports</span>
+                  <span><strong>Early Adopter 50% Lifetime Discount</strong> on future plans</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Custom Agency Logo & Brand Accent</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>1-Gram, 2-Gram & 3-Gram Keyword Gaps</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>301/302 Redirect Multi-Hop Tracer</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>WCAG 2.2 AA/AAA Color Contrast Studio</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Export Unbranded Markdown Briefs</span>
+                  <span>Priority Beta Feedback &amp; Feature Requests Channel</span>
                 </li>
               </ul>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 pt-2">
               <Link
-                href="/"
+                href="/login"
                 className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm shadow-emerald-600/25 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer block text-center"
               >
-                <span>Start Free Auditing Now</span>
+                <span>Create Free Beta Account</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
-              <div className="text-[11px] text-center text-slate-500 dark:text-gray-400">
-                Instant access • No credit card needed
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: Agency Scale Tier */}
-          <div className="glass-panel p-6 sm:p-7 rounded-2xl border border-slate-200/80 dark:border-white/10 flex flex-col justify-between space-y-6 shadow-sm">
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">
-                  Agency Scale
-                </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-100">$49</span>
-                  <span className="text-xs text-slate-500 dark:text-gray-400 font-medium">/ month (post-beta)</span>
-                </div>
-              </div>
-
-              <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
-                Designed for high-output SEO agencies, consultants, and growth teams managing multiple client portfolios.
+              <p className="text-[11px] text-center text-slate-500 dark:text-gray-400">
+                Takes 30 seconds via Google or GitHub &bull; No credit card
               </p>
-
-              <ul className="space-y-2.5 text-xs text-slate-700 dark:text-gray-300 pt-4 border-t border-slate-200/80 dark:border-white/10">
-                <li className="flex items-start gap-2 font-semibold">
-                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Batch Audit Up to 25 URLs at once</span>
-                </li>
-                <li className="flex items-start gap-2 font-semibold text-slate-800 dark:text-slate-200">
-                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>10 Team Member Workspace Seats</span>
-                </li>
-                <li className="flex items-start gap-2 font-semibold">
-                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Unlimited Unbranded Client Reports</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Client Consultant Recommendations in PDF</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Dedicated Crawl IP Infrastructure</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Priority Slack / Telegram Support</span>
-                </li>
-              </ul>
             </div>
-
-            <Link
-              href="/contact"
-              className="w-full py-3 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 font-bold text-xs text-center border border-slate-200 dark:border-white/10 transition-all cursor-pointer block"
-            >
-              Inquire for Agency Beta
-            </Link>
           </div>
         </div>
 
         {/* Section 3: Early Adopter Grandfathering Guarantee Banner */}
-        <div className="p-6 sm:p-8 rounded-3xl glass-panel border border-emerald-500/30 bg-emerald-500/[0.02] flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="p-6 sm:p-8 rounded-3xl glass-panel border border-emerald-500/30 bg-emerald-500/[0.02] flex flex-col md:flex-row items-center justify-between gap-6 max-w-4xl mx-auto">
           <div className="space-y-2 text-center md:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
               <Star className="w-3.5 h-3.5 fill-current" />
@@ -416,115 +368,220 @@ export default function PricingPage() {
               Why is Pro 100% Free Right Now?
             </h3>
             <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed max-w-2xl">
-              We believe diagnostic accuracy should be democratized. By testing our deterministic DOM scraper today, you help us refine our telemetry. In return, all active beta users lock in a permanent <strong>50% lifetime grandfathered discount</strong> on all future paid plans.
+              We believe diagnostic accuracy should be democratized. By testing our live page auditor today, you help us refine our platform. In return, all active beta users lock in a permanent <strong>50% lifetime grandfathered discount</strong> on all future paid plans.
             </p>
           </div>
 
           <Link
-            href="/"
+            href="/login"
             className="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-100 font-bold text-xs transition-all cursor-pointer shrink-0 whitespace-nowrap"
           >
-            Claim Beta Access Free →
+            Claim 50% Lifetime Discount →
           </Link>
         </div>
 
-        {/* Section 4: Categorized Detailed Feature Comparison Matrix */}
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <Layers className="w-5 h-5 text-emerald-500" />
-              <span>Detailed Feature Comparison Matrix</span>
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-gray-400">
-              Compare our 8 single-purpose diagnostic engines across each tier.
-            </p>
-          </div>
+        {/* Section 4: Collapsible Post-Beta Commercial Roadmap & Comparison Matrix */}
+        <div className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.01] overflow-hidden transition-all max-w-5xl mx-auto">
+          <button
+            type="button"
+            onClick={() => setIsRoadmapOpen(!isRoadmapOpen)}
+            aria-expanded={isRoadmapOpen}
+            className="w-full p-5 sm:p-6 text-left flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-slate-100/60 dark:hover:bg-white/[0.03] transition-colors"
+          >
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <Layers className="w-4 h-4 text-emerald-500" />
+                <span>Commercial Roadmap (Post-Beta)</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">
+                Post-Beta Commercial Pricing &amp; Feature Comparison Matrix
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Explore our planned post-beta subscription tiers ($0 Starter, $19 Pro, $49 Agency) and early adopter grandfathered rates.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400 shrink-0">
+              <span>{isRoadmapOpen ? 'Hide Commercial Roadmap' : 'View Commercial Roadmap'}</span>
+              <ChevronDown
+                className={`w-4 h-4 transition-transform duration-200 ${
+                  isRoadmapOpen ? 'rotate-180' : ''
+                }`}
+              />
+            </div>
+          </button>
 
-          <div className="overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 shadow-sm">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] text-slate-600 dark:text-gray-400 font-bold uppercase tracking-wider">
-                  <th className="py-4 px-5 w-2/5">Platform Feature</th>
-                  <th className="py-4 px-4 text-center w-1/5">Starter ($0)</th>
-                  <th className="py-4 px-4 text-center w-1/5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-extrabold">
-                    Pro Auditor ($0 Beta)
-                  </th>
-                  <th className="py-4 px-4 text-center w-1/5">Agency ($49)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-slate-800 dark:text-gray-200">
-                {FEATURE_CATEGORIES.map((cat, catIdx) => (
-                  <React.Fragment key={catIdx}>
-                    {/* Category Header Row */}
-                    <tr className="bg-slate-100/60 dark:bg-white/[0.02]">
-                      <td
-                        colSpan={4}
-                        className="py-3 px-5 text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider"
-                      >
-                        <div className="flex items-center gap-2">
-                          {cat.icon}
-                          <span>{cat.category}</span>
-                        </div>
-                      </td>
-                    </tr>
+          {isRoadmapOpen && (
+            <div className="p-5 sm:p-8 pt-4 sm:pt-6 border-t border-slate-200/80 dark:border-white/10 space-y-10 animate-in fade-in duration-200">
+              {/* 3-Tier Post-Beta Comparison Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                {/* Tier 1: Starter */}
+                <div className="p-5 sm:p-6 rounded-xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 flex flex-col justify-between space-y-4">
+                  <div className="space-y-2">
+                    <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Starter Tier</div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-2xl font-extrabold text-slate-800 dark:text-slate-100">$0</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">/ forever free</span>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                      Essential single-page audits for site owners running occasional health checks.
+                    </p>
+                    <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300 pt-3 border-t border-slate-100 dark:border-white/5">
+                      <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> 5 single-URL audits/day</li>
+                      <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> Direct HTML page extraction</li>
+                      <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> Core Web Vitals checks</li>
+                      <li className="flex items-center gap-2 text-slate-400 dark:text-slate-500 line-through"><X className="w-3.5 h-3.5 text-slate-400 shrink-0" /> White-Label PDF reports</li>
+                    </ul>
+                  </div>
+                  <span className="text-[11px] font-mono text-slate-400 text-center block pt-2 border-t border-slate-100 dark:border-white/5">Post-Beta Base Tier</span>
+                </div>
 
-                    {/* Category Features */}
-                    {cat.features.map((feat, featIdx) => (
-                      <tr
-                        key={featIdx}
-                        className={`hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors ${
-                          feat.highlight ? 'bg-emerald-500/[0.02]' : ''
-                        }`}
-                      >
-                        <td className="py-3 px-5 font-medium text-slate-700 dark:text-gray-300">
-                          {feat.name}
-                        </td>
+                {/* Tier 2: Pro Auditor */}
+                <div className="p-5 sm:p-6 rounded-xl border-2 border-emerald-500/70 bg-emerald-500/[0.02] flex flex-col justify-between space-y-4 shadow-sm">
+                  <div className="space-y-2">
+                    <div className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Pro Auditor</span>
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-2xl font-extrabold text-slate-800 dark:text-slate-100">$19</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">/ month</span>
+                    </div>
+                    <p className="text-xs text-emerald-700 dark:text-emerald-300 font-semibold">
+                      Early beta members lock in 50% off ($9.50/mo)
+                    </p>
+                    <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300 pt-3 border-t border-slate-100 dark:border-white/5">
+                      <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> Multi-URL competitor batching</li>
+                      <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> Executive White-Label PDF exports</li>
+                      <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> Custom agency branding</li>
+                      <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> Keyword gap matrices</li>
+                    </ul>
+                  </div>
+                  <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 text-center block pt-2 border-t border-slate-100 dark:border-white/5">100% Free During Beta</span>
+                </div>
 
-                        {/* Starter Tier Value */}
-                        <td className="py-3 px-4 text-center font-mono text-[11px] text-slate-600 dark:text-gray-400">
-                          {typeof feat.starter === 'boolean' ? (
-                            feat.starter ? (
-                              <Check className="w-4 h-4 text-emerald-500 mx-auto" />
-                            ) : (
-                              <X className="w-4 h-4 text-slate-300 dark:text-gray-600 mx-auto" />
-                            )
-                          ) : (
-                            <span>{feat.starter}</span>
-                          )}
-                        </td>
+                {/* Tier 3: Agency Scale */}
+                <div className="p-5 sm:p-6 rounded-xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 flex flex-col justify-between space-y-4">
+                  <div className="space-y-2">
+                    <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Agency Scale</div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-2xl font-extrabold text-slate-800 dark:text-slate-100">$49</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">/ month</span>
+                    </div>
+                    <p className="text-xs text-emerald-700 dark:text-emerald-300 font-semibold">
+                      Early beta members lock in 50% off ($24.50/mo)
+                    </p>
+                    <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300 pt-3 border-t border-slate-100 dark:border-white/5">
+                      <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> Batch audit up to 25 URLs</li>
+                      <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> 10 team member workspace seats</li>
+                      <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> Dedicated crawl infrastructure</li>
+                      <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> Priority agency support</li>
+                    </ul>
+                  </div>
+                  <Link href="/contact" className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline text-center block pt-2 border-t border-slate-100 dark:border-white/5">
+                    Inquire for Agency Beta →
+                  </Link>
+                </div>
+              </div>
 
-                        {/* Pro Beta Tier Value */}
-                        <td className="py-3 px-4 text-center font-mono text-[11px] font-bold bg-emerald-500/[0.04] text-emerald-700 dark:text-emerald-300">
-                          {typeof feat.proBeta === 'boolean' ? (
-                            feat.proBeta ? (
-                              <Check className="w-4 h-4 text-emerald-500 mx-auto" />
-                            ) : (
-                              <X className="w-4 h-4 text-slate-300 dark:text-gray-600 mx-auto" />
-                            )
-                          ) : (
-                            <span>{feat.proBeta}</span>
-                          )}
-                        </td>
+              {/* Detailed Feature Comparison Matrix Table */}
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">
+                    Full Feature Breakdown Matrix
+                  </h4>
+                  <p className="text-xs text-slate-500 dark:text-gray-400">
+                    Comprehensive comparison across our 10 standalone diagnostic utilities and competitor suite.
+                  </p>
+                </div>
 
-                        {/* Agency Tier Value */}
-                        <td className="py-3 px-4 text-center font-mono text-[11px] text-slate-700 dark:text-gray-300">
-                          {typeof feat.agency === 'boolean' ? (
-                            feat.agency ? (
-                              <Check className="w-4 h-4 text-emerald-500 mx-auto" />
-                            ) : (
-                              <X className="w-4 h-4 text-slate-300 dark:text-gray-600 mx-auto" />
-                            )
-                          ) : (
-                            <span>{feat.agency}</span>
-                          )}
-                        </td>
+                <div className="overflow-x-auto rounded-xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 shadow-sm">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] text-slate-600 dark:text-gray-400 font-bold uppercase tracking-wider">
+                        <th className="py-3.5 px-4 sm:px-5 w-2/5">Platform Feature</th>
+                        <th className="py-3.5 px-3 text-center w-1/5">Starter ($0)</th>
+                        <th className="py-3.5 px-3 text-center w-1/5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-extrabold">
+                          Pro Auditor ($19)
+                        </th>
+                        <th className="py-3.5 px-3 text-center w-1/5">Agency ($49)</th>
                       </tr>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-slate-800 dark:text-gray-200">
+                      {FEATURE_CATEGORIES.map((cat, catIdx) => (
+                        <React.Fragment key={catIdx}>
+                          {/* Category Header Row */}
+                          <tr className="bg-slate-100/60 dark:bg-white/[0.02]">
+                            <td
+                              colSpan={4}
+                              className="py-2.5 px-4 sm:px-5 text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider"
+                            >
+                              <div className="flex items-center gap-2">
+                                {cat.icon}
+                                <span>{cat.category}</span>
+                              </div>
+                            </td>
+                          </tr>
+
+                          {/* Category Features */}
+                          {cat.features.map((feat, featIdx) => (
+                            <tr
+                              key={featIdx}
+                              className={`hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors ${
+                                feat.highlight ? 'bg-emerald-500/[0.02]' : ''
+                              }`}
+                            >
+                              <td className="py-2.5 px-4 sm:px-5 font-medium text-slate-700 dark:text-gray-300">
+                                {feat.name}
+                              </td>
+
+                              {/* Starter Tier Value */}
+                              <td className="py-2.5 px-3 text-center font-mono text-[11px] text-slate-600 dark:text-gray-400">
+                                {typeof feat.starter === 'boolean' ? (
+                                  feat.starter ? (
+                                    <Check className="w-3.5 h-3.5 text-emerald-500 mx-auto" />
+                                  ) : (
+                                    <X className="w-3.5 h-3.5 text-slate-300 dark:text-gray-600 mx-auto" />
+                                  )
+                                ) : (
+                                  <span>{feat.starter}</span>
+                                )}
+                              </td>
+
+                              {/* Pro Beta Tier Value */}
+                              <td className="py-2.5 px-3 text-center font-mono text-[11px] font-bold bg-emerald-500/[0.04] text-emerald-700 dark:text-emerald-300">
+                                {typeof feat.proBeta === 'boolean' ? (
+                                  feat.proBeta ? (
+                                    <Check className="w-3.5 h-3.5 text-emerald-500 mx-auto" />
+                                  ) : (
+                                    <X className="w-3.5 h-3.5 text-slate-300 dark:text-gray-600 mx-auto" />
+                                  )
+                                ) : (
+                                  <span>{feat.proBeta}</span>
+                                )}
+                              </td>
+
+                              {/* Agency Tier Value */}
+                              <td className="py-2.5 px-3 text-center font-mono text-[11px] text-slate-700 dark:text-gray-300">
+                                {typeof feat.agency === 'boolean' ? (
+                                  feat.agency ? (
+                                    <Check className="w-3.5 h-3.5 text-emerald-500 mx-auto" />
+                                  ) : (
+                                    <X className="w-3.5 h-3.5 text-slate-300 dark:text-gray-600 mx-auto" />
+                                  )
+                                ) : (
+                                  <span>{feat.agency}</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </React.Fragment>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Section 5: Interactive Pricing FAQ Accordion */}
@@ -549,7 +606,7 @@ export default function PricingPage() {
               Ready to Audit Competitors in Sub-500ms?
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-gray-400 leading-relaxed">
-              Experience deterministic SEO intelligence with verifiable HTML DOM facts, unlimited audits, and unbranded client reports.
+              Experience fast, accurate SEO intelligence with verifiable live HTML facts, unlimited audits, and unbranded client reports.
             </p>
           </div>
 

@@ -28,6 +28,7 @@ import {
   Award,
   FileEdit,
   Network,
+  Link2,
 } from 'lucide-react';
 import { AuthModal } from './AuthModal';
 import { Logo } from './Logo';
@@ -61,36 +62,34 @@ const TOOL_CATEGORIES: ToolCategory[] = [
         icon: Search,
       },
       {
-        title: 'SERP Snippet & Pixel Preview',
+        title: 'SERP Snippet Simulator',
         href: '/serp-snippet-preview',
         description: 'Pixel-accurate 600px desktop & mobile SERP simulator',
         icon: Eye,
       },
       {
-        title: 'Flesch Readability Analyzer',
+        title: 'Readability & Tone Analyzer',
         href: '/readability',
         description: 'Content grading, reading ease score & sentence flow',
         icon: FileText,
       },
       {
-        title: 'White-Label PDF Reports',
-        href: '/pdf-reports',
-        description: 'Client-ready executive audit exports with custom branding',
-        icon: FileCheck,
-      },
-      {
-        title: 'Featured Snippet Optimizer',
+        title: 'Snippet Optimizer',
         href: '/featured-snippet-optimizer',
         description: 'Position 0 snippet bait studio, intent classifier & SERP simulator',
         icon: Award,
-        badge: 'NEW',
       },
       {
-        title: 'Live SEO Scratchpad',
+        title: 'Content Scratchpad',
         href: '/content-scratchpad',
-        description: 'Real-time lexical scoring & competitor keyword checklist editor',
+        description: 'Real-time content scoring & competitor keyword checklist editor',
         icon: FileEdit,
-        badge: 'NEW',
+      },
+      {
+        title: 'Affiliate Link Validator',
+        href: '/affiliate-link-checker',
+        description: 'Audit rel="sponsored" and rel="nofollow" attributes for search safety',
+        icon: Link2,
       },
     ],
   },
@@ -105,7 +104,7 @@ const TOOL_CATEGORIES: ToolCategory[] = [
         icon: ShieldCheck,
       },
       {
-        title: 'Site Speed & Web Vitals',
+        title: 'Site Speed & TTFB',
         href: '/site-speed-checker',
         description: 'LCP, CLS, INP field metrics & performance diagnostics',
         icon: Gauge,
@@ -117,17 +116,16 @@ const TOOL_CATEGORIES: ToolCategory[] = [
         icon: Route,
       },
       {
-        title: 'WCAG Color Contrast',
+        title: 'Color Contrast Studio',
         href: '/contrast-checker',
         description: 'Analyze contrast ratios against WCAG 2.2 accessibility',
         icon: Palette,
       },
       {
-        title: 'Internal Link Mapper',
+        title: 'Internal Link Checker',
         href: '/internal-link-mapper',
-        description: 'Topology graph, destination hubs & anchor text distribution',
+        description: 'Internal link graph, destination hubs & anchor text distribution',
         icon: Network,
-        badge: 'NEW',
       },
     ],
   },
@@ -147,12 +145,11 @@ const RESOURCE_ITEMS: ResourceItem[] = [
     href: '/blog',
     description: 'Algorithm teardowns, competitor insights & SEO playbooks',
     icon: BookOpen,
-    badge: 'NEW',
   },
   {
     title: 'Why AnalyzeSERP',
     href: '/about',
-    description: 'Deterministic raw DOM parsing vs hallucinating AI scrapers',
+    description: 'Fast, direct HTML parsing vs hallucinating AI scrapers',
     icon: Sparkles,
   },
   {
@@ -160,7 +157,6 @@ const RESOURCE_ITEMS: ResourceItem[] = [
     href: '/changelog',
     description: 'Weekly release notes, engine optimizations & milestones',
     icon: History,
-    badge: 'v2.5',
   },
   {
     title: 'Google SERP & Pixel Standards',
@@ -371,7 +367,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
                 <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2 text-slate-500 dark:text-gray-400 text-[11px]">
                     <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span>All 11 tools are <strong>100% Free</strong> during Public Beta.</span>
+                    <span>All 10 standalone utilities & competitor audits are <strong>100% Free</strong> during Public Beta.</span>
                   </div>
                   <Link
                     href="/pricing"
@@ -397,9 +393,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
           >
             <FileCheck className="w-3.5 h-3.5 text-emerald-500" />
             <span>PDF Reports</span>
-            <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-              NEW
-            </span>
           </Link>
 
           {/* Resources ▾ Flyout Dropdown */}
@@ -477,7 +470,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             )}
           </div>
 
-          {/* Pricing Link with Beta Badge */}
+          {/* Pricing Link */}
           <Link
             href="/pricing"
             aria-current={pathname === '/pricing' ? 'page' : undefined}
@@ -488,9 +481,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
             }`}
           >
             <span>Pricing</span>
-            <span className="px-1.5 py-0.5 text-[8.5px] font-extrabold uppercase rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-              Free Beta
-            </span>
           </Link>
         </nav>
 
@@ -759,9 +749,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
                 <FileCheck className="w-4 h-4 text-emerald-500" />
                 <span>White-Label PDF Reports</span>
               </div>
-              <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                NEW
-              </span>
             </Link>
 
             <Link
@@ -777,9 +764,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
                 <Sparkles className="w-4 h-4 text-emerald-500" />
                 <span>Pricing Plans</span>
               </div>
-              <span className="px-1.5 py-0.5 text-[8.5px] font-extrabold uppercase rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                Free Beta
-              </span>
             </Link>
 
             <Link
@@ -795,9 +779,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
                 <BookOpen className="w-4 h-4 text-indigo-500" />
                 <span>SEO Articles &amp; Blog</span>
               </div>
-              <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">
-                NEW
-              </span>
             </Link>
 
             <Link
@@ -826,9 +807,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
                 <History className="w-4 h-4 text-emerald-500" />
                 <span>Product Changelog</span>
               </div>
-              <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                v2.4
-              </span>
             </Link>
           </div>
         </nav>

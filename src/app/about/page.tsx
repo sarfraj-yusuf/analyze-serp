@@ -420,7 +420,7 @@ export default function AboutPage() {
                 <span>4. Democratizing Technical Truth</span>
               </h4>
               <p>
-                Essential SEO diagnostics (canonical checks, status codes, readability) should not be hidden behind \$200/month paywalls. Our complete 11-tool diagnostic suite remains 100% free during our Public Beta.
+                Essential SEO diagnostics (canonical checks, status codes, readability) should not be hidden behind \$200/month paywalls. Our complete suite of 10 standalone diagnostic utilities and competitor benchmark engine remains 100% free during our Public Beta.
               </p>
             </div>
           </div>

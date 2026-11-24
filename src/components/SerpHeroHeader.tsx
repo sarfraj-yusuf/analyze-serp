@@ -105,7 +105,7 @@ export const SerpHeroHeader: React.FC<SerpHeroHeaderProps> = ({ report, results 
             Diagnostic Telemetry
           </span>
           <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            Empirical Parity Diagnosis &amp; Priority Actions
+            Audit Summary &amp; Top Priorities
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Core high-impact opportunities identified by benchmarking against ranking competitor DOMs.
@@ -134,53 +134,53 @@ export const SerpHeroHeader: React.FC<SerpHeroHeaderProps> = ({ report, results 
         )}
       </div>
 
-      {/* 3 Telemetry Cards - Quiet Neutral Cards with Single Color Indicator Dot */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {/* Card 1: High Impact */}
+      {/* 3 Telemetry Summary Columns - Clean Borderless Stat Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-white/5 py-1">
+        {/* Metric 1: High Impact */}
         <div
           onClick={onScrollToActionPlan}
-          className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] hover:border-slate-300 dark:hover:border-white/10 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-all cursor-pointer group"
+          className="py-2 sm:py-0 sm:px-4 first:pl-0 last:pr-0 cursor-pointer group"
         >
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="size-2 rounded-full bg-rose-500 shrink-0" />
             <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Immediate Quick Wins
             </span>
-            <span className="size-2 rounded-full bg-rose-500 shrink-0" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="font-mono text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
+            <span className="font-mono text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
               {highImpactCount}
             </span>
-            <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">High-Impact</span>
+            <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">High-Impact Gaps</span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-            Actions with the highest ranking impact and minimal execution effort.
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+            Actions with high ranking impact and minimal execution effort.
           </p>
         </div>
 
-        {/* Card 2: Improvements */}
+        {/* Metric 2: Improvements */}
         <div
           onClick={onScrollToActionPlan}
-          className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] hover:border-slate-300 dark:hover:border-white/10 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-all cursor-pointer group"
+          className="py-2 sm:py-0 sm:px-4 cursor-pointer group"
         >
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="size-2 rounded-full bg-amber-500 shrink-0" />
             <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Strategic Tasks
             </span>
-            <span className="size-2 rounded-full bg-amber-500 shrink-0" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="font-mono text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
+            <span className="font-mono text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
               {improvementsCount}
             </span>
             <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">Optimizations</span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-            Heading restructuring, schema parity, and content depth improvements.
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+            Heading restructuring, schema parity, and content depth.
           </p>
         </div>
 
-        {/* Card 3: Strengths */}
+        {/* Metric 3: Strengths */}
         <div
           onClick={() => {
             const el = document.getElementById('foundations-safeguards-section') || document.getElementById('strengths-section');
@@ -188,22 +188,22 @@ export const SerpHeroHeader: React.FC<SerpHeroHeaderProps> = ({ report, results 
               el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
           }}
-          className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] hover:border-slate-300 dark:hover:border-white/10 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-all cursor-pointer group"
+          className="py-2 sm:py-0 sm:px-4 last:pr-0 cursor-pointer group"
         >
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="size-2 rounded-full bg-emerald-500 shrink-0" />
             <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Competitive Safeguards
             </span>
-            <span className="size-2 rounded-full bg-emerald-500 shrink-0" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="font-mono text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
+            <span className="font-mono text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
               {strengthsCount}
             </span>
-            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Protected</span>
+            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Protected Areas</span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-            Areas where your page already equals or beats ranking competitors.
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+            Signals where your page already equals or beats rivals.
           </p>
         </div>
       </div>
@@ -227,7 +227,7 @@ export const SerpHeroHeader: React.FC<SerpHeroHeaderProps> = ({ report, results 
                 onClick={onScrollToActionPlan}
                 className="text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer self-start sm:self-auto"
               >
-                <span>Jump to Action Roadmap</span>
+                <span>Jump to Action Plan</span>
                 <ArrowRight className="size-3" />
               </button>
             )}
@@ -246,7 +246,7 @@ export const SerpHeroHeader: React.FC<SerpHeroHeaderProps> = ({ report, results 
                     onScrollToActionPlan?.();
                   }
                 }}
-                className="p-3.5 rounded-xl bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] border-l-2 border-l-rose-500 space-y-2 flex flex-col justify-between hover:border-slate-300 dark:hover:border-white/10 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                className="p-3.5 rounded-xl border border-slate-200/60 dark:border-white/[0.06] hover:border-emerald-500/40 bg-slate-50/40 dark:bg-white/[0.01] hover:bg-white dark:hover:bg-white/[0.03] space-y-2 flex flex-col justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-1.5 flex-wrap">
@@ -254,12 +254,12 @@ export const SerpHeroHeader: React.FC<SerpHeroHeaderProps> = ({ report, results 
                       #{idx + 1} Priority
                     </span>
                     {opp.category && (
-                      <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                      <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
                         {opp.category}
                       </span>
                     )}
                   </div>
-                  <h5 className="text-xs font-semibold text-slate-900 dark:text-slate-100 leading-snug group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                  <h5 className="text-xs font-semibold text-slate-800 dark:text-slate-100 leading-snug group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                     {opp.title}
                   </h5>
                   <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-normal line-clamp-2">
@@ -267,7 +267,7 @@ export const SerpHeroHeader: React.FC<SerpHeroHeaderProps> = ({ report, results 
                   </p>
                 </div>
 
-                <div className="pt-2 flex items-center justify-between text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                <div className="pt-1.5 flex items-center justify-between text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
                   <span>View in Action Plan</span>
                   <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
                 </div>

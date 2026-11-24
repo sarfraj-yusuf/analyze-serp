@@ -8,11 +8,8 @@ import {
   Gauge,
   Key,
   BookOpen,
-  TrendingUp,
-  Star,
+  FileText,
   ArrowUp,
-  Sliders,
-  ExternalLink,
 } from 'lucide-react';
 
 export function SerpComparisonToggle() {
@@ -36,15 +33,11 @@ export function SerpComparisonToggle() {
       {/* Top Header & Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-white/5">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-            <Sliders className="w-3 h-3" />
-            <span>INTERACTIVE SIMULATOR</span>
-          </div>
           <h2 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-            See the Difference: Empirical Benchmarking in Action
+            See the Difference: Before vs. After SEO Optimization
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-            Toggle below to compare an uncalibrated page against an AnalyzeSERP-optimized snippet.
+            Compare an unoptimized search snippet against an AnalyzeSERP-calibrated page.
           </p>
         </div>
 
@@ -127,28 +120,14 @@ export function SerpComparisonToggle() {
               </h3>
             </div>
 
-            {/* Rich Schema Rating (Only on Optimized) */}
-            {mode === 'optimized' && (
-              <div className="flex items-center gap-2 text-xs text-amber-500 dark:text-amber-400 font-medium">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <span className="font-bold text-slate-700 dark:text-slate-300">4.9</span>
-                <span className="text-slate-500 dark:text-slate-400 font-normal">
-                  (128 verified audits) · Free beta access
-                </span>
-              </div>
-            )}
-
             {/* Snippet Description */}
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               {mode === 'optimized' ? (
                 <>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Feb 18, 2026 — </span>
                   Compare top 5 competitor URLs side-by-side in under 500ms. Extract exact{' '}
                   <strong className="text-slate-800 dark:text-slate-100 font-semibold">
-                    n-gram keyword gaps
+                    missing keywords &amp; phrases
                   </strong>
                   , audit heading outlines, and export white-label PDF reports with zero tracking.
                 </>
@@ -162,7 +141,7 @@ export function SerpComparisonToggle() {
             {/* Rich Sitelink Chips (Optimized Mode) */}
             {mode === 'optimized' && (
               <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
-                {['Live SERP Matrix', 'N-Gram Mining', 'Client PDF Briefs', 'Free Beta'].map((pill, i) => (
+                {['Live SERP Preview', 'Keyword Gap Analysis', 'Client PDF Briefs'].map((pill, i) => (
                   <span
                     key={i}
                     className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/40"
@@ -186,14 +165,14 @@ export function SerpComparisonToggle() {
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                 <span>
-                  <strong>Full Intent Parity:</strong> Title stays under Google's 600px ceiling, zero ellipses truncation, and rich snippet review stars elevate CTR.
+                  <strong>Full Intent Parity:</strong> Title stays under Google's 600px boundary (548px), zero truncation, and full keyword parity matches ranking intent.
                 </span>
               </div>
             ) : (
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
                 <span>
-                  <strong>Truncation Warning:</strong> Title is cut off midway at 642px. Missing high-volume competitor n-grams lowers topical authority score.
+                  <strong>Truncation Warning:</strong> Title exceeds Google's 600px boundary (642px). 8 critical competitor keywords missing from body content.
                 </span>
               </div>
             )}
@@ -239,7 +218,7 @@ export function SerpComparisonToggle() {
               </span>
             </div>
 
-            {/* Metric 2: Keyword Voids */}
+            {/* Metric 2: Keyword Gaps */}
             <div className="p-3 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.05] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div
@@ -253,10 +232,10 @@ export function SerpComparisonToggle() {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
-                    N-Gram Keyword Voids
+                    Missing Competitor Keywords
                   </div>
                   <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                    {mode === 'optimized' ? '100% intent alignment' : 'Critical competitor voids'}
+                    {mode === 'optimized' ? 'All core phrases covered' : 'Critical competitor keyword gaps'}
                   </div>
                 </div>
               </div>
@@ -267,7 +246,7 @@ export function SerpComparisonToggle() {
                     : 'bg-rose-500/10 text-rose-700 dark:text-rose-400'
                 }`}
               >
-                {mode === 'optimized' ? '0 Voids' : '8 Voids'}
+                {mode === 'optimized' ? '0 Missing' : '8 Missing'}
               </span>
             </div>
 
@@ -285,10 +264,10 @@ export function SerpComparisonToggle() {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
-                    Heading Outline (DOM)
+                    Heading Structure (H1–H3)
                   </div>
                   <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                    {mode === 'optimized' ? 'Single H1 + nested H2/H3' : '2x H1 tags + skip levels'}
+                    {mode === 'optimized' ? 'Single H1 + nested H2/H3' : 'Multiple H1 tags + skipped levels'}
                   </div>
                 </div>
               </div>
@@ -303,24 +282,24 @@ export function SerpComparisonToggle() {
               </span>
             </div>
 
-            {/* Metric 4: Predicted CTR Impact */}
+            {/* Metric 4: Word Count vs. Competitors */}
             <div className="p-3 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.05] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div
                   className={`w-7 h-7 rounded-md flex items-center justify-center border ${
                     mode === 'optimized'
                       ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                      : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-white/10'
+                      : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
                   }`}
                 >
-                  <TrendingUp className="w-3.5 h-3.5" />
+                  <FileText className="w-3.5 h-3.5" />
                 </div>
                 <div>
                   <div className="text-xs font-bold text-slate-800 dark:text-slate-100">
-                    Predicted Organic CTR
+                    Word Count vs. Competitors
                   </div>
                   <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                    {mode === 'optimized' ? 'Based on SERP test data' : 'Estimated baseline CTR'}
+                    {mode === 'optimized' ? 'Surplus vs. competitor baseline' : 'Deficit vs. top-3 competitor avg'}
                   </div>
                 </div>
               </div>
@@ -328,10 +307,10 @@ export function SerpComparisonToggle() {
                 className={`font-mono text-xs font-bold px-2 py-0.5 rounded ${
                   mode === 'optimized'
                     ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                    : 'bg-slate-200/60 dark:bg-white/5 text-slate-600 dark:text-slate-400'
+                    : 'bg-rose-500/10 text-rose-700 dark:text-rose-400'
                 }`}
               >
-                {mode === 'optimized' ? '+28.4% Lift' : '~1.4% CTR'}
+                {mode === 'optimized' ? '+420 Words' : '-850 Words'}
               </span>
             </div>
           </div>

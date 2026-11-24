@@ -10,20 +10,17 @@ import {
   Search,
   Plus,
   Trash2,
-  Zap,
   AlertCircle,
   Sparkles,
   Layers,
   ShieldCheck,
   ArrowRight,
   Clock,
-  X,
   ChevronDown,
   ChevronUp,
   Key,
   Target,
   HelpCircle,
-  CheckCircle2,
   BookOpen,
   ExternalLink,
   Users,
@@ -31,7 +28,6 @@ import {
   Gauge,
   FileCheck,
   Check,
-  Activity,
   Eye,
   Palette,
   Link2,
@@ -61,10 +57,181 @@ interface PersistedAuditSession {
   savedAt: number;
 }
 
+type ToolCategory = 'all' | 'content' | 'technical' | 'accessibility';
+
+interface StandaloneToolItem {
+  id: string;
+  title: string;
+  description: string;
+  href: string;
+  category: 'content' | 'technical' | 'accessibility';
+  icon: React.ComponentType<{ className?: string }>;
+  iconBg: string;
+  iconText: string;
+  iconBorder: string;
+  hoverBorder: string;
+  hoverText: string;
+  actionText: string;
+}
+
+const TOOL_CATEGORIES = [
+  { id: 'all', label: 'All Tools', count: 10 },
+  { id: 'content', label: 'On-Page & Content', count: 4 },
+  { id: 'technical', label: 'Technical SEO', count: 4 },
+  { id: 'accessibility', label: 'Accessibility & UX', count: 2 },
+] as const;
+
+const STANDALONE_TOOLS: StandaloneToolItem[] = [
+  // Technical SEO (4)
+  {
+    id: 'technical-health',
+    title: 'Technical Health',
+    description: 'DOM depth, SSL cipher validation, status codes, and robots indexation directives.',
+    href: '/technical-health',
+    category: 'technical',
+    icon: ShieldCheck,
+    iconBg: 'bg-blue-500/10',
+    iconText: 'text-blue-600 dark:text-blue-400',
+    iconBorder: 'border-blue-500/20',
+    hoverBorder: 'hover:border-blue-500/40',
+    hoverText: 'group-hover:text-blue-600 dark:group-hover:text-blue-400',
+    actionText: 'Launch audit',
+  },
+  {
+    id: 'site-speed',
+    title: 'Site Speed & TTFB',
+    description: 'Server response latency, DNS timing breakdown, and Core Web Vitals readiness.',
+    href: '/site-speed-checker',
+    category: 'technical',
+    icon: Gauge,
+    iconBg: 'bg-amber-500/10',
+    iconText: 'text-amber-600 dark:text-amber-400',
+    iconBorder: 'border-amber-500/20',
+    hoverBorder: 'hover:border-amber-500/40',
+    hoverText: 'group-hover:text-amber-600 dark:group-hover:text-amber-400',
+    actionText: 'Test speed',
+  },
+  {
+    id: 'redirect-tracer',
+    title: 'Redirect Chain Tracer',
+    description: 'Trace multi-hop HTTP redirect pathways and detect infinite redirection loops.',
+    href: '/redirect-checker',
+    category: 'technical',
+    icon: GitFork,
+    iconBg: 'bg-sky-500/10',
+    iconText: 'text-sky-600 dark:text-sky-400',
+    iconBorder: 'border-sky-500/20',
+    hoverBorder: 'hover:border-sky-500/40',
+    hoverText: 'group-hover:text-sky-600 dark:group-hover:text-sky-400',
+    actionText: 'Trace chain',
+  },
+  {
+    id: 'internal-link-checker',
+    title: 'Internal Link Checker',
+    description: 'Map crawl depth, detect orphaned URLs, and audit internal link anchor text distribution.',
+    href: '/internal-link-mapper',
+    category: 'technical',
+    icon: Network,
+    iconBg: 'bg-purple-500/10',
+    iconText: 'text-purple-600 dark:text-purple-400',
+    iconBorder: 'border-purple-500/20',
+    hoverBorder: 'hover:border-purple-500/40',
+    hoverText: 'group-hover:text-purple-600 dark:group-hover:text-purple-400',
+    actionText: 'Check internal links',
+  },
+  // On-Page & Content (4)
+  {
+    id: 'serp-snippet-preview',
+    title: 'SERP Snippet Simulator',
+    description: 'Preview Google desktop and mobile title & meta snippet truncation boundaries in real-time.',
+    href: '/serp-snippet-preview',
+    category: 'content',
+    icon: Eye,
+    iconBg: 'bg-violet-500/10',
+    iconText: 'text-violet-600 dark:text-violet-400',
+    iconBorder: 'border-violet-500/20',
+    hoverBorder: 'hover:border-violet-500/40',
+    hoverText: 'group-hover:text-violet-600 dark:group-hover:text-violet-400',
+    actionText: 'Preview SERP',
+  },
+  {
+    id: 'featured-snippet-optimizer',
+    title: 'Snippet Optimizer',
+    description: 'Format definition bait, comparison tables, and ordered step lists to win Google Position 0.',
+    href: '/featured-snippet-optimizer',
+    category: 'content',
+    icon: Target,
+    iconBg: 'bg-cyan-500/10',
+    iconText: 'text-cyan-600 dark:text-cyan-400',
+    iconBorder: 'border-cyan-500/20',
+    hoverBorder: 'hover:border-cyan-500/40',
+    hoverText: 'group-hover:text-cyan-600 dark:group-hover:text-cyan-400',
+    actionText: 'Optimize snippets',
+  },
+  {
+    id: 'content-scratchpad',
+    title: 'Content Scratchpad',
+    description: 'Real-time drafting canvas with live keyword density, heading distribution, and word metrics.',
+    href: '/content-scratchpad',
+    category: 'content',
+    icon: FileEdit,
+    iconBg: 'bg-emerald-500/10',
+    iconText: 'text-emerald-600 dark:text-emerald-400',
+    iconBorder: 'border-emerald-500/20',
+    hoverBorder: 'hover:border-emerald-500/40',
+    hoverText: 'group-hover:text-emerald-600 dark:group-hover:text-emerald-400',
+    actionText: 'Draft content',
+  },
+  {
+    id: 'readability-tone',
+    title: 'Readability & Tone',
+    description: 'Calculate Flesch Reading Ease, grade level complexity, and sentence syllable rhythm.',
+    href: '/readability',
+    category: 'content',
+    icon: FileCheck,
+    iconBg: 'bg-teal-500/10',
+    iconText: 'text-teal-600 dark:text-teal-400',
+    iconBorder: 'border-teal-500/20',
+    hoverBorder: 'hover:border-teal-500/40',
+    hoverText: 'group-hover:text-teal-600 dark:group-hover:text-teal-400',
+    actionText: 'Analyze tone',
+  },
+  // Accessibility & UX (2)
+  {
+    id: 'contrast-checker',
+    title: 'Color Contrast Studio',
+    description: 'Validate text and UI contrast ratios against official W3C accessibility compliance.',
+    href: '/contrast-checker',
+    category: 'accessibility',
+    icon: Palette,
+    iconBg: 'bg-emerald-500/10',
+    iconText: 'text-emerald-600 dark:text-emerald-400',
+    iconBorder: 'border-emerald-500/20',
+    hoverBorder: 'hover:border-emerald-500/40',
+    hoverText: 'group-hover:text-emerald-600 dark:group-hover:text-emerald-400',
+    actionText: 'Check contrast',
+  },
+  {
+    id: 'affiliate-link-checker',
+    title: 'Affiliate Link Validator',
+    description: 'Audit rel="sponsored" and rel="nofollow" attributes for FTC & search safety.',
+    href: '/affiliate-link-checker',
+    category: 'accessibility',
+    icon: Link2,
+    iconBg: 'bg-indigo-500/10',
+    iconText: 'text-indigo-600 dark:text-indigo-400',
+    iconBorder: 'border-indigo-500/20',
+    hoverBorder: 'hover:border-indigo-500/40',
+    hoverText: 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400',
+    actionText: 'Audit tags',
+  },
+];
+
 export default function Home() {
   const router = useRouter();
-  const [urls, setUrls] = useState<string[]>(['']);
+  const [urls, setUrls] = useState<string[]>(['', '']);
   const [targetKeyword, setTargetKeyword] = useState<string>('');
+  const [isKeywordExpanded, setIsKeywordExpanded] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasActiveAudit, setHasActiveAudit] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -72,8 +239,12 @@ export default function Home() {
   const [isProModalOpen, setIsProModalOpen] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState<number>(0);
   const [isCooldownActive, setIsCooldownActive] = useState<boolean>(false);
-  const [isQuotaBarDismissed, setIsQuotaBarDismissed] = useState<boolean>(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [selectedToolCategory, setSelectedToolCategory] = useState<ToolCategory>('all');
+
+  const filteredTools = selectedToolCategory === 'all'
+    ? STANDALONE_TOOLS
+    : STANDALONE_TOOLS.filter((tool) => tool.category === selectedToolCategory);
 
   const toggleFaq = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
@@ -96,10 +267,6 @@ export default function Home() {
   }, [isCooldownActive, cooldownSeconds]);
 
   useEffect(() => {
-    if (localStorage.getItem('quota_bar_dismissed') === 'true') {
-      setIsQuotaBarDismissed(true);
-    }
-
     // Check if an active audit session exists in localStorage for quick navigation
     try {
       const storedAudit = localStorage.getItem(ACTIVE_AUDIT_STORAGE_KEY);
@@ -117,8 +284,9 @@ export default function Home() {
 
   const handleClearAudit = () => {
     setHasActiveAudit(false);
-    setUrls(['']);
+    setUrls(['', '']);
     setTargetKeyword('');
+    setIsKeywordExpanded(false);
     setErrorMsg(null);
     setFieldErrors({});
     try {
@@ -138,7 +306,7 @@ export default function Home() {
   };
 
   const removeUrlInput = (index: number) => {
-    if (urls.length === 1) return;
+    if (index === 0 || urls.length <= 2) return;
     const updated = urls.filter((_, i) => i !== index);
     setUrls(updated);
     if (fieldErrors[index]) {
@@ -186,7 +354,7 @@ export default function Home() {
   };
 
   const handleTrySample = () => {
-    const sampleUrls = ['https://analyzeserp.com', 'https://vercel.com'];
+    const sampleUrls = ['https://analyzeserp.com', 'https://ahrefs.com/seo-checker'];
     const sampleKw = 'seo competitor analysis tool';
     router.push(`/audit?urls=${encodeURIComponent(sampleUrls.join(','))}&keyword=${encodeURIComponent(sampleKw)}`);
   };
@@ -209,10 +377,15 @@ export default function Home() {
       newFieldErrors[0] = 'Please enter your Target page URL.';
     }
 
-    // 2. Validate URL formats
+    // 2. Competitor #1 (index 1) is mandatory for competitor benchmarking
+    if (!trimmedUrls[1]) {
+      newFieldErrors[1] = 'Please enter at least 1 competitor URL to benchmark against.';
+    }
+
+    // 3. Validate URL formats
     const normalizedMap: Record<number, string> = {};
     trimmedUrls.forEach((u, idx) => {
-      if (idx === 0 && !u) return;
+      if ((idx === 0 || idx === 1) && !u) return;
       if (u) {
         if (!isValidUrl(u)) {
           newFieldErrors[idx] = 'Invalid URL (e.g. example.com or https://example.com)';
@@ -222,7 +395,7 @@ export default function Home() {
       }
     });
 
-    // 3. Validate Duplicates: Target vs Competitor
+    // 4. Validate Duplicates: Target vs Competitor
     const targetNormalized = normalizedMap[0];
     Object.entries(normalizedMap).forEach(([idxStr, normUrl]) => {
       const idx = Number(idxStr);
@@ -231,7 +404,7 @@ export default function Home() {
       }
     });
 
-    // 4. Validate Duplicates: Competitor vs Competitor
+    // 5. Validate Duplicates: Competitor vs Competitor
     const seenCompetitors = new Map<string, number>();
     Object.entries(normalizedMap).forEach(([idxStr, normUrl]) => {
       const idx = Number(idxStr);
@@ -252,8 +425,8 @@ export default function Home() {
     }
 
     const finalUrls = Object.values(normalizedMap);
-    if (finalUrls.length === 0) {
-      setErrorMsg('Please enter at least 1 valid URL to run the audit.');
+    if (finalUrls.length < 2) {
+      setErrorMsg('Please enter both your Target URL and at least 1 Competitor URL to run the comparison.');
       return;
     }
 
@@ -271,56 +444,27 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-[var(--text-primary)] selection:bg-emerald-500 selection:text-black transition-colors duration-200">
       <Navbar onOpenProModal={() => setIsProModalOpen(true)} />
 
-      {/* Daily Quota Freemium Bar */}
-      {!isQuotaBarDismissed && (
-        <div className="bg-slate-100/90 dark:bg-white/[0.03] border-b border-slate-200 dark:border-white/[0.08] py-2 px-4 text-center text-xs text-slate-600 dark:text-slate-400 relative">
-          <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 flex-wrap pr-8 sm:pr-0">
-            <span className="inline-flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-200">
-              <Zap className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Public Beta:</span>
-            </span>
-            <span>Free multi-URL competitor audits & keyword gap benchmarking unlocked</span>
-            <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* AnalyzeSERP Brand Hero */}
+        <div className="text-center space-y-2.5 max-w-3xl mx-auto pt-2 pb-1">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 mb-0.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Public Beta: Free Multi-URL Audits &amp; PDF Reports</span>
+            <span className="text-emerald-500/40">•</span>
             <button
               onClick={() => setIsProModalOpen(true)}
               className="text-emerald-700 dark:text-emerald-400 font-semibold hover:underline cursor-pointer"
             >
-              White-label client PDF exports included (<span className="line-through text-slate-500 dark:text-slate-400">$19/mo</span> Free)
+              $19/mo Free
             </button>
           </div>
 
-          {/* Close X Dismiss Button */}
-          <button
-            onClick={() => {
-              setIsQuotaBarDismissed(true);
-              localStorage.setItem('quota_bar_dismissed', 'true');
-            }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer rounded-md hover:bg-slate-200/50 dark:hover:bg-white/10"
-            aria-label="Dismiss notification bar"
-            title="Close notification"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
-
-      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* AnalyzeSERP Brand Hero */}
-        <div className="text-center space-y-3 max-w-3xl mx-auto pt-2 pb-1">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            <span>Built for SEO Consultants, Agencies &amp; Growth Teams</span>
-          </div>
-
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-800 dark:text-slate-100 [letter-spacing:-0.03em] leading-tight">
-            Competitor SEO Audit
-            <span className="block text-base sm:text-xl lg:text-2xl font-semibold text-slate-500 dark:text-slate-400 mt-1.5 sm:mt-2">
-              See Why Your Competitors Outrank You
-            </span>
+            See Why Your Competitors Outrank You
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl mx-auto">
-            Compare your page with up to 4 competitors to find content gaps, heading issues, keyword opportunities, and technical SEO problems.
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl mx-auto">
+            Benchmark your page against up to 4 competitors to uncover content gaps, heading structure differences, and technical SEO issues.
           </p>
         </div>
 
@@ -344,114 +488,177 @@ export default function Home() {
         )}
 
         {/* Audit Input Form Box */}
-        <div className="max-w-[830px] mx-auto w-full">
-          <div className="glass-panel hero-input-dock p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-white/10 space-y-5">
+        <div className="max-w-[760px] mx-auto w-full">
+          <div className="glass-panel hero-input-dock p-5 sm:p-7 rounded-2xl border border-slate-200/90 dark:border-white/10 space-y-5 shadow-xs">
             {/* Dock Top Utility Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-white/[0.08]">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                  Target & Competitor URLs
-                </span>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/[0.06]">
-                  {urls.length} / 5 URLs
-                </span>
-              </div>
+            <div className="flex items-center justify-between pb-3.5 border-b border-slate-200/80 dark:border-white/[0.08]">
+              <span className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 tracking-tight">
+                Compare Your Page Against Competitors
+              </span>
 
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleTrySample}
-                  className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer py-1"
-                  title="Auto-fill sample URLs to test competitor comparison"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>Load Sample Benchmark</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleTrySample}
+                className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer py-1"
+                title="Auto-fill sample URLs to test competitor comparison"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Try Sample Audit</span>
+              </button>
             </div>
 
-            <p className="text-xs text-slate-600 dark:text-slate-400">
-              Enter the page you want to rank higher first (<strong className="text-slate-700 dark:text-slate-200 font-semibold">Target</strong>), then add 1–4 competing URLs ranking for the same query.
-            </p>
-
             <form onSubmit={handleAuditSubmit} className="space-y-4">
-              <div className="space-y-3">
-                {/* URLs Inputs */}
-                {urls.map((url, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <div className="relative flex-1">
-                        <span
-                          className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 font-mono text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md min-w-[62px] sm:min-w-[70px] text-center select-none ${
-                            idx === 0
-                              ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30'
-                              : 'bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300'
-                          }`}
-                        >
-                          {idx === 0 ? 'TARGET' : `COMP #${idx}`}
-                        </span>
-                        <label htmlFor={`hero-url-input-${idx}`} className="sr-only">
-                          {idx === 0 ? "Your Target Page URL" : `Competitor ${idx} Page URL`}
-                        </label>
-                        <input
-                          id={`hero-url-input-${idx}`}
-                          type="text"
-                          aria-label={idx === 0 ? "Your Target Page URL" : `Competitor ${idx} Page URL`}
-                          aria-invalid={Boolean(fieldErrors[idx])}
-                          aria-describedby={fieldErrors[idx] ? `hero-url-error-${idx}` : undefined}
-                          placeholder={
-                            idx === 0
-                              ? 'Your Target Page (e.g. https://yourdomain.com/my-article)'
-                              : `Competitor #${idx} Page (e.g. https://competitor.com/ranking-page)`
-                          }
-                          value={url}
-                          onChange={(e) => handleUrlChange(idx, e.target.value)}
-                          onBlur={() => handleUrlBlur(idx)}
-                          className={`w-full pl-[80px] sm:pl-[94px] pr-4 py-2.5 sm:py-3 rounded-xl glass-input text-xs sm:text-sm focus:outline-none font-mono transition-all ${
-                            fieldErrors[idx]
-                              ? 'border-red-500/80 dark:border-red-500/80 focus:border-red-500 focus:ring-1 focus:ring-red-500'
-                              : ''
-                          }`}
-                        />
-                      </div>
+              <div className="space-y-3.5">
+                {/* 1. Target URL (Your Page) */}
+                <div className="space-y-1.5">
+                  <label htmlFor="hero-url-input-0" className="block text-xs font-semibold text-slate-700 dark:text-slate-200">
+                    Your Page URL
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="hero-url-input-0"
+                      type="text"
+                      aria-label="Your Page URL"
+                      aria-invalid={Boolean(fieldErrors[0])}
+                      aria-describedby={fieldErrors[0] ? "hero-url-error-0" : undefined}
+                      placeholder="https://yourdomain.com/your-page"
+                      value={urls[0] || ''}
+                      onChange={(e) => handleUrlChange(0, e.target.value)}
+                      onBlur={() => handleUrlBlur(0)}
+                      className={`w-full px-4 py-3 rounded-xl glass-input text-xs sm:text-sm focus:outline-none font-mono transition-all border-l-4 border-l-emerald-500 border border-slate-200 dark:border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 ${
+                        fieldErrors[0]
+                          ? 'border-red-500/80 dark:border-red-500/80 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                          : ''
+                      }`}
+                    />
+                  </div>
+                  {fieldErrors[0] && (
+                    <p
+                      id="hero-url-error-0"
+                      role="alert"
+                      className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1.5 pl-1 pt-0.5"
+                    >
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{fieldErrors[0]}</span>
+                    </p>
+                  )}
+                </div>
 
-                      {urls.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeUrlInput(idx)}
-                          aria-label={`Remove URL ${idx + 1}`}
-                          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 dark:text-slate-400 transition-all cursor-pointer active:scale-[0.98] shrink-0"
-                          title={`Remove URL ${idx + 1}`}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                    {fieldErrors[idx] && (
-                      <p
-                        id={`hero-url-error-${idx}`}
-                        role="alert"
-                        className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1.5 pl-1 pt-0.5"
+                {/* 2. Competitor URLs */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">
+                      Competitor URLs
+                    </span>
+                    <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                      {urls.length - 1} of 4
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {urls.slice(1).map((url, sliceIdx) => {
+                      const idx = sliceIdx + 1;
+                      return (
+                        <div key={idx} className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <label htmlFor={`hero-url-input-${idx}`} className="sr-only">
+                                {`Competitor ${idx} Page URL`}
+                              </label>
+                              <input
+                                id={`hero-url-input-${idx}`}
+                                type="text"
+                                aria-label={`Competitor #${idx} Page URL`}
+                                aria-invalid={Boolean(fieldErrors[idx])}
+                                aria-describedby={fieldErrors[idx] ? `hero-url-error-${idx}` : undefined}
+                                placeholder={
+                                  idx === 1
+                                    ? 'https://competitor.com/ranking-page'
+                                    : `https://competitor-${idx}.com/ranking-page`
+                                }
+                                value={url}
+                                onChange={(e) => handleUrlChange(idx, e.target.value)}
+                                onBlur={() => handleUrlBlur(idx)}
+                                className={`w-full px-4 py-3 rounded-xl glass-input text-xs sm:text-sm focus:outline-none font-mono transition-all border border-slate-200 dark:border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 ${
+                                  fieldErrors[idx]
+                                    ? 'border-red-500/80 dark:border-red-500/80 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                                    : ''
+                                }`}
+                              />
+                            </div>
+
+                            {urls.length > 2 && (
+                              <button
+                                type="button"
+                                onClick={() => removeUrlInput(idx)}
+                                aria-label={`Remove Competitor ${idx}`}
+                                className="min-w-[40px] h-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all cursor-pointer active:scale-95 shrink-0"
+                                title={`Remove Competitor ${idx}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                          {fieldErrors[idx] && (
+                            <p
+                              id={`hero-url-error-${idx}`}
+                              role="alert"
+                              className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1.5 pl-1 pt-0.5"
+                            >
+                              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                              <span>{fieldErrors[idx]}</span>
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Inline Action Triggers Directly Below Competitors */}
+                  <div className="flex flex-wrap items-center gap-4 pt-1 text-xs">
+                    {urls.length < 5 && (
+                      <button
+                        type="button"
+                        onClick={addUrlInput}
+                        className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 flex items-center gap-1.5 cursor-pointer py-0.5 transition-colors"
                       >
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                        <span>{fieldErrors[idx]}</span>
-                      </p>
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add another competitor URL (up to 4)</span>
+                      </button>
+                    )}
+
+                    {!isKeywordExpanded && (
+                      <button
+                        type="button"
+                        onClick={() => setIsKeywordExpanded(true)}
+                        className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center gap-1.5 cursor-pointer py-0.5 transition-colors ml-auto sm:ml-0"
+                      >
+                        <Key className="w-3.5 h-3.5 text-slate-400" />
+                        <span>+ Add target keyword (optional)</span>
+                      </button>
                     )}
                   </div>
-                ))}
+                </div>
 
-                {/* Integrated Focus Keyword Field */}
-                <div className="p-3 sm:p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                  <div>
-                    <label htmlFor="target-keyword-input" className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
-                      <Key className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                      <span>Focus Keyword <span className="text-slate-500 dark:text-slate-400 font-normal">(Optional)</span></span>
-                    </label>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                      Highlights keyword gap recommendations; does not alter the crawled URLs.
-                    </p>
-                  </div>
-                  <div className="w-full sm:max-w-xs shrink-0">
+                {/* 3. Collapsible Focus Keyword */}
+                {isKeywordExpanded && (
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-1.5 animate-in fade-in duration-150">
+                    <div className="flex items-center justify-between text-xs">
+                      <label htmlFor="target-keyword-input" className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
+                        <Key className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>Target Keyword <span className="text-slate-400 font-normal">(Optional)</span></span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTargetKeyword('');
+                          setIsKeywordExpanded(false);
+                        }}
+                        className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    </div>
                     <input
                       id="target-keyword-input"
                       type="text"
@@ -459,10 +666,10 @@ export default function Home() {
                       placeholder="e.g. seo competitor audit"
                       value={targetKeyword}
                       onChange={(e) => setTargetKeyword(e.target.value)}
-                      className="w-full px-3 py-1.5 rounded-lg glass-input text-xs focus:outline-none font-mono transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl glass-input text-xs sm:text-sm focus:outline-none font-mono transition-all border border-slate-200 dark:border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                     />
                   </div>
-                </div>
+                )}
               </div>
 
               {errorMsg && (
@@ -472,70 +679,50 @@ export default function Home() {
                 </div>
               )}
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-start justify-between gap-3 pt-2">
-                <div className="flex flex-col items-start gap-1.5">
-                  <div className="flex flex-wrap items-center gap-2">
+              {/* Full-Width Action Row */}
+              <div className="space-y-2.5 pt-2">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-3.5 sm:py-4 px-6 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:via-emerald-400 hover:to-teal-500 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all duration-200 shadow-md shadow-emerald-600/25 hover:shadow-lg hover:shadow-emerald-500/35 ring-1 ring-white/20 active:scale-[0.99] cursor-pointer disabled:opacity-50 group"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Opening Audit...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4 transition-transform group-hover:scale-110" />
+                      <span>Start Free Audit</span>
+                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    </>
+                  )}
+                </button>
+
+                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 text-center font-medium">
+                  No login required &bull; Results in ~30s &bull; Compare titles, headings, keywords &amp; speed
+                </p>
+
+                {hasActiveAudit && (
+                  <div className="flex items-center justify-center gap-3 pt-1">
+                    <Link
+                      href="/audit"
+                      className="px-3 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold flex items-center gap-1.5 transition-colors border border-emerald-500/20"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      <span>View Active Audit</span>
+                    </Link>
                     <button
                       type="button"
-                      onClick={addUrlInput}
-                      disabled={urls.length >= 5}
-                      className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-[color,background-color,border-color,transform] border border-slate-200 dark:border-white/10 disabled:opacity-50 cursor-pointer active:scale-[0.98]"
+                      onClick={handleClearAudit}
+                      className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 text-xs font-semibold flex items-center gap-1.5 transition-colors border border-slate-200 dark:border-white/10 cursor-pointer"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add Competitor URL</span>
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Clear Audit</span>
                     </button>
-
-                    {hasActiveAudit && (
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href="/audit"
-                          className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold flex items-center gap-1.5 transition-[color,background-color,border-color,transform] border border-emerald-500/20 cursor-pointer active:scale-[0.98]"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          <span>View Active Audit</span>
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={handleClearAudit}
-                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 text-xs font-semibold flex items-center gap-1.5 transition-[color,background-color,border-color,transform] border border-slate-200 dark:border-white/10 cursor-pointer active:scale-[0.98]"
-                          title="Clear current audit and start a fresh benchmark"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                          <span>Clear Audit</span>
-                        </button>
-                      </div>
-                    )}
                   </div>
-
-                  <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 tabular-nums px-0.5 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
-                    <span>Public Beta: 100% Free &amp; Uncapped (Up to 5 URLs)</span>
-                  </span>
-                </div>
-
-                <div className="flex flex-col items-center sm:items-end gap-1.5 w-full sm:w-auto">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full sm:w-auto px-6 py-2.5 sm:px-7 sm:py-3 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:via-emerald-400 hover:to-teal-500 text-white font-bold text-sm flex items-center justify-center gap-2.5 transition-all duration-200 shadow-md shadow-emerald-600/30 hover:shadow-lg hover:shadow-emerald-500/40 ring-1 ring-white/20 active:scale-[0.98] cursor-pointer disabled:opacity-50 group"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                        <span>Opening Audit...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Search className="w-4 h-4 transition-transform group-hover:scale-110" />
-                        <span>Start Free Audit</span>
-                        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                      </>
-                    )}
-                  </button>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center sm:text-right font-medium">
-                    No login required • Results in ~30s • Side-by-side gap report for titles, headings, keywords, links &amp; Core Web Vitals
-                  </p>
-                </div>
+                )}
               </div>
             </form>
           </div>
@@ -546,10 +733,6 @@ export default function Home() {
             {/* 1. How It Works & Target Personas */}
             <section className="space-y-6">
               <div className="space-y-2 text-center max-w-2xl mx-auto">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-                  <Search className="w-3 h-3" />
-                  <span>COMPETITOR SERP INTELLIGENCE</span>
-                </div>
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100 [letter-spacing:-0.025em]">
                   Why Benchmark Multi-URL Competitor Signals?
                 </h2>
@@ -564,19 +747,14 @@ export default function Home() {
                   <Users className="w-4 h-4 text-emerald-500 shrink-0" />
                   <span>Engineered for High-Output Search Teams:</span>
                 </div>
-                <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
-                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06]">
-                    Technical SEOs
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06]">
-                    Content Directors
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06]">
-                    Agency Consultants
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06]">
-                    Growth Founders
-                  </span>
+                <div className="flex flex-wrap items-center gap-2 text-slate-600 dark:text-slate-300 font-medium">
+                  <span>Technical SEOs</span>
+                  <span className="text-slate-300 dark:text-slate-700">•</span>
+                  <span>Content Directors</span>
+                  <span className="text-slate-300 dark:text-slate-700">•</span>
+                  <span>Agency Consultants</span>
+                  <span className="text-slate-300 dark:text-slate-700">•</span>
+                  <span>Growth Founders</span>
                 </div>
               </div>
 
@@ -584,7 +762,7 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
                 <div className="glass-panel p-5 sm:p-6 rounded-xl border border-slate-200/80 dark:border-white/[0.08] flex flex-col justify-between space-y-3">
                   <div className="space-y-2">
-                    <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06]">
+                    <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
                       STEP 01
                     </span>
                     <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 tracking-tight">
@@ -594,45 +772,33 @@ export default function Home() {
                       Enter your own target page alongside up to 4 ranking competitors, product review pages, or category hubs into the input dock above.
                     </p>
                   </div>
-                  <div className="pt-2 flex items-center gap-1.5 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Side-by-side batching</span>
-                  </div>
                 </div>
 
                 <div className="glass-panel p-5 sm:p-6 rounded-xl border border-slate-200/80 dark:border-white/[0.08] flex flex-col justify-between space-y-3">
                   <div className="space-y-2">
-                    <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06]">
+                    <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
                       STEP 02
                     </span>
                     <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                       Real-Time Signal &amp; Gap Extraction
                     </h3>
                     <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                      Our deterministic crawler inspects raw HTML DOM nodes across all URLs in parallel—pinpointing title pixel gaps, missing heading subtopics, keyword voids, and Core Web Vitals.
+                      Our fast crawler inspects live HTML across all pages in parallel—pinpointing title pixel limits, missing headings, keyword gaps, and site speed.
                     </p>
-                  </div>
-                  <div className="pt-2 flex items-center gap-1.5 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Deterministic Gap Isolation</span>
                   </div>
                 </div>
 
                 <div className="glass-panel p-5 sm:p-6 rounded-xl border border-slate-200/80 dark:border-white/[0.08] flex flex-col justify-between space-y-3">
                   <div className="space-y-2">
-                    <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06]">
+                    <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
                       STEP 03
                     </span>
                     <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                       Export Roadmap &amp; Briefs
                     </h3>
                     <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                      Review N-gram keyword gaps, prioritize quick-win content fixes, and export an unbranded executive Markdown brief or White-Label client PDF report.
+                      Review missing keywords and phrases, prioritize quick-win content fixes, and export an unbranded executive Markdown brief or White-Label client PDF report.
                     </p>
-                  </div>
-                  <div className="pt-2 flex items-center gap-1.5 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Client-ready deliverables</span>
                   </div>
                 </div>
               </div>
@@ -644,12 +810,8 @@ export default function Home() {
             {/* 3. 4-Pillar Competitor Intelligence Bento Grid (with Magnetic Spotlight) */}
             <section className="space-y-6">
               <div className="space-y-2 text-center max-w-2xl mx-auto">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]">
-                  <Layers className="w-3.5 h-3.5" />
-                  <span>COMPETITOR BENCHMARK CRITERIA</span>
-                </div>
                 <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-                  The 4 Pillars of Deterministic SERP Analysis
+                  The 4 Pillars of Live Competitor Analysis
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                   Every metric is measured against authoritative Google Search Central standards and W3C specifications.
@@ -657,228 +819,72 @@ export default function Home() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* Pillar 1: Search Intent & Keyword Gaps */}
+                {/* Pillar 1: Keyword & Topic Gaps */}
                 <SpotlightCard
                   variant="emerald"
                   className="h-full"
-                  innerClassName="p-5 sm:p-6 flex flex-col justify-between flex-1"
+                  innerClassName="p-5 sm:p-6 flex flex-col justify-start space-y-3 flex-1"
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 transition-transform">
-                          <Key className="w-4 h-4" />
-                        </div>
-                        <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                          TOPICAL RELEVANCE
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-bold group-hover:bg-emerald-500/20 transition-colors">
-                        1, 2 &amp; 3-Grams
-                      </span>
-                    </div>
-
-                    <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                      Search Intent &amp; N-Gram Frequency Mining
-                    </h3>
-
-                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                      Uncover the exact phrase patterns, technical terms, and semantic subtopics top-ranking competitors share. Spotting high-frequency keyword voids allows you to expand topical depth without keyword stuffing.
-                    </p>
-
-                    <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-white/5 text-xs text-slate-600 dark:text-slate-300">
-                      <div className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span>Multi-word semantic phrase frequency calculation</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span>Competitor keyword overlap percentage matrix</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span>Missing search intent variations identification</span>
-                      </div>
-                    </div>
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-105 transition-transform">
+                    <Key className="w-4 h-4" />
                   </div>
-
-                  <a
-                    href="https://developers.google.com/search/docs/fundamentals/creating-helpful-content"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 pt-1"
-                  >
-                    <span>Google Search Central Helpful Content System</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    Keyword &amp; Topic Gaps
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Compare phrase frequencies and uncover high-impact search terms top-ranking competitors target that your page is missing.
+                  </p>
                 </SpotlightCard>
 
-                {/* Pillar 2: Heading Tree & Outline Architecture */}
+                {/* Pillar 2: Heading Structure (H1–H6) */}
                 <SpotlightCard
                   variant="cyan"
                   className="h-full"
-                  innerClassName="p-5 sm:p-6 flex flex-col justify-between flex-1"
+                  innerClassName="p-5 sm:p-6 flex flex-col justify-start space-y-3 flex-1"
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center border border-cyan-500/20 group-hover:scale-110 transition-transform">
-                          <BookOpen className="w-4 h-4" />
-                        </div>
-                        <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                          DOM OUTLINE
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 font-bold group-hover:bg-cyan-500/20 transition-colors">
-                        H1–H6 Depth
-                      </span>
-                    </div>
-
-                    <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
-                      Heading Outline Mapping &amp; Content Architecture
-                    </h3>
-
-                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                      Extract complete H1, H2, and H3 structural blueprints. Comparing competitor heading depth uncovers missing sub-themes, schema headings, and structural flaws before you draft or revise content.
-                    </p>
-
-                    <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-white/5 text-xs text-slate-600 dark:text-slate-300">
-                      <div className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span>Single H1 presence and semantic nesting integrity</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span>Question-based heading intent detection</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span>Content hierarchy gap analysis across top URLs</span>
-                      </div>
-                    </div>
+                  <div className="w-9 h-9 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center border border-cyan-500/20 group-hover:scale-105 transition-transform">
+                    <BookOpen className="w-4 h-4" />
                   </div>
-
-                  <a
-                    href="https://www.w3.org/WAI/tutorials/page-structure/headings/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 pt-1"
-                  >
-                    <span>W3C Semantic HTML5 Heading Structure</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                    Heading Structure (H1–H6)
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Map outline hierarchies side-by-side to fix skipped levels, resolve duplicate H1s, and match competitor content depth.
+                  </p>
                 </SpotlightCard>
 
-                {/* Pillar 3: Visual SERP Snippet & Pixel Budgeting */}
+                {/* Pillar 3: Google SERP Pixel Preview */}
                 <SpotlightCard
                   variant="emerald"
                   className="h-full"
-                  innerClassName="p-5 sm:p-6 flex flex-col justify-between flex-1"
+                  innerClassName="p-5 sm:p-6 flex flex-col justify-start space-y-3 flex-1"
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 transition-transform">
-                          <Compass className="w-4 h-4" />
-                        </div>
-                        <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                          SERP PRESENTATION
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-bold group-hover:bg-emerald-500/20 transition-colors">
-                        600px / 580px Caps
-                      </span>
-                    </div>
-
-                    <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                      Pixel-Exact Title &amp; Description Simulation
-                    </h3>
-
-                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                      Google truncates title tags exceeding ~600 pixels on desktop and 580 pixels on mobile. Comparing pixel widths against rival snippets prevents truncated brand names and awkward ellipses.
-                    </p>
-
-                    <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-white/5 text-xs text-slate-600 dark:text-slate-300">
-                      <div className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span>Proportional character width pixel math</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span>Description truncation risk &amp; CTR psychology</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span>Open Graph 1.91:1 social card alignment</span>
-                      </div>
-                    </div>
+                  <div className="w-9 h-9 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center border border-violet-500/20 group-hover:scale-105 transition-transform">
+                    <Compass className="w-4 h-4" />
                   </div>
-
-                  <a
-                    href="https://developers.google.com/search/docs/appearance/title-link"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 pt-1"
-                  >
-                    <span>Google Search Snippet Best Practices</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    Google SERP Pixel Preview
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Simulate desktop and mobile SERP title boundaries in real time to prevent truncated headlines and awkward ellipses.
+                  </p>
                 </SpotlightCard>
 
-                {/* Pillar 4: Technical Overhead & Latency Benchmarks */}
+                {/* Pillar 4: Page Speed & Technical Health */}
                 <SpotlightCard
                   variant="purple"
                   className="h-full"
-                  innerClassName="p-5 sm:p-6 flex flex-col justify-between flex-1"
+                  innerClassName="p-5 sm:p-6 flex flex-col justify-start space-y-3 flex-1"
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center border border-purple-500/20 group-hover:scale-110 transition-transform">
-                          <Gauge className="w-4 h-4" />
-                        </div>
-                        <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                          CORE INFRASTRUCTURE
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20 font-bold group-hover:bg-purple-500/20 transition-colors">
-                        &lt; 500ms TTFB
-                      </span>
-                    </div>
-
-                    <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                      Server Velocity &amp; Technical Hygiene Benchmarks
-                    </h3>
-
-                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                      Benchmark server response latency (TTFB), HTML document weight, canonical tag hygiene, and redirect counts across all 5 competitor targets to guarantee technical performance parity.
-                    </p>
-
-                    <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-white/5 text-xs text-slate-600 dark:text-slate-300">
-                      <div className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span>Server Time to First Byte (TTFB) comparison</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span>Uncompressed vs compressed HTML payload bytes</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span>Canonical declarations &amp; robots indexability</span>
-                      </div>
-                    </div>
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20 group-hover:scale-105 transition-transform">
+                    <Gauge className="w-4 h-4" />
                   </div>
-
-                  <a
-                    href="https://web.dev/explore/fast"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 pt-1"
-                  >
-                    <span>Google Search Central Core Web Vitals Guide</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                    Page Speed &amp; Technical Health
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Benchmark server latency (TTFB), document size, canonical directives, and Core Web Vitals against rival pages.
+                  </p>
                 </SpotlightCard>
               </div>
             </section>
@@ -911,7 +917,7 @@ export default function Home() {
                         name: 'What makes AnalyzeSERP faster and more accurate than AI scraper tools?',
                         acceptedAnswer: {
                           '@type': 'Answer',
-                          text: 'Unlike generative AI tools that synthesize approximate summaries, AnalyzeSERP uses a dedicated server-side Cheerio HTML DOM parser that inspects raw document trees in under 500 milliseconds—returning exact structural tags, heading hierarchies, and word counts directly from source code without synthetic estimation.',
+                          text: 'Unlike generative AI tools that synthesize approximate summaries, AnalyzeSERP inspects real-time source code directly in under 500 milliseconds—returning exact structural tags, heading hierarchies, and word counts with zero synthetic guesswork.',
                         },
                       },
                       {
@@ -924,10 +930,10 @@ export default function Home() {
                       },
                       {
                         '@type': 'Question',
-                        name: 'How does the N-gram keyword gap matrix calculate missing phrases?',
+                        name: 'How does the keyword gap matrix calculate missing phrases?',
                         acceptedAnswer: {
                           '@type': 'Answer',
-                          text: 'Our engine tokenizes raw text from all audited URLs and extracts 1-grams, 2-grams, and 3-grams. It calculates frequency across all competitor pages and highlights terms that appear repeatedly across top-ranking rivals but are absent or underutilized on your page.',
+                          text: 'Our engine analyzes full text from all audited URLs and extracts single words, two-word combinations, and three-word phrases. It calculates keyword frequency across all competitor pages and highlights terms that appear repeatedly across top-ranking rivals but are missing or underutilized on your page.',
                         },
                       },
                       {
@@ -964,7 +970,7 @@ export default function Home() {
                   {
                     question: 'What makes AnalyzeSERP faster and more accurate than AI scraper tools?',
                     answer:
-                      'Unlike generative AI tools that synthesize approximate summaries, AnalyzeSERP uses a dedicated server-side Cheerio HTML DOM parser that inspects raw document trees in under 500 milliseconds—returning exact structural tags, heading hierarchies, and word counts directly from source code without synthetic estimation.',
+                      'Unlike generative AI tools that synthesize approximate summaries, AnalyzeSERP inspects real-time source code directly in under 500 milliseconds—returning exact structural tags, heading hierarchies, and word counts with zero synthetic guesswork.',
                   },
                   {
                     question: 'Can I compare multiple competitor URLs side by side?',
@@ -972,9 +978,9 @@ export default function Home() {
                       'Yes. You can paste up to 5 URLs (your page plus 4 competitors) to benchmark title tag pixel widths, heading hierarchy depth, word volume, Flesch reading levels, and Core Web Vitals side by side in a synchronized comparison matrix.',
                   },
                   {
-                    question: 'How does the N-gram keyword gap matrix calculate missing phrases?',
+                    question: 'How does the keyword gap matrix calculate missing phrases?',
                     answer:
-                      'Our engine tokenizes raw text from all audited URLs and extracts single words (1-grams), two-word combinations (2-grams), and three-word phrases (3-grams). It calculates the frequency across all competitor pages and highlights terms that appear repeatedly across top-ranking rivals but are absent or underutilized on your page.',
+                      'Our engine analyzes full text from all audited URLs and extracts single words, two-word combinations, and three-word phrases. It calculates the frequency across all competitor pages and highlights terms that appear repeatedly across top-ranking rivals but are absent or underutilized on your page.',
                   },
                   {
                     question: 'What are the daily audit limits during the Public Beta?',
@@ -1036,10 +1042,6 @@ export default function Home() {
             <section className="p-6 sm:p-8 rounded-2xl glass-panel border border-slate-200/80 dark:border-white/[0.08] space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-5 border-b border-slate-200/70 dark:border-white/[0.06]">
                 <div className="space-y-1.5 max-w-2xl">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-                    <Activity className="w-3 h-3" />
-                    <span>STANDALONE MICRO-AUDIT ENGINES</span>
-                  </div>
                   <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                     Zero-Latency Single-Purpose Diagnostic Utilities
                   </h3>
@@ -1049,336 +1051,83 @@ export default function Home() {
                 </div>
                 <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-slate-500 dark:text-slate-400 shrink-0 bg-slate-100 dark:bg-white/[0.03] px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/[0.06]">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>11 Live Standalone Engines</span>
+                  <span>10 Dedicated Utilities</span>
                 </div>
               </div>
 
+              {/* Segmented Filter Tabs */}
+              <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Tool Categories">
+                {TOOL_CATEGORIES.map((tab) => {
+                  const isSelected = selectedToolCategory === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      role="tab"
+                      aria-selected={isSelected}
+                      onClick={() => setSelectedToolCategory(tab.id as ToolCategory)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 font-semibold shadow-xs'
+                          : 'bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200/80 dark:border-white/[0.06] hover:bg-slate-200/60 dark:hover:bg-white/[0.08]'
+                      }`}
+                    >
+                      <span>{tab.label}</span>
+                      <span
+                        className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                          isSelected
+                            ? 'bg-emerald-500/25 text-emerald-900 dark:text-emerald-200 font-bold'
+                            : 'bg-slate-200/70 dark:bg-white/10 text-slate-500 dark:text-slate-400'
+                        }`}
+                      >
+                        {tab.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                {/* 1. Technical Health */}
-                <Link
-                  href="/technical-health"
-                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-blue-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-500/20 group-hover:scale-105 transition-transform">
-                        <ShieldCheck className="w-4 h-4" />
+                {filteredTools.map((tool) => {
+                  const Icon = tool.icon;
+                  return (
+                    <Link
+                      key={tool.id}
+                      href={tool.href}
+                      className={`p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] ${tool.hoverBorder} hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md`}
+                    >
+                      <div className="space-y-2">
+                        <div
+                          className={`w-8 h-8 rounded-lg ${tool.iconBg} ${tool.iconText} flex items-center justify-center border ${tool.iconBorder} group-hover:scale-105 transition-transform`}
+                        >
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4
+                            className={`text-xs font-bold text-slate-800 dark:text-slate-100 ${tool.hoverText} transition-colors`}
+                          >
+                            {tool.title}
+                          </h4>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
+                            {tool.description}
+                          </p>
+                        </div>
                       </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20 font-bold uppercase tracking-wider">
-                        HTTP / DOM / SSL
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                        Technical Health
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
-                        DOM depth, SSL cipher validation, status codes, and robots indexation directives.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    <span>Launch audit</span>
-                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-
-                {/* 2. Site Speed */}
-                <Link
-                  href="/site-speed-checker"
-                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-amber-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20 group-hover:scale-105 transition-transform">
-                        <Gauge className="w-4 h-4" />
+                      <div
+                        className={`pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 ${tool.hoverText} transition-colors`}
+                      >
+                        <span>{tool.actionText}</span>
+                        <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                       </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 font-bold uppercase tracking-wider">
-                        TTFB &amp; CWV
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                        Site Speed &amp; TTFB
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
-                        Server response latency, DNS timing breakdown, and Core Web Vitals readiness.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                    <span>Test speed</span>
-                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-
-                {/* 3. Redirect Tracer */}
-                <Link
-                  href="/redirect-checker"
-                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-sky-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center border border-sky-500/20 group-hover:scale-105 transition-transform">
-                        <GitFork className="w-4 h-4" />
-                      </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-500/20 font-bold uppercase tracking-wider">
-                        301 / 302 Chains
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-                        Redirect Chain Tracer
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
-                        Trace multi-hop HTTP redirect pathways and detect infinite redirection loops.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-                    <span>Trace chain</span>
-                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-
-                {/* 4. Contrast Studio */}
-                <Link
-                  href="/contrast-checker"
-                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-105 transition-transform">
-                        <Palette className="w-4 h-4" />
-                      </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wider">
-                        WCAG 2.2 AA / AAA
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                        Color Contrast Studio
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
-                        Validate text and UI contrast ratios against official W3C accessibility compliance.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    <span>Check contrast</span>
-                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-
-                {/* 5. Affiliate Links */}
-                <Link
-                  href="/affiliate-link-checker"
-                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-indigo-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-500/20 group-hover:scale-105 transition-transform">
-                        <Link2 className="w-4 h-4" />
-                      </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20 font-bold uppercase tracking-wider">
-                        rel Tagging
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                        Affiliate Link Validator
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
-                        Audit rel="sponsored" and rel="nofollow" attributes for FTC &amp; search safety.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                    <span>Audit tags</span>
-                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-
-                {/* 6. Readability */}
-                <Link
-                  href="/readability"
-                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-teal-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="w-8 h-8 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center border border-teal-500/20 group-hover:scale-105 transition-transform">
-                        <FileCheck className="w-4 h-4" />
-                      </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-teal-500/10 text-teal-700 dark:text-teal-400 border border-teal-500/20 font-bold uppercase tracking-wider">
-                        Flesch Scale
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-                        Readability &amp; Tone
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
-                        Calculate Flesch Reading Ease, grade level complexity, and sentence syllable rhythm.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-                    <span>Analyze tone</span>
-                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-
-                {/* 7. SERP Preview */}
-                <Link
-                  href="/serp-snippet-preview"
-                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-violet-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="w-8 h-8 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center border border-violet-500/20 group-hover:scale-105 transition-transform">
-                        <Eye className="w-4 h-4" />
-                      </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-violet-500/10 text-violet-700 dark:text-violet-400 border border-violet-500/20 font-bold uppercase tracking-wider">
-                        600px Bounds
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
-                        SERP Snippet Simulator
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
-                        Preview Google desktop and mobile title &amp; meta snippet truncation boundaries in real-time.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
-                    <span>Preview SERP</span>
-                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-
-                {/* 8. PDF Reports */}
-                <Link
-                  href="/pdf-reports"
-                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-pink-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="w-8 h-8 rounded-lg bg-pink-500/10 text-pink-600 dark:text-pink-400 flex items-center justify-center border border-pink-500/20 group-hover:scale-105 transition-transform">
-                        <Sparkles className="w-4 h-4" />
-                      </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-pink-500/10 text-pink-700 dark:text-pink-400 border border-pink-500/20 font-bold uppercase tracking-wider">
-                        Client Ready
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
-                        White-Label PDF Reports
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
-                        Export unbranded stakeholder audits, executive checklists, and actionable briefs.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
-                    <span>Generate report</span>
-                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-
-                {/* 9. Featured Snippet (Pos 0) Optimizer */}
-                <Link
-                  href="/featured-snippet-optimizer"
-                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-cyan-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center border border-cyan-500/20 group-hover:scale-105 transition-transform">
-                        <Target className="w-4 h-4" />
-                      </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 font-bold uppercase tracking-wider">
-                        Position 0 Bait
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
-                        Snippet Optimizer
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
-                        Format definition bait, comparison tables, and ordered step lists to win Google Position 0.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
-                    <span>Optimize snippets</span>
-                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-
-                {/* 10. Live SEO Content Scratchpad */}
-                <Link
-                  href="/content-scratchpad"
-                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-emerald-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-105 transition-transform">
-                        <FileEdit className="w-4 h-4" />
-                      </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wider">
-                        Lexical Scorer
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                        Content Scratchpad
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
-                        Real-time drafting canvas with live keyword density, heading distribution, and word metrics.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    <span>Draft content</span>
-                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-
-                {/* 11. Internal Link Topology Mapper */}
-                <Link
-                  href="/internal-link-mapper"
-                  className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.06] hover:border-purple-500/40 hover:bg-white dark:hover:bg-white/[0.04] transition-all flex flex-col justify-between space-y-3 group shadow-xs hover:shadow-md"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center border border-purple-500/20 group-hover:scale-105 transition-transform">
-                        <Network className="w-4 h-4" />
-                      </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20 font-bold uppercase tracking-wider">
-                        Topology &amp; Anchors
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                        Internal Link Mapper
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
-                        Map crawl depth, detect orphaned URLs, and audit internal PageRank anchor text distribution.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                    <span>Map topology</span>
-                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
+                    </Link>
+                  );
+                })}
               </div>
 
               {/* Bottom Reassurance Ribbon */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200/70 dark:border-white/[0.06] text-xs text-slate-500 dark:text-slate-400">
                 <div className="flex items-center gap-2">
                   <Check className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>Deterministic edge execution &bull; Zero third-party telemetry &bull; 100% Free Public Beta</span>
+                  <span>Fast, live HTML analysis &bull; Zero third-party telemetry &bull; 100% Free Public Beta</span>
                 </div>
                 <div className="flex items-center gap-1.5 font-mono text-[11px] text-slate-600 dark:text-slate-400">
                   <ExternalLink className="w-3 h-3" />

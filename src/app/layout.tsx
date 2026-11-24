@@ -175,6 +175,39 @@ export default function RootLayout({
                   document.documentElement.classList.remove('dark');
                 }
               } catch (e) {}
+
+              try {
+                if (typeof MutationObserver !== 'undefined') {
+                  var cleanExtAttrs = function(node) {
+                    if (!node || node.nodeType !== 1) return;
+                    if (node.hasAttribute('bis_skin_checked')) node.removeAttribute('bis_skin_checked');
+                    if (node.hasAttribute('bis_register')) node.removeAttribute('bis_register');
+                  };
+                  var observer = new MutationObserver(function(mutations) {
+                    for (var i = 0; i < mutations.length; i++) {
+                      var m = mutations[i];
+                      if (m.type === 'attributes') {
+                        if (m.attributeName && (m.attributeName.indexOf('bis_') === 0 || m.attributeName.indexOf('__processed_') === 0)) {
+                          m.target.removeAttribute(m.attributeName);
+                        }
+                      } else if (m.type === 'childList') {
+                        for (var j = 0; j < m.addedNodes.length; j++) {
+                          cleanExtAttrs(m.addedNodes[j]);
+                        }
+                      }
+                    }
+                  });
+                  observer.observe(document.documentElement, {
+                    attributes: true,
+                    subtree: true,
+                    childList: true,
+                    attributeFilter: ['bis_skin_checked', 'bis_register']
+                  });
+                  window.addEventListener('load', function() {
+                    setTimeout(function() { observer.disconnect(); }, 3000);
+                  });
+                }
+              } catch (err) {}
             })();`,
           }}
         />
@@ -184,6 +217,7 @@ export default function RootLayout({
         />
       </head>
       <body
+        suppressHydrationWarning
         className={`${inter.variable} ${outfit.variable} antialiased min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors duration-200`}
       >
         <AuthProvider>

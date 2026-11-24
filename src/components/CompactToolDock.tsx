@@ -14,6 +14,9 @@ import {
   Eye,
   Sparkles,
   ArrowRight,
+  Target,
+  FileEdit,
+  Network,
 } from 'lucide-react';
 
 export interface ToolDockItem {
@@ -56,7 +59,7 @@ export const ALL_TOOLS: ToolDockItem[] = [
   },
   {
     id: 'redirect-checker',
-    name: 'Redirect Tracer',
+    name: 'Redirect Chain Tracer',
     href: '/redirect-checker',
     badge: '301/302 Chains',
     icon: GitFork,
@@ -64,22 +67,40 @@ export const ALL_TOOLS: ToolDockItem[] = [
     bgClass: 'bg-sky-500/10 border-sky-500/20',
   },
   {
-    id: 'contrast-checker',
-    name: 'Contrast Studio',
-    href: '/contrast-checker',
-    badge: 'WCAG 2.2',
-    icon: Palette,
-    colorClass: 'text-emerald-600 dark:text-emerald-400',
-    bgClass: 'bg-emerald-500/10 border-emerald-500/20',
+    id: 'internal-link-mapper',
+    name: 'Internal Link Checker',
+    href: '/internal-link-mapper',
+    badge: 'Link Graph',
+    icon: Network,
+    colorClass: 'text-purple-600 dark:text-purple-400',
+    bgClass: 'bg-purple-500/10 border-purple-500/20',
   },
   {
-    id: 'affiliate-link-checker',
-    name: 'Affiliate Links',
-    href: '/affiliate-link-checker',
-    badge: 'rel Tagging',
-    icon: Link2,
-    colorClass: 'text-indigo-600 dark:text-indigo-400',
-    bgClass: 'bg-indigo-500/10 border-indigo-500/20',
+    id: 'serp-snippet-preview',
+    name: 'SERP Snippet Simulator',
+    href: '/serp-snippet-preview',
+    badge: '600px Bounds',
+    icon: Eye,
+    colorClass: 'text-violet-600 dark:text-violet-400',
+    bgClass: 'bg-violet-500/10 border-violet-500/20',
+  },
+  {
+    id: 'featured-snippet-optimizer',
+    name: 'Snippet Optimizer',
+    href: '/featured-snippet-optimizer',
+    badge: 'Position 0',
+    icon: Target,
+    colorClass: 'text-cyan-600 dark:text-cyan-400',
+    bgClass: 'bg-cyan-500/10 border-cyan-500/20',
+  },
+  {
+    id: 'content-scratchpad',
+    name: 'Content Scratchpad',
+    href: '/content-scratchpad',
+    badge: 'Live Editor',
+    icon: FileEdit,
+    colorClass: 'text-emerald-600 dark:text-emerald-400',
+    bgClass: 'bg-emerald-500/10 border-emerald-500/20',
   },
   {
     id: 'readability',
@@ -91,17 +112,26 @@ export const ALL_TOOLS: ToolDockItem[] = [
     bgClass: 'bg-teal-500/10 border-teal-500/20',
   },
   {
-    id: 'serp-snippet-preview',
-    name: 'SERP Simulator',
-    href: '/serp-snippet-preview',
-    badge: '600px Bounds',
-    icon: Eye,
-    colorClass: 'text-violet-600 dark:text-violet-400',
-    bgClass: 'bg-violet-500/10 border-violet-500/20',
+    id: 'contrast-checker',
+    name: 'Color Contrast Studio',
+    href: '/contrast-checker',
+    badge: 'WCAG 2.2',
+    icon: Palette,
+    colorClass: 'text-emerald-600 dark:text-emerald-400',
+    bgClass: 'bg-emerald-500/10 border-emerald-500/20',
+  },
+  {
+    id: 'affiliate-link-checker',
+    name: 'Affiliate Link Validator',
+    href: '/affiliate-link-checker',
+    badge: 'rel Tagging',
+    icon: Link2,
+    colorClass: 'text-indigo-600 dark:text-indigo-400',
+    bgClass: 'bg-indigo-500/10 border-indigo-500/20',
   },
   {
     id: 'pdf-reports',
-    name: 'White-Label PDF',
+    name: 'White-Label PDF Reports',
     href: '/pdf-reports',
     badge: 'Client Ready',
     icon: Sparkles,
@@ -138,7 +168,7 @@ export function CompactToolDock({ currentTool, className = '' }: CompactToolDock
         </div>
         <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400 dark:text-slate-500 shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span>8 Active Micro-Audits</span>
+          <span>10 Standalone Utilities</span>
         </div>
       </div>
 

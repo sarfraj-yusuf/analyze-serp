@@ -131,7 +131,7 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({
           </span>
           <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Target className="size-4 text-emerald-500" />
-            <span>Impact × Effort Prioritized Action Roadmap</span>
+            <span>Prioritized Action Plan</span>
             <SEOExplanationTooltip text="Prioritizes updates by combining estimated SEO ranking impact with execution effort, backed by direct SERP consensus evidence." />
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -228,28 +228,27 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({
         aria-label="Prioritized action roadmap items"
       >
         {filteredActions.map((item, idx) => {
-          let accentBorderClass = 'border-l-slate-400';
           let indicatorTag = null;
 
           if (item.quadrant === 'DO_FIRST') {
-            accentBorderClass = 'border-l-rose-500';
             indicatorTag = (
-              <span className="text-[10px] font-mono font-medium text-rose-600 dark:text-rose-400">
-                • Quick Win
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium text-rose-700 dark:text-rose-400 bg-rose-500/10">
+                <span className="size-1 rounded-full bg-rose-500" />
+                Do First
               </span>
             );
           } else if (item.quadrant === 'PLAN_THIS') {
-            accentBorderClass = 'border-l-amber-500';
             indicatorTag = (
-              <span className="text-[10px] font-mono font-medium text-amber-600 dark:text-amber-400">
-                • Strategic
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium text-amber-700 dark:text-amber-400 bg-amber-500/10">
+                <span className="size-1 rounded-full bg-amber-500" />
+                Plan This
               </span>
             );
           } else if (item.quadrant === 'DO_NEXT') {
-            accentBorderClass = 'border-l-emerald-500';
             indicatorTag = (
-              <span className="text-[10px] font-mono font-medium text-emerald-600 dark:text-emerald-400">
-                • Enhancement
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-500/10">
+                <span className="size-1 rounded-full bg-emerald-500" />
+                Do Next
               </span>
             );
           }
@@ -257,7 +256,7 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({
           return (
             <div
               key={item.id || idx}
-              className={`p-4 rounded-xl bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] border-l-2 ${accentBorderClass} space-y-2.5 transition-all hover:bg-slate-50 dark:hover:bg-white/[0.03]`}
+              className="p-4 rounded-xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.05] space-y-2.5 transition-all hover:bg-slate-50/80 dark:hover:bg-white/[0.03]"
             >
               {/* Top Tag Row */}
               <div className="flex items-center justify-between gap-2">
