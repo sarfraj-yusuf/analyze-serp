@@ -184,7 +184,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
         {cloneElement(children as React.ReactElement<any>, {
           ref: (node: HTMLElement | null) => {
             triggerRef.current = node;
-            const originalRef = (children as any).ref;
+            const originalRef = childProps.ref;
             if (typeof originalRef === 'function') {
               originalRef(node);
             } else if (originalRef && typeof originalRef === 'object') {

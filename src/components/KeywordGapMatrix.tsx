@@ -231,13 +231,13 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
       {/* 1. Control & Action Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
         <div className="space-y-0.5">
-          <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">
-            Semantic Gap Engine · {targetHost} vs {validResults.length - 1} competitors
-          </span>
           <h4 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Target className="size-4 text-emerald-600 dark:text-emerald-400" />
-            <span>Keyword Gap &amp; Topical Coverage Alignment</span>
+            <span>Missing Keywords</span>
           </h4>
+          <p className="text-[13px] text-slate-500 dark:text-slate-400">
+            Comparing {targetHost} against {validResults.length - 1} competitor{validResults.length - 1 > 1 ? 's' : ''}
+          </p>
         </div>
 
         {/* 1-Click Action Buttons */}
@@ -355,9 +355,9 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
         {/* Missing Gaps Card */}
         <div className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] flex flex-col justify-between space-y-1.5">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <span>Gaps Missing on Your Page</span>
-              <SEOExplanationTooltip text="Significant terms used repeatedly by top-ranking competitor URLs where your target page has 0% or inadequate presence." />
+            <div className="text-[13px] font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <span>Missing on Your Page</span>
+              <SEOExplanationTooltip text="Keywords and phrases used repeatedly by competitors that don't appear on your page yet." />
             </div>
             <span className="size-2 rounded-full bg-rose-500 shrink-0" />
           </div>
@@ -366,20 +366,20 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
               {yourPageMissingGaps.length}
             </span>
             <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
-              critical keyword gaps
+              keywords to add
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Immediate semantic opportunities to weave into headings and body paragraphs.
+          <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
+            Good opportunities to work into your headings and paragraphs.
           </p>
         </div>
 
         {/* Common Core Topics Card */}
         <div className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] flex flex-col justify-between space-y-1.5">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <span>Shared Common Core Topics</span>
-              <SEOExplanationTooltip text="Industry baseline vocabulary that both your target page and ranking competitors cover extensively." />
+            <div className="text-[13px] font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <span>Shared Topics</span>
+              <SEOExplanationTooltip text="Core words and phrases that both your page and competitors already cover." />
             </div>
             <span className="size-2 rounded-full bg-emerald-500 shrink-0" />
           </div>
@@ -388,20 +388,20 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
               {commonCoreKeywords.length}
             </span>
             <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-              common core terms
+              already covered
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Topical parity maintained — protect these baseline concepts from being pruned.
+          <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
+            Topics you already cover well—keep these in your content.
           </p>
         </div>
 
         {/* Total Discovered Vocabulary Card */}
         <div className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] flex flex-col justify-between space-y-1.5">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <span>Total Discovered Terms</span>
-              <SEOExplanationTooltip text="Complete corpus of 1-gram, 2-gram, and 3-gram search terms discovered across all analyzed competitor URLs." />
+            <div className="text-[13px] font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <span>All Keywords Found</span>
+              <SEOExplanationTooltip text="All 1-word, 2-word, and 3-word phrases found across all compared pages." />
             </div>
             <span className="size-2 rounded-full bg-slate-400 shrink-0" />
           </div>
@@ -410,11 +410,11 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
               {totalUniqueKeywords}
             </span>
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              extracted N-gram phrases
+              total phrases
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Indexed vocabulary across 1-gram entities, 2-gram modifiers, and 3-gram long-tail.
+          <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
+            Includes single words, 2-word phrases, and 3-word phrases.
           </p>
         </div>
       </div>
@@ -445,7 +445,7 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
               }`}
             >
               <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
-              <span>Common Core ({commonCoreKeywords.length})</span>
+              <span>Shared Topics ({commonCoreKeywords.length})</span>
             </button>
 
             <button
@@ -456,7 +456,7 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
               }`}
             >
-              <span>All Competitor Gaps ({keywordGaps.length})</span>
+              <span>All Gaps ({keywordGaps.length})</span>
             </button>
 
             <button
@@ -467,7 +467,7 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
               }`}
             >
-              <span>All Terms ({allItems.length})</span>
+              <span>All Keywords ({allItems.length})</span>
             </button>
           </div>
 
@@ -497,48 +497,48 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
         {/* Secondary N-Gram Length Filter Chips */}
         <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-200/60 dark:border-white/5 text-xs text-slate-600 dark:text-slate-400">
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-1">
-              Phrase Length:
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mr-1">
+              Words:
             </span>
             <button
               onClick={() => setActiveGram('all')}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                 activeGram === 'all'
-                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-bold'
+                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-semibold'
                   : 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20'
               }`}
             >
-              All Lengths
+              All
             </button>
             <button
               onClick={() => setActiveGram('1-gram')}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                 activeGram === '1-gram'
-                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-bold'
+                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-semibold'
                   : 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20'
               }`}
             >
-              1-Word (Entities)
+              1 Word
             </button>
             <button
               onClick={() => setActiveGram('2-gram')}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                 activeGram === '2-gram'
-                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-bold'
+                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-semibold'
                   : 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20'
               }`}
             >
-              2-Word (Phrases)
+              2 Words
             </button>
             <button
               onClick={() => setActiveGram('3-gram')}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                 activeGram === '3-gram'
-                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-bold'
+                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-semibold'
                   : 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20'
               }`}
             >
-              3-Word (Long-Tail)
+              3 Words
             </button>
           </div>
 
@@ -570,17 +570,14 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                 scope="col"
                 className="py-3 px-4 w-60 min-w-[220px] shrink-0 sticky left-0 z-30 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]"
               >
-                <div className="font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider text-[11px]">
-                  Keyword Term
-                </div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
-                  Identified Entity / Phrase
+                <div className="font-semibold text-slate-800 dark:text-slate-100 text-xs">
+                  Keyword or Phrase
                 </div>
               </th>
 
               {/* N-Gram Length Tag */}
-              <th scope="col" className="py-3 px-3 text-center w-20 shrink-0 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-[10px] border-r border-slate-200/80 dark:border-white/5">
-                Type
+              <th scope="col" className="py-3 px-3 text-center w-20 shrink-0 font-semibold text-slate-600 dark:text-slate-300 text-xs border-r border-slate-200/80 dark:border-white/5">
+                Words
               </th>
 
               {/* URL Columns */}
@@ -616,7 +613,7 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                         {isTarget ? (
                           <>
                             <Target className="w-2.5 h-2.5" />
-                            <span>Target (You)</span>
+                            <span>Your Page</span>
                           </>
                         ) : (
                           `Competitor #${idx}`
@@ -631,8 +628,8 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
               })}
 
               {/* Status Indicator Header */}
-              <th scope="col" className="py-3 px-4 text-center w-36 shrink-0 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-[10px]">
-                Target Coverage
+              <th scope="col" className="py-3 px-4 text-center w-36 shrink-0 font-semibold text-slate-600 dark:text-slate-300 text-xs">
+                Status
               </th>
             </tr>
           </thead>
@@ -646,9 +643,9 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                 >
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Search className="w-6 h-6 text-slate-500 dark:text-slate-400" />
-                    <span className="font-semibold">No keyword terms match this filter selection.</span>
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Try selecting &quot;All Terms&quot; or clearing your search query.
+                    <span className="font-semibold">No keywords match this filter.</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      Try selecting &quot;All Keywords&quot; or clearing your search.
                     </span>
                   </div>
                 </td>
@@ -660,15 +657,15 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                   className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors"
                 >
                   {/* Sticky Left Column: Keyword Term */}
-                  <td className="py-2.5 px-4 font-medium text-slate-800 dark:text-slate-100 max-w-xs sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <td className="py-2.5 px-4 font-medium text-[13px] text-slate-800 dark:text-slate-100 max-w-xs sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     <span className="font-semibold truncate block" title={item.phrase}>
                       {item.phrase}
                     </span>
                   </td>
 
                   {/* N-Gram Length */}
-                  <td className="py-2.5 px-3 text-center text-[10px] font-mono text-slate-500 dark:text-slate-400 border-r border-slate-200/60 dark:border-white/5">
-                    {item.nGramType}
+                  <td className="py-2.5 px-3 text-center text-xs text-slate-500 dark:text-slate-400 border-r border-slate-200/60 dark:border-white/5">
+                    {item.nGramType === '1-gram' ? '1w' : item.nGramType === '2-gram' ? '2w' : '3w'}
                   </td>
 
                   {/* Competitor & Target Densities */}
@@ -730,14 +727,14 @@ export const KeywordGapMatrix: React.FC<KeywordGapMatrixProps> = ({
                         <span>Missing (0%)</span>
                       </span>
                     ) : item.isTargetPageUnderOptimized ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                        <span>Low Density</span>
+                        <span>Used Less</span>
                       </span>
                     ) : item.isCommonCore ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                        <span>Common Core</span>
+                        <span>Shared</span>
                       </span>
                     ) : (
                       <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">

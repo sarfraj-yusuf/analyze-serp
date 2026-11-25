@@ -97,37 +97,40 @@ export const SerpHeroHeader: React.FC<SerpHeroHeaderProps> = ({ report, results 
   const competitorCount = results.filter((r) => r.status === 'success').length - (targetUrl ? 1 : 0);
 
   return (
-    <div className="rounded-2xl p-5 sm:p-6 bg-white dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/[0.06] shadow-2xs space-y-5 relative">
-      {/* Chapter 01 Header & Outline Utility */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
+    <div className="rounded-2xl p-5 bg-white dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/[0.06] shadow-2xs space-y-4 relative">
+      {/* Header & Copy Outline Utility */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
         <div>
-          <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">
-            Diagnostic Telemetry
-          </span>
-          <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            Audit Summary &amp; Top Priorities
+          <h3 className="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            At a Glance
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Core high-impact opportunities identified by benchmarking against ranking competitor DOMs.
+            A quick breakdown of what to fix first and what is already working well.
           </p>
         </div>
 
         {/* 1-Click Copy Winner Heading Outline */}
         {results && results.length > 0 && (
           <Tooltip
-            content={isCopied ? 'Outline Copied!' : 'Copy Winner Outline'}
+            content={isCopied ? 'Outline Copied!' : 'Copy Top Competitor Outline'}
             side="top"
           >
             <button
               type="button"
               onClick={handleCopyTopOutline}
-              aria-label="Copy Winner Heading Outline"
-              className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer shrink-0 self-start sm:self-auto"
+              aria-label="Copy Top Competitor Outline"
+              className="px-2.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-50 hover:bg-slate-100 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] border border-slate-200/60 dark:border-white/[0.06] text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 self-start sm:self-auto"
             >
               {isCopied ? (
-                <Check className="size-4 text-emerald-500" />
+                <>
+                  <Check className="size-3.5 text-emerald-500" />
+                  <span>Copied Outline</span>
+                </>
               ) : (
-                <Copy className="size-4" />
+                <>
+                  <Copy className="size-3.5 text-slate-400" />
+                  <span>Copy Competitor Outline</span>
+                </>
               )}
             </button>
           </Tooltip>
@@ -135,7 +138,7 @@ export const SerpHeroHeader: React.FC<SerpHeroHeaderProps> = ({ report, results 
       </div>
 
       {/* 3 Telemetry Summary Columns - Clean Borderless Stat Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-white/5 py-1">
+      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-white/5">
         {/* Metric 1: High Impact */}
         <div
           onClick={onScrollToActionPlan}
@@ -143,18 +146,18 @@ export const SerpHeroHeader: React.FC<SerpHeroHeaderProps> = ({ report, results 
         >
           <div className="flex items-center gap-2 mb-1">
             <span className="size-2 rounded-full bg-rose-500 shrink-0" />
-            <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Immediate Quick Wins
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              Quick Wins
             </span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
               {highImpactCount}
             </span>
-            <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">High-Impact Gaps</span>
+            <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">High Impact</span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-            Actions with high ranking impact and minimal execution effort.
+            Easy changes that can improve rankings fast.
           </p>
         </div>
 
@@ -165,18 +168,18 @@ export const SerpHeroHeader: React.FC<SerpHeroHeaderProps> = ({ report, results 
         >
           <div className="flex items-center gap-2 mb-1">
             <span className="size-2 rounded-full bg-amber-500 shrink-0" />
-            <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Strategic Tasks
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              Improvements
             </span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
               {improvementsCount}
             </span>
-            <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">Optimizations</span>
+            <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">Worth Planning</span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-            Heading restructuring, schema parity, and content depth.
+            Updates to headings, content depth, and page structure.
           </p>
         </div>
 
@@ -192,90 +195,21 @@ export const SerpHeroHeader: React.FC<SerpHeroHeaderProps> = ({ report, results 
         >
           <div className="flex items-center gap-2 mb-1">
             <span className="size-2 rounded-full bg-emerald-500 shrink-0" />
-            <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Competitive Safeguards
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              Already Working
             </span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
               {strengthsCount}
             </span>
-            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Protected Areas</span>
+            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Strengths</span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-            Signals where your page already equals or beats rivals.
+            Areas where your page already matches or beats competitors.
           </p>
         </div>
       </div>
-
-      {/* Top 3 Priority Actions ("DO FIRST") - Minimalist Card with Subtle Left Accent Line */}
-      {top3Opportunities.length > 0 && (
-        <div className="pt-3 border-t border-slate-100 dark:border-white/[0.04] space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20">
-                TOP 3 PRIORITIES
-              </span>
-              <h4 className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                Immediate Execution Items
-              </h4>
-            </div>
-
-            {onScrollToActionPlan && (
-              <button
-                type="button"
-                onClick={onScrollToActionPlan}
-                className="text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer self-start sm:self-auto"
-              >
-                <span>Jump to Action Plan</span>
-                <ArrowRight className="size-3" />
-              </button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {top3Opportunities.map((opp, idx) => (
-              <div
-                key={idx}
-                role="button"
-                tabIndex={0}
-                onClick={onScrollToActionPlan}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onScrollToActionPlan?.();
-                  }
-                }}
-                className="p-3.5 rounded-xl border border-slate-200/60 dark:border-white/[0.06] hover:border-emerald-500/40 bg-slate-50/40 dark:bg-white/[0.01] hover:bg-white dark:hover:bg-white/[0.03] space-y-2 flex flex-col justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-              >
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                    <span className="font-mono text-[10px] font-semibold text-rose-600 dark:text-rose-400">
-                      #{idx + 1} Priority
-                    </span>
-                    {opp.category && (
-                      <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
-                        {opp.category}
-                      </span>
-                    )}
-                  </div>
-                  <h5 className="text-xs font-semibold text-slate-800 dark:text-slate-100 leading-snug group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    {opp.title}
-                  </h5>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-normal line-clamp-2">
-                    {opp.evidenceText}
-                  </p>
-                </div>
-
-                <div className="pt-1.5 flex items-center justify-between text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                  <span>View in Action Plan</span>
-                  <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -23,6 +23,7 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({
   competitorUrls = [],
 }) => {
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'DO_FIRST' | 'PLAN_THIS' | 'DO_NEXT'>('ALL');
+  const [showAll, setShowAll] = useState(false);
   const [copied, setCopied] = useState(false);
   const [selectedActionForAi, setSelectedActionForAi] = useState<EvidenceRecommendation | null>(null);
   const [isSchemaModalOpen, setIsSchemaModalOpen] = useState(false);
@@ -117,6 +118,9 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({
     ? actions
     : actions.filter((a) => a.quadrant === activeFilter);
 
+  const visibleActions =
+    activeFilter === 'ALL' && !showAll ? filteredActions.slice(0, 5) : filteredActions;
+
   const doFirstCount = actions.filter((a) => a.quadrant === 'DO_FIRST').length;
   const planThisCount = actions.filter((a) => a.quadrant === 'PLAN_THIS').length;
   const doNextCount = actions.filter((a) => a.quadrant === 'DO_NEXT').length;
@@ -126,16 +130,13 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
         <div>
-          <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">
-            Prioritized Roadmap
-          </span>
           <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Target className="size-4 text-emerald-500" />
-            <span>Prioritized Action Plan</span>
-            <SEOExplanationTooltip text="Prioritizes updates by combining estimated SEO ranking impact with execution effort, backed by direct SERP consensus evidence." />
+            <span>What to Fix First</span>
+            <SEOExplanationTooltip text="Sorted from easiest, highest-impact fixes down to longer-term improvements." />
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Step-by-step optimization recommendations prioritized by impact and empirical SERP evidence.
+            Step-by-step improvements ranked by how much they can help your page.
           </p>
         </div>
 
@@ -192,7 +193,7 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({
           }`}
         >
           <span className="size-1.5 rounded-full bg-rose-500 shrink-0" />
-          <span>DO FIRST ({doFirstCount})</span>
+          <span>Quick Wins ({doFirstCount})</span>
         </button>
 
         <button
@@ -204,7 +205,7 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({
           }`}
         >
           <span className="size-1.5 rounded-full bg-amber-500 shrink-0" />
-          <span>PLAN THIS ({planThisCount})</span>
+          <span>Plan Next ({planThisCount})</span>
         </button>
 
         <button
@@ -216,39 +217,39 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({
           }`}
         >
           <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
-          <span>DO NEXT ({doNextCount})</span>
+          <span>Nice to Have ({doNextCount})</span>
         </button>
       </div>
 
-      {/* Action Cards List - Clean Neutral Cards with Subtle Left Accent Line */}
+      {/* Action Cards List */}
       <div
         ref={listContainerRef}
-        className="space-y-3 pt-1 max-h-[560px] sm:max-h-[600px] overflow-y-auto modal-scroll pr-1 focus:outline-none"
+        className="space-y-3 pt-1 focus:outline-none"
         tabIndex={0}
         aria-label="Prioritized action roadmap items"
       >
-        {filteredActions.map((item, idx) => {
+        {visibleActions.map((item, idx) => {
           let indicatorTag = null;
 
           if (item.quadrant === 'DO_FIRST') {
             indicatorTag = (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium text-rose-700 dark:text-rose-400 bg-rose-500/10">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium text-rose-700 dark:text-rose-400 bg-rose-500/10">
                 <span className="size-1 rounded-full bg-rose-500" />
-                Do First
+                Quick Win
               </span>
             );
           } else if (item.quadrant === 'PLAN_THIS') {
             indicatorTag = (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium text-amber-700 dark:text-amber-400 bg-amber-500/10">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium text-amber-700 dark:text-amber-400 bg-amber-500/10">
                 <span className="size-1 rounded-full bg-amber-500" />
-                Plan This
+                Plan Next
               </span>
             );
           } else if (item.quadrant === 'DO_NEXT') {
             indicatorTag = (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-500/10">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-500/10">
                 <span className="size-1 rounded-full bg-emerald-500" />
-                Do Next
+                Nice to Have
               </span>
             );
           }
@@ -272,22 +273,22 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({
                 </div>
               </div>
 
-              {/* Title & Action Step - Calm, No Nested Box Inside Box */}
+              {/* Title & Action Step */}
               <div className="space-y-1">
                 <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   {item.title}
                 </h4>
-                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                <p className="text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed">
                   {item.action}
                 </p>
               </div>
 
               {/* Plain-English Business Impact Callout */}
               {item.businessImpact && (
-                <div className="flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-300">
-                  <TrendingUp className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-1.5 text-[13px] text-slate-600 dark:text-slate-300">
+                  <TrendingUp className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-1" />
                   <p className="leading-relaxed">
-                    <strong className="font-semibold text-slate-800 dark:text-slate-200">Expected Impact:</strong>{' '}
+                    <strong className="font-semibold text-slate-800 dark:text-slate-200">Why this helps:</strong>{' '}
                     <span>{item.businessImpact}</span>
                   </p>
                 </div>
@@ -320,6 +321,18 @@ export const ActionMatrixRoadmap: React.FC<ActionMatrixRoadmapProps> = ({
           );
         })}
       </div>
+
+      {activeFilter === 'ALL' && filteredActions.length > 5 && (
+        <div className="pt-1 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setShowAll((prev) => !prev)}
+            className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-medium transition-colors cursor-pointer"
+          >
+            {showAll ? 'Show fewer tasks' : `Show all ${filteredActions.length} tasks`}
+          </button>
+        </div>
+      )}
 
       {/* Task Summary Footer */}
       <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] font-mono text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-white/[0.04]">

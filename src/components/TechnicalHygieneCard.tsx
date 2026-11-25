@@ -23,16 +23,13 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
         <div>
-          <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">
-            Foundation Check
-          </span>
           <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <ShieldCheck className="size-4 text-emerald-500 shrink-0" />
-            <span>Critical Technical Hygiene &amp; Crawlability</span>
-            <SEOExplanationTooltip text="Verifies that your target page can be fetched, crawled, and indexed by search engine bots without security or canonical blocks." />
+            <span>Basic Page Health</span>
+            <SEOExplanationTooltip text="Checks that search engines can reach, read, and safely list your page in Google." />
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Ensuring Googlebot can crawl and render your page before optimizing content depth.
+            Making sure Google can find and read your page before you work on content.
           </p>
         </div>
 
@@ -45,19 +42,19 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
             }`}
           >
             {isHealthy ? <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" /> : <AlertOctagon className="size-3.5 text-rose-600 dark:text-rose-400" />}
-            <span>{isHealthy ? 'Foundation Pass' : 'Action Required'}</span>
+            <span>{isHealthy ? 'All Good' : 'Needs Attention'}</span>
           </span>
         </div>
       </div>
 
-      {/* Grid Status Checks - Lightweight, Flat Layout without heavy nested box borders */}
+      {/* Grid Status Checks */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
         {/* 1. Crawlability */}
         <div className="p-3 rounded-xl bg-slate-50/50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.03] flex flex-col justify-between space-y-1.5">
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <FileSearch className="size-3.5 text-slate-400" /> Page Crawlability
+                <FileSearch className="size-3.5 text-slate-400" /> Can Google Read It?
               </span>
               {isCrawlable ? (
                 <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -66,12 +63,12 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
               )}
             </div>
             <div className={`text-xs font-medium ${isCrawlable ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-              {isCrawlable ? 'HTTP 200 OK' : 'Unreachable / Blocked'}
+              {isCrawlable ? 'Page Loaded (200 OK)' : 'Unreachable / Blocked'}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               {isCrawlable
-                ? 'Server returns valid HTML. Search bots can crawl without technical blockage.'
-                : 'Server unreachable or returned an empty response. Bots cannot crawl.'}
+                ? 'Your page loads properly so search engines can read it.'
+                : 'Your page could not be reached or returned an empty response.'}
             </p>
           </div>
         </div>
@@ -81,7 +78,7 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <Eye className="size-3.5 text-slate-400" /> Indexability Status
+                <Eye className="size-3.5 text-slate-400" /> Allowed on Google?
               </span>
               {isIndexable ? (
                 <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -90,12 +87,12 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
               )}
             </div>
             <div className={`text-xs font-medium ${isIndexable ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-              {isIndexable ? 'Indexable Allowed' : 'Blocked (noindex)'}
+              {isIndexable ? 'Yes, Indexable' : 'Blocked (noindex)'}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               {isIndexable
-                ? 'Robots directives permit indexing in search results.'
-                : 'Page is tagged with "noindex" or blocked by robots.txt rules.'}
+                ? 'Your page allows Google to show it in search results.'
+                : 'A "noindex" tag or robots rule is hiding this page from Google.'}
             </p>
           </div>
         </div>
@@ -105,7 +102,7 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <Lock className="size-3.5 text-slate-400" /> SSL Encryption
+                <Lock className="size-3.5 text-slate-400" /> Secure Connection
               </span>
               {hasHttps ? (
                 <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -114,12 +111,12 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
               )}
             </div>
             <div className={`text-xs font-medium ${hasHttps ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-              {hasHttps ? 'HTTPS Active' : 'Insecure HTTP'}
+              {hasHttps ? 'HTTPS Active' : 'Not Secure (HTTP)'}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               {hasHttps
-                ? 'Valid SSL certificate active. Meets Google HTTPS ranking requirement.'
-                : 'Missing SSL. Browsers show warning, increasing visitor bounce rates.'}
+                ? 'Your site uses a valid SSL certificate (HTTPS).'
+                : 'Missing HTTPS. Browsers may warn visitors that the site is not secure.'}
             </p>
           </div>
         </div>
@@ -129,7 +126,7 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <ShieldCheck className="size-3.5 text-slate-400" /> Canonical Tag
+                <ShieldCheck className="size-3.5 text-slate-400" /> Main URL Tag
               </span>
               {hasCanonicalMatch ? (
                 <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -138,12 +135,12 @@ export const TechnicalHygieneCard: React.FC<TechnicalHygieneCardProps> = ({ tech
               )}
             </div>
             <div className={`text-xs font-medium ${hasCanonicalMatch ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
-              {hasCanonicalMatch ? 'Canonical Aligned' : 'Domain Mismatch'}
+              {hasCanonicalMatch ? 'Matches This Page' : 'Points Elsewhere'}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               {hasCanonicalMatch
-                ? 'Canonical URL matches target domain, consolidating ranking signals.'
-                : 'Canonical URL points to a different domain or path, diluting equity.'}
+                ? 'Canonical tag confirms this is the main version of the page.'
+                : 'Canonical tag points to another URL, which can split ranking credit.'}
             </p>
           </div>
         </div>

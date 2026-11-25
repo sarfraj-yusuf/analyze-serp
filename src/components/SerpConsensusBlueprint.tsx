@@ -22,16 +22,16 @@ export const SerpConsensusBlueprint: React.FC<SerpConsensusBlueprintProps> = ({ 
         <div>
           <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
             What Top Competitors Include
-            <SEOExplanationTooltip text="Identifies features, subtopic modules, and architectural standards present across top-ranking competitors on Google." />
+            <SEOExplanationTooltip text="Features and page sections that most top-ranking competitors have in common." />
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Consensus structural standards and content patterns detected across audited competitor URLs.
+            Common features found on competing pages—green means you have it, red means it&apos;s missing.
           </p>
         </div>
 
         {/* Blueprint Summary */}
-        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto text-xs font-mono text-slate-500 dark:text-slate-400">
-          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{presentCount} Present</span>
+        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto text-xs text-slate-500 dark:text-slate-400">
+          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{presentCount} Included</span>
           {missingCount > 0 && (
             <>
               <span>&bull;</span>
@@ -43,12 +43,12 @@ export const SerpConsensusBlueprint: React.FC<SerpConsensusBlueprintProps> = ({ 
 
       {/* Blueprint Table - Clean Minimal Table without Heavy Double Borders */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse text-xs">
+        <table className="w-full text-left border-collapse text-[13px]">
           <thead>
-            <tr className="border-b border-slate-100 dark:border-white/5 text-slate-400 dark:text-slate-500 font-mono text-[10px] uppercase font-medium tracking-wider">
-              <th className="py-2.5 px-3 w-32">Consensus</th>
-              <th className="py-2.5 px-3">Structural Module</th>
-              <th className="py-2.5 px-3 w-28">Category</th>
+            <tr className="border-b border-slate-100 dark:border-white/5 text-slate-500 dark:text-slate-400 text-xs font-medium">
+              <th className="py-2.5 px-3 w-32">Used By</th>
+              <th className="py-2.5 px-3">Feature</th>
+              <th className="py-2.5 px-3 w-28">Type</th>
               <th className="py-2.5 px-3 text-center w-36">Your Page</th>
             </tr>
           </thead>
@@ -58,13 +58,13 @@ export const SerpConsensusBlueprint: React.FC<SerpConsensusBlueprintProps> = ({ 
                 {/* Frequency Ratio */}
                 <td className="py-3 px-3 font-mono font-medium text-slate-800 dark:text-slate-200 text-xs">
                   {p.frequencyRatio}{' '}
-                  <span className="text-slate-400 dark:text-slate-500 font-normal">({p.frequencyPercent}%)</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-normal">({p.frequencyPercent}%)</span>
                 </td>
 
                 {/* Pattern Title & Description */}
                 <td className="py-3 px-3">
-                  <div className="font-semibold text-slate-900 dark:text-slate-100 text-xs">{p.title}</div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed font-normal">{p.description}</div>
+                  <div className="font-semibold text-slate-900 dark:text-slate-100 text-[13px]">{p.title}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed font-normal">{p.description}</div>
                 </td>
 
                 {/* Type Badge */}

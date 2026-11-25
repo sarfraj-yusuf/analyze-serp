@@ -503,10 +503,10 @@ ${aggregatedHeadings
 
       {/* 2. Target Keyword Input & Quick-Select Suggestions */}
       <div className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/90 dark:border-white/10 space-y-2.5">
-        <label htmlFor="brief-target-query" className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+        <label htmlFor="brief-target-query" className="text-[13px] font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
           <Target className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-          <span>Target Primary Keyword for Content Brief:</span>
-          <SEOExplanationTooltip text="The exact search query your article is written to rank for. This configures the placement rules, density bounds, and outline." />
+          <span>Main Topic / Keyword:</span>
+          <SEOExplanationTooltip text="The main search phrase you want this article to rank for." />
         </label>
 
         <input
@@ -514,14 +514,14 @@ ${aggregatedHeadings
           type="text"
           value={customKeyword}
           onChange={(e) => setCustomKeyword(e.target.value)}
-          placeholder={`Enter target search query (e.g. ${defaultTargetKeyword})`}
-          className="w-full px-3.5 py-2 rounded-lg text-xs border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800/80 font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 shadow-2xs"
+          placeholder={`Enter main keyword (e.g. ${defaultTargetKeyword})`}
+          className="w-full px-3.5 py-2 rounded-lg text-[13px] border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800/80 font-semibold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 shadow-2xs"
         />
 
         {suggestedKeywords.length > 0 && (
-          <div className="space-y-1 pt-1">
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">
-              Or quick-select top competitor search phrases:
+          <div className="space-y-1.5 pt-1">
+            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              Suggested topics from competitors:
             </div>
             <div className="flex flex-wrap gap-1.5">
               {suggestedKeywords.map((kw, idx) => (
@@ -547,45 +547,45 @@ ${aggregatedHeadings
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Card 1: Target Word Goal */}
         <div className="p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/40 space-y-1.5">
-          <div className="text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center justify-between">
-            <span>Target Word Goal</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-              +15% Consensus
+          <div className="text-[13px] font-semibold text-emerald-800 dark:text-emerald-300 flex items-center justify-between">
+            <span>Recommended Length</span>
+            <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+              +15% Goal
             </span>
           </div>
           <div className="text-2xl font-bold font-mono text-emerald-800 dark:text-emerald-300 tabular-nums">
             ~{targetWordCount.toLocaleString()} <span className="text-xs font-normal">words</span>
           </div>
-          <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
-            Competitor average is {avgWordCount.toLocaleString()} words. A +15% cushion ensures superior topical depth.
+          <p className="text-[13px] text-emerald-700 dark:text-emerald-400 leading-relaxed">
+            Competitors average {avgWordCount.toLocaleString()} words. Aim slightly higher to cover the topic well.
           </p>
         </div>
 
         {/* Card 2: Target Readability */}
         <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/90 dark:border-white/10 space-y-1.5">
-          <div className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between">
-            <span>Target Readability Level</span>
+          <div className="text-[13px] font-semibold text-slate-800 dark:text-slate-200 flex items-center justify-between">
+            <span>Reading Level</span>
             <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
           </div>
           <div className="text-2xl font-bold font-mono text-slate-800 dark:text-slate-100 tabular-nums">
             {avgReadabilityEase} <span className="text-xs font-normal">/ 100 Ease</span>
           </div>
-          <p className="text-[11px] text-slate-600 dark:text-slate-400">
-            Calibrate writing to <strong>{targetGradeLabel}</strong> for optimal comprehension and lower bounce rates.
+          <p className="text-[13px] text-slate-600 dark:text-slate-400 leading-relaxed">
+            Write at a <strong>{targetGradeLabel}</strong> level so visitors can skim and read easily.
           </p>
         </div>
 
         {/* Card 3: Keyword Frequency Goal */}
         <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/90 dark:border-white/10 space-y-1.5">
-          <div className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between">
-            <span>Target Keyword Density</span>
+          <div className="text-[13px] font-semibold text-slate-800 dark:text-slate-200 flex items-center justify-between">
+            <span>Keyword Usage</span>
             <Key className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
           </div>
           <div className="text-2xl font-bold font-mono text-slate-800 dark:text-slate-100 tabular-nums">
-            {minMentions}–{maxMentions} <span className="text-xs font-normal">mentions</span>
+            {minMentions}–{maxMentions} <span className="text-xs font-normal">times</span>
           </div>
-          <p className="text-[11px] text-slate-600 dark:text-slate-400">
-            Maintain ~1.0% to 2.0% natural density. Avoid keyword stuffing over 2.5%.
+          <p className="text-[13px] text-slate-600 dark:text-slate-400 leading-relaxed">
+            Use your main keyword naturally—don&apos;t force or repeat it too often.
           </p>
         </div>
       </div>
@@ -595,16 +595,16 @@ ${aggregatedHeadings
         {/* Left Column: On-Page Placement Checklist */}
         <div className="p-5 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200/90 dark:border-white/10 space-y-4 shadow-2xs">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-white/[0.08]">
-            <h5 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+            <h5 className="text-[13px] font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
               <CheckSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Keyword Placement Rules for Writers</span>
+              <span>Where to Place Your Keyword</span>
             </h5>
-            <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
-              Interactive Checklist
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              Checklist
             </span>
           </div>
 
-          <div className="space-y-2.5 text-xs">
+          <div className="space-y-2.5 text-[13px]">
             {/* Title Tag */}
             <label
               onClick={() => toggleCheck('title')}

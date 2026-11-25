@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { SinglePageAudit } from '@/types/seo';
 import { analyzeSerpAlignment } from '@/lib/serp-decision-engine';
@@ -63,6 +63,7 @@ import {
   AlertTriangle,
   AlertCircle,
   Cloud,
+  MoreHorizontal,
 } from 'lucide-react';
 
 export type WorkspaceTab = 'overview' | 'keywords' | 'matrix' | 'inspector' | 'brief';
@@ -87,7 +88,16 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
   onEditUrls,
 }) => {
   const { data: session } = useSession();
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>('overview');
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>(() => {
+    if (typeof window === 'undefined') return 'overview';
+    try {
+      const saved = sessionStorage.getItem('analyzeserp_active_tab') as WorkspaceTab | null;
+      if (saved && ['overview', 'keywords', 'matrix', 'inspector', 'brief'].includes(saved)) {
+        return saved;
+      }
+    } catch {}
+    return 'overview';
+  });
   const [activeUrlIndex, setActiveUrlIndex] = useState<number>(0);
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
   const [isDiffModalOpen, setIsDiffModalOpen] = useState(initialOpenDiff);
@@ -96,6 +106,19 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isMoreMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
+        setIsMoreMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMoreMenuOpen]);
 
   // Filter valid successful results vs failed results
   const validResults = useMemo(() => {
@@ -111,6 +134,13 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
     if (validResults.length === 0) return null;
     return analyzeSerpAlignment(validResults, targetUrl, targetKeyword);
   }, [validResults, targetUrl, targetKeyword]);
+
+  const availableTabs: WorkspaceTab[] = useMemo(() => {
+    const tabs: WorkspaceTab[] = ['overview'];
+    if (validResults.length >= 2) tabs.push('keywords', 'matrix');
+    tabs.push('inspector', 'brief');
+    return tabs;
+  }, [validResults.length]);
 
   if (!results || results.length === 0) {
     return null;
@@ -171,15 +201,11 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
   const competitorUrls = validResults.filter((r) => r.url !== effectiveTargetUrl).map((r) => r.url);
   const competitorCount = competitorUrls.length;
 
-  const availableTabs: WorkspaceTab[] = useMemo(() => {
-    const tabs: WorkspaceTab[] = ['overview'];
-    if (validResults.length >= 2) tabs.push('keywords', 'matrix');
-    tabs.push('inspector', 'brief');
-    return tabs;
-  }, [validResults.length]);
-
   const handleTabSwitch = (tab: WorkspaceTab) => {
     setActiveTab(tab);
+    try {
+      sessionStorage.setItem('analyzeserp_active_tab', tab);
+    } catch {}
     const el = document.getElementById('workspace-tabs-bar');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -291,102 +317,110 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
           {/* Left Context: Status & Focus Keyword */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
               <span className="size-1.5 rounded-full bg-emerald-500" />
-              BENCHMARK AUDIT ACTIVE
+              Live Audit
             </span>
             {targetKeyword && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-mono bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.05] text-slate-700 dark:text-slate-300">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs bg-slate-50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.05] text-slate-700 dark:text-slate-300">
                 <Target className="size-3 text-emerald-500" />
-                <span className="text-slate-500 dark:text-slate-400">Query:</span>
-                <strong className="font-semibold text-slate-900 dark:text-slate-100">"{targetKeyword}"</strong>
+                <span className="text-slate-500 dark:text-slate-400">Keyword:</span>
+                <strong className="font-semibold text-slate-900 dark:text-slate-100">&ldquo;{targetKeyword}&rdquo;</strong>
               </span>
             )}
           </div>
 
-          {/* Right: Action Command Group */}
-          <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
-            {/* Quick Utility Icon Buttons (Borderless & Clean) */}
-            <div className="flex items-center gap-0.5">
-              {/* Cloud Sync Status / Action */}
-              {session?.user?.email ? (
-                <Tooltip content="Saved to Cloud" side="top">
-                  <div
-                    className="p-1.5 sm:p-2 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors cursor-default relative"
-                    aria-label="Saved to Cloud Workspace"
-                  >
-                    <Cloud className="size-4" />
-                    <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-emerald-500" />
-                  </div>
-                </Tooltip>
-              ) : (
-                <Tooltip content="Save to Cloud" side="top">
-                  <button
-                    type="button"
-                    onClick={() => setShowAuthModal(true)}
-                    className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                    aria-label="Save to Cloud"
-                  >
-                    <Cloud className="size-4" />
-                  </button>
-                </Tooltip>
-              )}
+          {/* Right: Minimal Action Group */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setIsShareModalOpen(true)}
+              className="px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-slate-700 dark:text-slate-300 text-xs font-medium flex items-center gap-1.5 border border-slate-200/60 dark:border-white/[0.06] transition-colors cursor-pointer"
+              aria-label="Share audit report"
+            >
+              <Share2 className="size-3.5 text-slate-500 dark:text-slate-400" />
+              <span>Share</span>
+            </button>
 
-              <Tooltip content="Share Audit" side="top">
-                <button
-                  type="button"
-                  onClick={() => setIsShareModalOpen(true)}
-                  className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                  aria-label="Share benchmark audit"
-                >
-                  <Share2 className="size-4" />
-                </button>
-              </Tooltip>
-
-              <Tooltip content={copied ? "Summary Copied!" : "Copy Summary"} side="top">
-                <button
-                  type="button"
-                  onClick={handleCopySummary}
-                  className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                  aria-label="Copy executive summary"
-                >
-                  {copied ? <Check className="size-4 text-emerald-500" /> : <Copy className="size-4" />}
-                </button>
-              </Tooltip>
-
-              <Tooltip content="Before vs After" side="top">
-                <button
-                  type="button"
-                  onClick={() => setIsDiffModalOpen(true)}
-                  className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                  aria-label="Compare Before vs After"
-                >
-                  <GitCompare className="size-4" />
-                </button>
-              </Tooltip>
-
-              <Tooltip content="Link Topology" side="top">
-                <button
-                  type="button"
-                  onClick={() => setIsTopologyModalOpen(true)}
-                  className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                  aria-label="Inspect link topology"
-                >
-                  <Network className="size-4" />
-                </button>
-              </Tooltip>
-            </div>
-
-            {/* Subtle Divider */}
-            <div className="h-4 w-px bg-slate-200/60 dark:bg-white/10 mx-1 hidden sm:block" />
-
-            {/* Unified Export Hub Dropdown */}
             <ExportDropdown
               report={report}
               validResults={validResults}
               targetUrl={effectiveTargetUrl}
               onOpenPdfModal={() => setIsPdfModalOpen(true)}
             />
+
+            {/* More Tools Dropdown */}
+            <div className="relative" ref={moreMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsMoreMenuOpen((prev) => !prev)}
+                aria-expanded={isMoreMenuOpen}
+                aria-label="More audit tools"
+                className="px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-slate-600 dark:text-slate-300 text-xs font-medium flex items-center gap-1 border border-slate-200/60 dark:border-white/[0.06] transition-colors cursor-pointer"
+              >
+                <MoreHorizontal className="size-3.5" />
+                <span className="hidden sm:inline">More</span>
+              </button>
+
+              {isMoreMenuOpen && (
+                <div className="absolute right-0 mt-1.5 w-52 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-lg py-1.5 z-50 text-xs animate-in fade-in duration-150">
+                  {session?.user?.email ? (
+                    <div className="px-3 py-2 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 font-medium">
+                      <Cloud className="size-3.5 shrink-0" />
+                      <span>Saved to Cloud</span>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMoreMenuOpen(false);
+                        setShowAuthModal(true);
+                      }}
+                      className="w-full px-3 py-2 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 cursor-pointer"
+                    >
+                      <Cloud className="size-3.5 text-slate-400 shrink-0" />
+                      <span>Save to Cloud</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleCopySummary();
+                      setIsMoreMenuOpen(false);
+                    }}
+                    className="w-full px-3 py-2 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 cursor-pointer"
+                  >
+                    {copied ? <Check className="size-3.5 text-emerald-500 shrink-0" /> : <Copy className="size-3.5 text-slate-400 shrink-0" />}
+                    <span>{copied ? 'Summary Copied!' : 'Copy Summary'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      setIsDiffModalOpen(true);
+                    }}
+                    className="w-full px-3 py-2 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 cursor-pointer"
+                  >
+                    <GitCompare className="size-3.5 text-slate-400 shrink-0" />
+                    <span>Compare Before &amp; After</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      setIsTopologyModalOpen(true);
+                    }}
+                    className="w-full px-3 py-2 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 cursor-pointer"
+                  >
+                    <Network className="size-3.5 text-slate-400 shrink-0" />
+                    <span>Internal Link Map</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -398,12 +432,12 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             {/* Target Page Details */}
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 shrink-0">
-                  Target Page (Your Site)
+                <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 shrink-0">
+                  Your Page
                 </span>
                 {targetAudit?.wordCount ? (
-                  <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                    • {targetAudit.wordCount.toLocaleString()} words
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                    &bull; {targetAudit.wordCount.toLocaleString()} words
                   </span>
                 ) : null}
               </div>
@@ -430,8 +464,8 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
 
             {/* Competitor Domain Row without heavy line clutter */}
             <div className="space-y-1.5">
-              <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 block">
-                Benchmarked against {competitorCount} competitor{competitorCount > 1 ? 's' : ''}:
+              <span className="text-xs text-slate-500 dark:text-slate-400 block">
+                Compared with {competitorCount} competitor{competitorCount > 1 ? 's' : ''}:
               </span>
 
               <div className="flex flex-wrap items-center gap-1.5">
@@ -462,7 +496,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                         ) : null}
                         {compAudit?.technicalAudit?.ttfbMs ? (
                           <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                            • {compAudit.technicalAudit.ttfbMs}ms
+                            &bull; {(compAudit.technicalAudit.ttfbMs / 1000).toFixed(1)}s
                           </span>
                         ) : null}
                         <ExternalLink className="size-3 text-slate-400 group-hover:text-emerald-500 shrink-0 transition-colors" />
@@ -470,7 +504,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                     );
                   })
                 ) : (
-                  <span className="font-mono text-xs text-slate-500 dark:text-slate-400">Single URL baseline audit (no competitors added)</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Single-page check (no competitors added)</span>
                 )}
               </div>
             </div>
@@ -525,8 +559,8 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
               </div>
 
               <div className="min-w-0">
-                <div className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  SERP Parity Index
+                <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  SEO Match Score
                 </div>
                 <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 flex-wrap">
                   <span
@@ -540,13 +574,13 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                   />
                   <span>
                     {(report.alignmentScore || 0) >= 75
-                      ? 'Strong Parity'
+                      ? 'Strong Match'
                       : (report.alignmentScore || 0) >= 50
-                      ? 'Moderate Alignment'
-                      : 'Critical Parity Gaps'}
+                      ? 'Room to Improve'
+                      : 'Needs Work'}
                   </span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-mono text-[11px] font-medium">
-                    • {report.opportunityCount} Priority Gaps
+                  <span className="text-emerald-600 dark:text-emerald-400 text-[11px] font-medium">
+                    &bull; {report.opportunityCount} things to fix
                   </span>
                 </div>
               </div>
@@ -554,7 +588,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
 
             {/* Verdict Takeaway */}
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2" title={report.verdictHeadline}>
-              {report.verdictHeadline || 'Target page benchmarked against top ranking competitors.'}
+              {report.verdictHeadline || 'Your page has been compared against top-ranking competitors.'}
             </p>
 
             {/* Interactive Jump to Roadmap */}
@@ -563,7 +597,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
               onClick={handleGoToActionPlan}
               className="text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 inline-flex items-center gap-1 transition-colors self-start cursor-pointer group"
             >
-              <span>Explore Prioritized Action Plan</span>
+              <span>See What to Fix First</span>
               <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
             </button>
 
@@ -582,7 +616,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
         className="sticky top-16 z-30 p-1 rounded-xl bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-white/[0.06] backdrop-blur-xl flex items-center gap-1 overflow-x-auto scrollbar-none shadow-2xs"
       >
         {/* Tab 1: Overview */}
-        <Tooltip content="Overview & Action Plan" side="bottom">
+        <Tooltip content="Summary & What to Fix" side="bottom">
           <button
             id="tab-overview"
             role="tab"
@@ -598,13 +632,13 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             }`}
           >
             <Activity className="size-3.5" />
-            <span>Overview &amp; Action Plan</span>
+            <span>Overview</span>
           </button>
         </Tooltip>
 
         {/* Tab 2: Keywords */}
         {validResults.length >= 2 && (
-          <Tooltip content="Competitor Gap Matrix" side="bottom">
+          <Tooltip content="Keywords competitors use that you don't" side="bottom">
             <button
               id="tab-keywords"
               role="tab"
@@ -620,14 +654,14 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
               }`}
             >
               <Target className="size-3.5" />
-              <span>Keyword Gaps</span>
+              <span>Keywords</span>
             </button>
           </Tooltip>
         )}
 
         {/* Tab 3: Comparison Matrix */}
         {validResults.length >= 2 && (
-          <Tooltip content={`${validResults.length} Audited URLs`} side="bottom">
+          <Tooltip content={`Compare all ${validResults.length} pages side by side`} side="bottom">
             <button
               id="tab-matrix"
               role="tab"
@@ -643,14 +677,14 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
               }`}
             >
               <Layers className="size-3.5" />
-              <span>Multi-URL Matrix</span>
+              <span>Compare</span>
               <span className="text-[10px] font-mono opacity-70">({validResults.length})</span>
             </button>
           </Tooltip>
         )}
 
         {/* Tab 4: Single URL Inspector */}
-        <Tooltip content="Interactive Page Inspector" side="bottom">
+        <Tooltip content="Inspect headings, links, and tags for any page" side="bottom">
           <button
             id="tab-inspector"
             role="tab"
@@ -666,12 +700,12 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             }`}
           >
             <Search className="size-3.5" />
-            <span>Deep Inspector</span>
+            <span>Page Details</span>
           </button>
         </Tooltip>
 
         {/* Tab 5: Content Brief */}
-        <Tooltip content="Editorial Outline Brief" side="bottom">
+        <Tooltip content="Ready-to-write article outline" side="bottom">
           <button
             id="tab-brief"
             role="tab"
@@ -687,7 +721,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             }`}
           >
             <FileText className="size-3.5" />
-            <span>Strategic Content Brief</span>
+            <span>Content Outline</span>
           </button>
         </Tooltip>
       </div>
@@ -738,8 +772,8 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             {(report.technicalHygiene || (report.dontTouchStrengths && report.dontTouchStrengths.length > 0)) && (
               <div id="foundations-safeguards-section" className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Foundations &amp; Safeguards Deck
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                    Page Health &amp; Strengths
                   </span>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
@@ -761,14 +795,14 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
             {validResults.length >= 2 && (
               <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/[0.06] shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">
-                    Next Stage · Semantic &amp; Editorial Intelligence
+                  <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 block">
+                    Next Step
                   </span>
                   <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                    Ready to close content gaps? Discover missing competitor keywords
+                    See which keywords your competitors use that you&apos;re missing
                   </h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl font-normal">
-                    You've audited technical parity. Now view the specific N-gram keyword phrases your competitors use and craft your high-ranking content outline.
+                    Find common topics and phrases across top-ranking pages so you can add them naturally to your content.
                   </p>
                 </div>
 
@@ -777,7 +811,7 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
                   onClick={() => handleTabSwitch('keywords')}
                   className="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-1.5 shrink-0 shadow-2xs cursor-pointer active:scale-98 transition-all"
                 >
-                  <span>Explore Keyword Gaps</span>
+                  <span>View Missing Keywords</span>
                   <ArrowRight className="size-3.5" />
                 </button>
               </div>
@@ -798,15 +832,11 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
           >
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 pb-2 border-b border-slate-200/80 dark:border-white/[0.08]">
               <div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 mb-1.5">
-                  <Target className="w-3 h-3" />
-                  <span>Stage 02 · Editorial &amp; Semantic Strategy</span>
-                </div>
                 <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                  Competitor Keyword Gaps &amp; Topic Matrix
+                  Missing Keywords &amp; Topics
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                  Cross-compare search terminology between your target page and ranking competitors to eliminate topic gaps.
+                  Words and phrases your competitors rank with that are missing from your page.
                 </p>
               </div>
             </div>
@@ -827,15 +857,11 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
           >
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 pb-2 border-b border-slate-200/80 dark:border-white/[0.08]">
               <div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 mb-1.5">
-                  <Layers className="w-3 h-3" />
-                  <span>Cross-URL Signal Comparison</span>
-                </div>
                 <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                  Side-by-Side Competitor Benchmark Matrix
+                  Side-by-Side Page Comparison
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                  Full technical, on-page, and link comparison table comparing all audited URLs horizontally.
+                  Compare word count, speed, headings, and links across every page in one table.
                 </p>
               </div>
             </div>
@@ -856,20 +882,16 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200/80 dark:border-white/[0.08]">
               <div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 mb-1.5">
-                  <Search className="w-3 h-3" />
-                  <span>DOM &amp; Technical Deep Dive</span>
-                </div>
                 <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                  Single Page Technical Inspector
+                  Page Details
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                  Select any URL below to inspect its heading hierarchy tree, SERP snippet, internal links, and technical tags without scrolling.
+                  Pick any page below to view its headings, Google preview, links, and meta tags.
                 </p>
               </div>
 
-              <span className="text-xs font-mono text-slate-600 dark:text-slate-400 font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 self-start sm:self-auto shrink-0">
-                {validResults.length} of {results.length} URLs Active
+              <span className="text-xs text-slate-600 dark:text-slate-400 font-medium px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 self-start sm:self-auto shrink-0">
+                {validResults.length} of {results.length} pages loaded
               </span>
             </div>
 
@@ -956,15 +978,11 @@ export const CompetitorWorkspace: React.FC<CompetitorWorkspaceProps> = ({
           >
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 pb-2 border-b border-slate-200/80 dark:border-white/[0.08]">
               <div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 mb-1.5">
-                  <FileCode className="w-3 h-3" />
-                  <span>Stage 03 · Editorial Execution &amp; Briefing</span>
-                </div>
                 <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                  Strategic SEO Content Brief &amp; Heading Outline
+                  Content Outline
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                  Evidence-based content specifications, keyword placement rules, and competitor heading architecture for writers.
+                  A ready-to-use heading structure and word-count guide based on what ranks best.
                 </p>
               </div>
             </div>

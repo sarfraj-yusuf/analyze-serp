@@ -122,13 +122,13 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
       {/* 1. Control & KPI Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
         <div className="space-y-0.5">
-          <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">
-            Comparative Matrix · {validResults.length} Audited URLs
-          </span>
           <h4 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <SlidersHorizontal className="size-4 text-emerald-600 dark:text-emerald-400" />
-            <span>Benchmark Matrix &amp; Signal Alignment</span>
+            <span>Page Comparison</span>
           </h4>
+          <p className="text-[13px] text-slate-500 dark:text-slate-400">
+            Comparing {validResults.length} pages side by side
+          </p>
         </div>
 
         {/* Right side controls: Toggle Visuals + Summary Badges */}
@@ -136,16 +136,16 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
           <button
             type="button"
             onClick={() => setShowAnalytics(!showAnalytics)}
-            className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
-            title={showAnalytics ? 'Hide Benchmark Charts' : 'Show Benchmark Charts'}
-            aria-label={showAnalytics ? 'Hide Benchmark Charts' : 'Show Benchmark Charts'}
+            className="px-2.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 bg-slate-50 hover:bg-slate-100 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] border border-slate-200/50 dark:border-white/[0.05] text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+            title={showAnalytics ? 'Hide Charts' : 'Show Charts'}
           >
-            <PieChart className="size-4" />
+            <PieChart className="size-3.5" />
+            <span>{showAnalytics ? 'Hide Charts' : 'Show Charts'}</span>
           </button>
 
           <div className="px-3 py-1 rounded-lg bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] text-left">
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono font-medium">
-              Word Benchmark
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              Target Word Count
             </div>
             <div className="text-xs font-semibold font-mono text-emerald-600 dark:text-emerald-400 tabular-nums">
               ~{Math.round(avgWordCount * 1.15).toLocaleString()} words
@@ -153,8 +153,8 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
           </div>
 
           <div className="px-3 py-1 rounded-lg bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] text-left">
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono font-medium">
-              Avg TTFB Latency
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              Avg Load Speed
             </div>
             <div className="text-xs font-semibold font-mono text-slate-700 dark:text-slate-300 tabular-nums">
               {avgTtfb} ms
@@ -167,9 +167,9 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
       {showAnalytics && (
         <div className="p-4 rounded-xl bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-white/[0.04]">
-            <h5 className="text-xs font-semibold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+            <h5 className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
               <Activity className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Key Signal Visual Benchmarks</span>
+              <span>Quick Visual Comparison</span>
             </h5>
             <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
               <span className="text-[11px] font-mono">Sort:</span>
@@ -320,7 +320,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5 text-amber-500" />
-                  <span>TTFB Latency (Lower is Better)</span>
+                  <span>Page Speed (Lower is Better)</span>
                 </span>
                 <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 tabular-nums">
                   Avg: {avgTtfb}ms
@@ -384,7 +384,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
           }`}
         >
-          All Signals (13)
+          All (13)
         </button>
         <button
           onClick={() => setActiveCategory('technical')}
@@ -395,7 +395,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
           }`}
         >
           <ShieldCheck className="size-3.5 text-blue-500" />
-          <span>Core Technical (3)</span>
+          <span>Health &amp; Speed (3)</span>
         </button>
         <button
           onClick={() => setActiveCategory('content')}
@@ -406,7 +406,7 @@ export const ComparisonMatrix: React.FC<ComparisonMatrixProps> = ({ results, tar
           }`}
         >
           <FileText className="size-3.5 text-emerald-500" />
-          <span>Content &amp; Readability (3)</span>
+          <span>Content (3)</span>
         </button>
         <button
           onClick={() => setActiveCategory('headings')}

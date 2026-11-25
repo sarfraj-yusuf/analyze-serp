@@ -19,23 +19,20 @@ export const DontTouchStrengthsCard: React.FC<DontTouchStrengthsCardProps> = ({ 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
         <div>
-          <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-0.5">
-            Competitive Safeguards
-          </span>
           <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <ShieldCheck className="size-4 text-emerald-500 shrink-0" />
-            <span>Don&apos;t Waste Time Changing These</span>
-            <SEOExplanationTooltip text="Identifies features and metrics where your target page is already equal or superior to ranking competitors. Protect these strengths and avoid unnecessary edits." />
+            <span>What&apos;s Already Working</span>
+            <SEOExplanationTooltip text="Areas where your page is already as strong or stronger than competitors. Keep these as they are." />
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Your page is already competitive in these areas. Focus your effort elsewhere.
+            Don&apos;t waste time changing these—focus your effort on the gaps above.
           </p>
         </div>
 
         <div className="shrink-0 self-start sm:self-auto">
           <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium text-xs border border-emerald-500/20 flex items-center gap-1.5">
             <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>{strengths.length} Strengths Protected</span>
+            <span>{strengths.length} Working Well</span>
           </span>
         </div>
       </div>

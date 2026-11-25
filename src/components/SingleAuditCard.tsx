@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { SinglePageAudit } from '@/types/seo';
 import { HeadingTree } from './HeadingTree';
 import { KeywordTable } from './KeywordTable';
@@ -65,6 +65,7 @@ import {
   GitCompare,
   FileEdit,
   Network,
+  ChevronDown,
 } from 'lucide-react';
 
 interface SingleAuditCardProps {
@@ -88,6 +89,19 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
   const [isSnippetModalOpen, setIsSnippetModalOpen] = useState(false);
   const [isScratchpadOpen, setIsScratchpadOpen] = useState(false);
   const [isLinkTopologyOpen, setIsLinkTopologyOpen] = useState(false);
+  const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
+  const toolsMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isToolsMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (toolsMenuRef.current && !toolsMenuRef.current.contains(e.target as Node)) {
+        setIsToolsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isToolsMenuOpen]);
 
   if (audit.status === 'error') {
     return (
@@ -121,17 +135,17 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
         {/* Top Meta & Quant Stats Row */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              Audit Complete ({audit.fetchTimeMs}ms)
+              Loaded in {(audit.fetchTimeMs / 1000).toFixed(1)}s
             </span>
             {audit.spaDiagnostic?.isClientRenderedSpa && (
               <span
-                className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20 flex items-center gap-1"
+                className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20 flex items-center gap-1"
                 title={audit.spaDiagnostic.spaWarning}
               >
                 <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                SPA ({audit.spaDiagnostic.frameworkDetected || 'Client-Side'} &bull; {audit.spaDiagnostic.extractionMethod})
+                JavaScript App
               </span>
             )}
             <a
@@ -171,7 +185,7 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           <h3 className="text-lg sm:text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
             {meta.title || 'No Title Tag Found'}
           </h3>
-          <p className="text-xs sm:text-[13px] text-slate-600 dark:text-slate-300 max-w-5xl leading-relaxed">
+          <p className="text-[13px] sm:text-sm text-slate-600 dark:text-slate-300 max-w-5xl leading-relaxed">
             {meta.description || 'No Meta Description Found'}
           </p>
         </div>
@@ -197,72 +211,83 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
         )}
 
         {/* Diagnostic Actions Strip */}
-        <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 pt-1">
-          <div className="flex items-center gap-0.5">
-            <Tooltip content="Before vs After" side="top">
-              <button
-                type="button"
-                onClick={() => setIsDiffModalOpen(true)}
-                className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                aria-label="Before vs After"
-              >
-                <GitCompare className="size-4" />
-              </button>
-            </Tooltip>
-
-            <Tooltip content="Position 0 Snippet" side="top">
-              <button
-                type="button"
-                onClick={() => setIsSnippetModalOpen(true)}
-                className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                aria-label="Featured Snippet Optimization"
-              >
-                <Award className="size-4" />
-              </button>
-            </Tooltip>
-
-            <Tooltip content="Live SEO Scratchpad" side="top">
-              <button
-                type="button"
-                onClick={() => setIsScratchpadOpen(true)}
-                className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-teal-600 dark:text-slate-400 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                aria-label="Live SEO Scratchpad"
-              >
-                <FileEdit className="size-4" />
-              </button>
-            </Tooltip>
-
-            <Tooltip content="Link Topology" side="top">
-              <button
-                type="button"
-                onClick={() => setIsLinkTopologyOpen(true)}
-                className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                aria-label="Internal Link Topology"
-              >
-                <Network className="size-4" />
-              </button>
-            </Tooltip>
-          </div>
-
-          <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5 hidden sm:block" />
-
-          <Tooltip content="Download Client PDF" side="top">
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <div className="relative" ref={toolsMenuRef}>
             <button
               type="button"
-              onClick={() => setIsPdfModalOpen(true)}
-              className="px-2.5 py-1.5 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+              onClick={() => setIsToolsMenuOpen((prev) => !prev)}
+              aria-expanded={isToolsMenuOpen}
+              className="px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-slate-700 dark:text-slate-300 text-xs font-medium flex items-center gap-1.5 border border-slate-200/60 dark:border-white/[0.06] transition-colors cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>Export Client PDF</span>
+              <span>Page Tools</span>
+              <ChevronDown className={`size-3.5 text-slate-400 transition-transform ${isToolsMenuOpen ? 'rotate-180' : ''}`} />
             </button>
-          </Tooltip>
+
+            {isToolsMenuOpen && (
+              <div className="absolute left-0 mt-1.5 w-52 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-lg py-1.5 z-40 text-xs animate-in fade-in duration-150">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsToolsMenuOpen(false);
+                    setIsDiffModalOpen(true);
+                  }}
+                  className="w-full px-3 py-2 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 cursor-pointer"
+                >
+                  <GitCompare className="size-3.5 text-slate-400 shrink-0" />
+                  <span>Compare Before &amp; After</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsToolsMenuOpen(false);
+                    setIsSnippetModalOpen(true);
+                  }}
+                  className="w-full px-3 py-2 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 cursor-pointer"
+                >
+                  <Award className="size-3.5 text-slate-400 shrink-0" />
+                  <span>Featured Snippet Check</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsToolsMenuOpen(false);
+                    setIsScratchpadOpen(true);
+                  }}
+                  className="w-full px-3 py-2 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 cursor-pointer"
+                >
+                  <FileEdit className="size-3.5 text-slate-400 shrink-0" />
+                  <span>SEO Scratchpad</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsToolsMenuOpen(false);
+                    setIsLinkTopologyOpen(true);
+                  }}
+                  className="w-full px-3 py-2 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 cursor-pointer"
+                >
+                  <Network className="size-3.5 text-slate-400 shrink-0" />
+                  <span>Internal Link Map</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsPdfModalOpen(true)}
+            className="px-2.5 py-1.5 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export PDF</span>
+          </button>
         </div>
       </div>
 
       {/* 2. Primary 4-Pillar Executive Segmented Dock */}
       <div
         role="tablist"
-        aria-label="URL Deep Inspector Pillars"
+        aria-label="Page Details Sections"
         className="p-1 rounded-xl bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-white/[0.06] grid grid-cols-2 md:grid-cols-4 gap-1"
       >
         {/* Pillar 1 */}
@@ -277,7 +302,7 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           }`}
         >
           <Award className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-          <span>1. Scorecard &amp; Basics</span>
+          <span>Overview</span>
         </button>
 
         {/* Pillar 2 */}
@@ -292,7 +317,7 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           }`}
         >
           <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-          <span>2. Speed &amp; Web Vitals</span>
+          <span>Speed &amp; Health</span>
         </button>
 
         {/* Pillar 3 */}
@@ -307,7 +332,7 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           }`}
         >
           <Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-          <span>3. Headings &amp; Semantics</span>
+          <span>Content &amp; Headings</span>
         </button>
 
         {/* Pillar 4 */}
@@ -322,7 +347,7 @@ export const SingleAuditCard: React.FC<SingleAuditCardProps> = ({ audit }) => {
           }`}
         >
           <Link2 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-          <span>4. Media, Links &amp; SERP</span>
+          <span>Links &amp; Images</span>
         </button>
       </div>
 
