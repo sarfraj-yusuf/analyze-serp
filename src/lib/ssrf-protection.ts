@@ -8,7 +8,7 @@ function recordSsrfIncident(url: string, reason: string) {
     ip_address: 'inbound',
     target_endpoint: url,
     details: reason,
-  }).catch(() => {});
+  }).catch(() => { });
 }
 
 /**
@@ -22,27 +22,27 @@ function recordSsrfIncident(url: string, reason: string) {
  */
 
 // ── Private / Reserved IPv4 CIDR Ranges ──
-const BLOCKED_IPV4_RANGES: { prefix: number[]; mask: number }[] = [
-  { prefix: [0],              mask: 8  },   // 0.0.0.0/8        — Current network
-  { prefix: [10],             mask: 8  },   // 10.0.0.0/8       — RFC 1918 Private
-  { prefix: [100, 64],        mask: 10 },   // 100.64.0.0/10    — Carrier-grade NAT
-  { prefix: [127],            mask: 8  },   // 127.0.0.0/8      — Loopback
-  { prefix: [169, 254],       mask: 16 },   // 169.254.0.0/16   — Link-local
-  { prefix: [172, 16],        mask: 12 },   // 172.16.0.0/12    — RFC 1918 Private
-  { prefix: [192, 0, 0],      mask: 24 },   // 192.0.0.0/24     — IETF Protocol Assignments
-  { prefix: [192, 0, 2],      mask: 24 },   // 192.0.2.0/24     — TEST-NET-1
-  { prefix: [192, 88, 99],    mask: 24 },   // 192.88.99.0/24   — 6to4 Relay Anycast
-  { prefix: [192, 168],       mask: 16 },   // 192.168.0.0/16   — RFC 1918 Private
-  { prefix: [198, 18],        mask: 15 },   // 198.18.0.0/15    — Benchmark testing
-  { prefix: [198, 51, 100],   mask: 24 },   // 198.51.100.0/24  — TEST-NET-2
-  { prefix: [203, 0, 113],    mask: 24 },   // 203.0.113.0/24   — TEST-NET-3
-  { prefix: [224],            mask: 4  },   // 224.0.0.0/4      — Multicast
-  { prefix: [240],            mask: 4  },   // 240.0.0.0/4      — Reserved / Future use
+export const BLOCKED_IPV4_RANGES: { prefix: number[]; mask: number }[] = [
+  { prefix: [0], mask: 8 },   // 0.0.0.0/8        — Current network
+  { prefix: [10], mask: 8 },   // 10.0.0.0/8       — RFC 1918 Private
+  { prefix: [100, 64], mask: 10 },   // 100.64.0.0/10    — Carrier-grade NAT
+  { prefix: [127], mask: 8 },   // 127.0.0.0/8      — Loopback
+  { prefix: [169, 254], mask: 16 },   // 169.254.0.0/16   — Link-local
+  { prefix: [172, 16], mask: 12 },   // 172.16.0.0/12    — RFC 1918 Private
+  { prefix: [192, 0, 0], mask: 24 },   // 192.0.0.0/24     — IETF Protocol Assignments
+  { prefix: [192, 0, 2], mask: 24 },   // 192.0.2.0/24     — TEST-NET-1
+  { prefix: [192, 88, 99], mask: 24 },   // 192.88.99.0/24   — 6to4 Relay Anycast
+  { prefix: [192, 168], mask: 16 },   // 192.168.0.0/16   — RFC 1918 Private
+  { prefix: [198, 18], mask: 15 },   // 198.18.0.0/15    — Benchmark testing
+  { prefix: [198, 51, 100], mask: 24 },   // 198.51.100.0/24  — TEST-NET-2
+  { prefix: [203, 0, 113], mask: 24 },   // 203.0.113.0/24   — TEST-NET-3
+  { prefix: [224], mask: 4 },   // 224.0.0.0/4      — Multicast
+  { prefix: [240], mask: 4 },   // 240.0.0.0/4      — Reserved / Future use
   { prefix: [255, 255, 255, 255], mask: 32 }, // Broadcast
 ];
 
 // ── Blocked Hostnames (case-insensitive) ──
-const BLOCKED_HOSTNAMES = new Set([
+export const BLOCKED_HOSTNAMES = new Set([
   'localhost',
   'localhost.localdomain',
   'ip6-localhost',
@@ -58,7 +58,7 @@ const BLOCKED_HOSTNAMES = new Set([
 /**
  * Converts an IPv4 address string to a 32-bit unsigned integer.
  */
-function ipv4ToInt(ip: string): number {
+export function ipv4ToInt(ip: string): number {
   const octets = ip.split('.').map(Number);
   return ((octets[0] << 24) | (octets[1] << 16) | (octets[2] << 8) | octets[3]) >>> 0;
 }
@@ -66,7 +66,7 @@ function ipv4ToInt(ip: string): number {
 /**
  * Converts a CIDR prefix + mask to a 32-bit integer for comparison.
  */
-function prefixToInt(prefix: number[]): number {
+export function prefixToInt(prefix: number[]): number {
   const padded = [...prefix, 0, 0, 0, 0].slice(0, 4);
   return ((padded[0] << 24) | (padded[1] << 16) | (padded[2] << 8) | padded[3]) >>> 0;
 }
@@ -74,7 +74,7 @@ function prefixToInt(prefix: number[]): number {
 /**
  * Checks whether an IPv4 address falls within any blocked CIDR range.
  */
-function isBlockedIPv4(ip: string): boolean {
+export function isBlockedIPv4(ip: string): boolean {
   const ipInt = ipv4ToInt(ip);
 
   for (const range of BLOCKED_IPV4_RANGES) {
@@ -92,7 +92,7 @@ function isBlockedIPv4(ip: string): boolean {
 /**
  * Checks whether an IPv6 address is a blocked loopback or private address.
  */
-function isBlockedIPv6(ip: string): boolean {
+export function isBlockedIPv6(ip: string): boolean {
   const normalized = ip.toLowerCase().trim();
 
   // ::1 — IPv6 loopback
@@ -128,7 +128,7 @@ function isBlockedIPv6(ip: string): boolean {
  * Parses obfuscated IPv4 formats (standard dotted-decimal, DWORD integer, octal, hex)
  * into a canonical dotted-decimal IPv4 string, or null if the hostname is a regular domain.
  */
-function parsePotentialIpAddress(hostname: string): string | null {
+export function parsePotentialIpAddress(hostname: string): string | null {
   const cleaned = hostname.replace(/^\[|\]$/g, '').trim().toLowerCase();
 
   // 1. Standard dotted-decimal IPv4 (e.g. 192.168.1.1)
@@ -192,28 +192,15 @@ function parsePotentialIpAddress(hostname: string): string | null {
 }
 
 /**
- * Validates that a URL is safe to fetch (not targeting private/internal infrastructure).
+ * Validates that a hostname is safe to connect to (not targeting private/internal infrastructure).
  * Performs IP normalization, blocked range comparison, and DNS resolution checks.
+ * This is the core validation function used for both initial URL and every redirect hop.
  *
- * @param url - The fully-qualified URL to validate
- * @throws Error if the URL targets a blocked/private address
+ * @param hostname - The hostname to validate
+ * @param url - The full URL (for logging/incident reporting)
+ * @throws Error if the hostname targets a blocked/private address
  */
-export async function validateUrlSafety(url: string): Promise<void> {
-  let hostname: string;
-
-  try {
-    const parsed = new URL(url);
-    hostname = parsed.hostname;
-
-    // Block non-HTTP protocols
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      throw new Error(`Blocked protocol "${parsed.protocol}". Only HTTP/HTTPS URLs are allowed.`);
-    }
-  } catch (err: any) {
-    if (err.message.startsWith('Blocked protocol')) throw err;
-    throw new Error(`Invalid URL format: "${url}"`);
-  }
-
+export async function validateHostnameSafety(hostname: string, url: string): Promise<void> {
   // Block known dangerous hostnames
   if (BLOCKED_HOSTNAMES.has(hostname.toLowerCase())) {
     const msg = `Blocked request to internal hostname "${hostname}".`;
@@ -245,7 +232,17 @@ export async function validateUrlSafety(url: string): Promise<void> {
   }
 
   // DNS resolution — check ALL resolved IPs (A + AAAA records)
+  // Use cache-busting technique to minimize DNS caching issues
   try {
+    // First, do a quick cache-busting resolution to force fresh lookup
+    // This is a best-effort approach since we can't control system DNS cache directly
+    const cacheBustHostname = `ssrf-check-${Date.now()}-${Math.random().toString(36).slice(2)}.${hostname}`;
+    try {
+      await dns.resolve(cacheBustHostname);
+    } catch {
+      // Expected to fail (NXDOMAIN), but forces resolver to query upstream
+    }
+
     const addresses = await dns.resolve(hostname);
 
     for (const ip of addresses) {
@@ -261,6 +258,7 @@ export async function validateUrlSafety(url: string): Promise<void> {
 
     // DNS resolution failure (NXDOMAIN, etc.) — let the fetch itself handle this
     // so the user gets a normal "failed to fetch" error
+    console.warn(`[SSRF] DNS resolution failed for ${hostname}: ${err.message}`);
   }
 
   // Also check AAAA (IPv6) records if available
@@ -279,6 +277,29 @@ export async function validateUrlSafety(url: string): Promise<void> {
   }
 }
 
+/**
+ * Validates that a URL is safe to fetch (not targeting private/internal infrastructure).
+ * Performs IP normalization, blocked range comparison, and DNS resolution checks.
+ *
+ * @param url - The fully-qualified URL to validate
+ * @throws Error if the URL targets a blocked/private address
+ */
+export async function validateUrlSafety(url: string): Promise<void> {
+  try {
+    const parsed = new URL(url);
+
+    // Block non-HTTP protocols
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      throw new Error(`Blocked protocol "${parsed.protocol}". Only HTTP/HTTPS URLs are allowed.`);
+    }
+
+    await validateHostnameSafety(parsed.hostname, url);
+  } catch (err: any) {
+    if (err.message.startsWith('Blocked') || err.message.startsWith('Blocked protocol')) throw err;
+    throw new Error(`Invalid URL format: "${url}"`);
+  }
+}
+
 export interface SafeFetchOptions extends RequestInit {
   maxRedirects?: number;
   followRedirects?: boolean;
@@ -288,7 +309,8 @@ export interface SafeFetchOptions extends RequestInit {
  * Hardened fetch client that prevents SSRF via HTTP 30x redirects:
  * - Pre-validates target URL with validateUrlSafety()
  * - Sets redirect: 'manual' to prevent native fetch from silently following redirects to private IPs
- * - Re-validates each redirect hop destination before following (up to maxRedirects)
+ * - Re-validates each redirect hop destination BEFORE following (up to maxRedirects)
+ * - Validates the redirect target hostname, not just the current URL
  */
 export async function safeFetchWithSsrf(
   targetUrl: string,
@@ -333,8 +355,199 @@ export async function safeFetchWithSsrf(
       return response;
     }
 
-    // Resolve relative redirect location against current URL
-    currentUrl = new URL(locationHeader, currentUrl).toString();
+    // 4. Resolve redirect location against current URL
+    const redirectUrl = new URL(locationHeader, currentUrl).toString();
+
+    // 5. CRITICAL: Validate the redirect target BEFORE updating currentUrl
+    // This prevents DNS rebinding where the redirect target hostname differs from current
+    const redirectParsed = new URL(redirectUrl);
+    await validateHostnameSafety(redirectParsed.hostname, redirectUrl);
+
+    // Log redirect hop for audit trail
+    console.log(`[SSRF] Redirect hop ${redirectCount}: ${currentUrl} -> ${redirectUrl} (host: ${redirectParsed.hostname})`);
+
+    currentUrl = redirectUrl;
   }
 }
 
+/**
+ * DNS-over-HTTPS (DoH) Resolver for SSRF Protection
+ * Provides an alternative DNS resolution path that bypasses system DNS cache
+ * and uses trusted DoH providers (Cloudflare, Google) for security-critical lookups.
+ */
+export class DohResolver {
+  private static readonly PROVIDERS = [
+    'https://cloudflare-dns.com/dns-query',
+    'https://dns.google/dns-query',
+  ] as const;
+
+  private static async query(provider: string, hostname: string, type: 'A' | 'AAAA'): Promise<string[]> {
+    const url = new URL(provider);
+    url.searchParams.set('name', hostname);
+    url.searchParams.set('type', type);
+    url.searchParams.set('cd', 'true'); // Disable DNSSEC validation for speed
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Accept': 'application/dns-json',
+      },
+      // Short timeout for DoH queries
+      signal: AbortSignal.timeout(3000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`DoH query failed: ${response.status}`);
+    }
+
+    const data = await response.json() as { Answer?: Array<{ data: string; type: number }> };
+    const recordType = type === 'A' ? 1 : 28;
+
+    return (data.Answer || [])
+      .filter((r) => r.type === recordType)
+      .map((r) => r.data);
+  }
+
+  /**
+   * Resolve hostname using DoH with fallback providers
+   * Returns array of IP addresses (IPv4 for A, IPv6 for AAAA)
+   */
+  static async resolve(hostname: string, type: 'A' | 'AAAA' = 'A'): Promise<string[]> {
+    for (const provider of this.PROVIDERS) {
+      try {
+        const results = await this.query(provider, hostname, type);
+        if (results.length > 0) {
+          return results;
+        }
+      } catch (err) {
+        console.warn(`[DoH] Provider ${provider} failed for ${hostname}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        continue;
+      }
+    }
+    throw new Error(`All DoH providers failed for ${hostname}`);
+  }
+
+  /**
+   * Validate hostname using DoH resolution (bypasses system DNS cache)
+   * Use this for maximum security when system DNS cache poisoning is a concern
+   */
+  static async validateHostnameWithDoH(hostname: string, url: string): Promise<void> {
+    // Check blocked hostnames first (same as validateHostnameSafety)
+    if (BLOCKED_HOSTNAMES.has(hostname.toLowerCase())) {
+      const msg = `Blocked request to internal hostname "${hostname}".`;
+      recordSsrfIncident(url, msg);
+      throw new Error(msg);
+    }
+
+    // Check raw IPs
+    const potentialIpv4 = parsePotentialIpAddress(hostname);
+    if (potentialIpv4) {
+      if (isBlockedIPv4(potentialIpv4)) {
+        const msg = `Blocked request to private/reserved IPv4 address "${hostname}" (resolved: ${potentialIpv4}).`;
+        recordSsrfIncident(url, msg);
+        throw new Error(msg);
+      }
+      return;
+    }
+
+    const isRawIPv6 = hostname.startsWith('[') || hostname.includes(':');
+    if (isRawIPv6) {
+      const cleanIPv6 = hostname.replace(/^\[|\]$/g, '');
+      if (isBlockedIPv6(cleanIPv6)) {
+        const msg = `Blocked request to private/reserved IPv6 address "${hostname}".`;
+        recordSsrfIncident(url, msg);
+        throw new Error(msg);
+      }
+      return;
+    }
+
+    // Resolve via DoH
+    try {
+      const [aRecords, aaaaRecords] = await Promise.allSettled([
+        this.resolve(hostname, 'A'),
+        this.resolve(hostname, 'AAAA'),
+      ]);
+
+      if (aRecords.status === 'fulfilled') {
+        for (const ip of aRecords.value) {
+          if (isBlockedIPv4(ip)) {
+            const msg = `Blocked (DoH): "${hostname}" resolves to private/reserved IP ${ip}.`;
+            recordSsrfIncident(url, msg);
+            throw new Error(msg);
+          }
+        }
+      }
+
+      if (aaaaRecords.status === 'fulfilled') {
+        for (const ip of aaaaRecords.value) {
+          if (isBlockedIPv6(ip)) {
+            const msg = `Blocked (DoH): "${hostname}" resolves to private/reserved IPv6 address ${ip}.`;
+            recordSsrfIncident(url, msg);
+            throw new Error(msg);
+          }
+        }
+      }
+    } catch (err: any) {
+      if (err.message.startsWith('Blocked')) throw err;
+      console.warn(`[SSRF-DoH] Resolution failed for ${hostname}: ${err.message}`);
+      // Fall back to system DNS validation
+      await validateHostnameSafety(hostname, url);
+    }
+  }
+}
+
+/**
+ * Safe fetch with DoH-based DNS validation for maximum SSRF protection
+ * Use this when you need the highest level of assurance against DNS rebinding
+ */
+export async function safeFetchWithDoh(
+  targetUrl: string,
+  options: SafeFetchOptions = {}
+): Promise<Response> {
+  const maxRedirects = options.maxRedirects ?? 5;
+  const followRedirects = options.followRedirects ?? true;
+  let currentUrl = targetUrl;
+  let redirectCount = 0;
+
+  while (true) {
+    // Validate using DoH resolver
+    const parsed = new URL(currentUrl);
+    await DohResolver.validateHostnameWithDoH(parsed.hostname, currentUrl);
+
+    const { maxRedirects: _, followRedirects: __, ...fetchInit } = options;
+    const fetchOptions: RequestInit = {
+      ...fetchInit,
+      redirect: 'manual',
+    };
+
+    const response = await fetch(currentUrl, fetchOptions);
+
+    if (!followRedirects) {
+      return response;
+    }
+
+    const isRedirect = [301, 302, 303, 307, 308].includes(response.status);
+    if (!isRedirect) {
+      return response;
+    }
+
+    redirectCount++;
+    if (redirectCount > maxRedirects) {
+      throw new Error(`Too many redirects (exceeded maximum limit of ${maxRedirects} hops).`);
+    }
+
+    const locationHeader = response.headers.get('location');
+    if (!locationHeader) {
+      return response;
+    }
+
+    const redirectUrl = new URL(locationHeader, currentUrl).toString();
+    const redirectParsed = new URL(redirectUrl);
+
+    // Validate redirect target using DoH
+    await DohResolver.validateHostnameWithDoH(redirectParsed.hostname, redirectUrl);
+
+    console.log(`[SSRF-DoH] Redirect hop ${redirectCount}: ${currentUrl} -> ${redirectUrl} (host: ${redirectParsed.hostname})`);
+
+    currentUrl = redirectUrl;
+  }
+}

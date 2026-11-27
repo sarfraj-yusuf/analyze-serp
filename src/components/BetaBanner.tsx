@@ -19,6 +19,7 @@ export const BetaBanner: React.FC<BetaBannerProps> = ({ onOpenFeedback }) => {
     }
   }, []);
 
+  if (process.env.NEXT_PUBLIC_SHOW_PRICING !== 'true') return null;
   if (isDismissed) return null;
 
   return (

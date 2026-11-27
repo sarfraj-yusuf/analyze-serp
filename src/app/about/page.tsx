@@ -459,12 +459,14 @@ export default function AboutPage() {
               <span>Run Free Audit Now</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link
-              href="/pricing"
-              className="px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300 font-semibold text-xs transition-all cursor-pointer"
-            >
-              <span>View Beta Access ($0/mo)</span>
-            </Link>
+            {process.env.NEXT_PUBLIC_SHOW_PRICING === 'true' && (
+              <Link
+                href="/pricing"
+                className="px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300 font-semibold text-xs transition-all cursor-pointer"
+              >
+                <span>View Beta Access ($0/mo)</span>
+              </Link>
+            )}
           </div>
         </div>
       </main>

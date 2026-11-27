@@ -485,23 +485,25 @@ export default function ContactPage() {
               </div>
             </Link>
 
-            <Link
-              href="/pricing"
-              className="p-5 rounded-2xl glass-panel border border-slate-200/80 dark:border-white/10 hover:border-emerald-500/40 transition-all group cursor-pointer space-y-2.5 block"
-            >
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-                <Check className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
-                  <span>Public Beta Free ($0)</span>
-                  <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all" />
-                </h4>
-                <p className="text-[11px] text-slate-500 dark:text-gray-400 leading-relaxed mt-1">
-                  100% free beta access, early adopter 50% lifetime grandfathered discount details.
-                </p>
-              </div>
-            </Link>
+            {process.env.NEXT_PUBLIC_SHOW_PRICING === 'true' && (
+              <Link
+                href="/pricing"
+                className="p-5 rounded-2xl glass-panel border border-slate-200/80 dark:border-white/10 hover:border-emerald-500/40 transition-all group cursor-pointer space-y-2.5 block"
+              >
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                  <Check className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                    <span>Public Beta Free ($0)</span>
+                    <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all" />
+                  </h4>
+                  <p className="text-[11px] text-slate-500 dark:text-gray-400 leading-relaxed mt-1">
+                    100% free beta access, early adopter 50% lifetime grandfathered discount details.
+                  </p>
+                </div>
+              </Link>
+            )}
           </div>
         </div>
 

@@ -10,6 +10,7 @@ import {
   getBannedIps,
   logSecurityIncident,
   getSiteConfigurations,
+  getWaitlistEntries,
 } from '@/lib/db';
 import { getDetectedSuspiciousBots } from '@/lib/rate-limiter';
 
@@ -34,6 +35,7 @@ export async function GET(req: Request) {
       securityIncidents,
       bannedIps,
       siteConfig,
+      waitlistEntries,
     ] = await Promise.all([
       getAllFeedback(),
       getActivityLogs(),
@@ -43,6 +45,7 @@ export async function GET(req: Request) {
       getSecurityIncidents(50),
       getBannedIps(),
       getSiteConfigurations(),
+      getWaitlistEntries(),
     ]);
 
     // 1. Calculate Summary Metrics
@@ -187,6 +190,7 @@ export async function GET(req: Request) {
         uniqueDomainsCount: marketIntelligence.uniqueDomainsCount,
         uniqueKeywordsCount: marketIntelligence.uniqueKeywordsCount,
         platformAvgScore: marketIntelligence.platformAvgScore,
+        waitlistCount: waitlistEntries.length,
       },
       charts: {
         toolBreakdownChart,
@@ -201,6 +205,7 @@ export async function GET(req: Request) {
       usersList,
       userTable: userTableData,
       feedbackTable: feedbackList,
+      waitlistEntries,
       siteConfig,
       suspiciousBots: (() => {
         const liveBots = getDetectedSuspiciousBots();

@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { X, Check, Zap, ShieldCheck, Sparkles, FileText, Download } from 'lucide-react';
+import { X, Check, Sparkles, Clock } from 'lucide-react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { WaitlistForm } from '@/components/WaitlistForm';
 
 interface ProUpgradeModalProps {
   isOpen: boolean;
@@ -11,8 +12,50 @@ interface ProUpgradeModalProps {
 
 export const ProUpgradeModal: React.FC<ProUpgradeModalProps> = ({ isOpen, onClose }) => {
   const modalRef = useFocusTrap({ isOpen, onClose });
+  const showPricing = process.env.NEXT_PUBLIC_SHOW_PRICING === 'true';
 
   if (!isOpen) return null;
+
+  if (!showPricing) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div
+          ref={modalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pro-modal-title"
+          className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-white/10 shadow-2xl space-y-5 overflow-hidden text-slate-800 dark:text-slate-100"
+        >
+          <div className="absolute -top-20 -right-20 w-56 h-56 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none will-change-transform" />
+
+          <button
+            onClick={onClose}
+            aria-label="Close Pro waitlist modal"
+            className="absolute top-5 right-5 p-2 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-500 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer border border-slate-200 dark:border-white/10"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          <div className="text-center space-y-2 pt-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+              <Clock className="w-3.5 h-3.5" />
+              <span>Pro Coming Soon</span>
+            </div>
+
+            <h3 id="pro-modal-title" className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+              AnalyzeSERP Pro is coming soon
+            </h3>
+
+            <p className="text-xs text-slate-600 dark:text-gray-300 max-w-sm mx-auto leading-relaxed">
+              All core tools are currently free to use. Join the waitlist to get notified when Pro plans launch.
+            </p>
+          </div>
+
+          <WaitlistForm source="upgrade_modal" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">

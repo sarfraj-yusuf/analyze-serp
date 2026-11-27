@@ -1,9 +1,19 @@
 import { Metadata } from 'next';
 
+const showPricing = process.env.NEXT_PUBLIC_SHOW_PRICING === 'true';
+
 export const metadata: Metadata = {
-  title: 'Pricing & 100% Free Public Beta Access',
+  title: showPricing ? 'Pricing & 100% Free Public Beta Access' : 'Pro Plan Coming Soon',
   description:
     'Explore AnalyzeSERP pricing plans. Enjoy 100% free unlimited competitor SEO audits, white-label vector PDF reports, and zero credit card required during Public Beta.',
+  ...(!showPricing
+    ? {
+        robots: {
+          index: false,
+          follow: false,
+        },
+      }
+    : {}),
   alternates: {
     canonical: 'https://analyzeserp.com/pricing',
   },

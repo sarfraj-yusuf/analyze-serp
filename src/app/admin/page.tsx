@@ -281,6 +281,7 @@ interface AdminData {
     uniqueDomainsCount?: number;
     uniqueKeywordsCount?: number;
     platformAvgScore?: number;
+    waitlistCount?: number;
   };
   charts: {
     toolBreakdownChart: ChartToolItem[];
@@ -295,6 +296,7 @@ interface AdminData {
   usersList: DbUser[];
   userTable: UserUsageRow[];
   feedbackTable: FeedbackRow[];
+  waitlistEntries?: { id: number; email: string; source: string; created_at: string }[];
   siteConfig?: SiteConfigurations;
   suspiciousBots?: SuspiciousBotInfo[];
 }
@@ -311,7 +313,7 @@ export interface SuspiciousBotInfo {
   status: 'active_flood' | 'quarantined' | 'banned';
 }
 
-export type AdminTab = 'overview' | 'users' | 'market' | 'security' | 'controls' | 'usage' | 'feedback';
+export type AdminTab = 'overview' | 'users' | 'market' | 'security' | 'controls' | 'usage' | 'feedback' | 'waitlist';
 
 export default function AdminPage() {
   const { data: session, status: authStatus } = useSession();
@@ -1070,6 +1072,7 @@ export default function AdminPage() {
                       { id: 'controls' as const, label: 'Site Controls', icon: Settings2, badge: null, badgeVariant: 'normal' },
                       { id: 'usage' as const, label: 'Tool Logs', icon: Activity, badge: adminData.userTable?.length || 0, badgeVariant: 'normal' },
                       { id: 'feedback' as const, label: 'Inquiries & Feedback', icon: MessageSquare, badge: adminData.feedbackTable?.length || 0, badgeVariant: 'normal' },
+                      { id: 'waitlist' as const, label: 'Pro Waitlist', icon: Clock, badge: adminData.waitlistEntries?.length ?? adminData.summary.waitlistCount ?? 0, badgeVariant: 'normal' },
                     ].map((item) => {
                       const Icon = item.icon;
                       const isActive = activeTab === item.id;
@@ -1261,6 +1264,7 @@ export default function AdminPage() {
                         {activeTab === 'controls' && 'Live Site Controls & Announcements'}
                         {activeTab === 'usage' && `Tool Activity & Session Logs (${adminData.userTable?.length || 0})`}
                         {activeTab === 'feedback' && `Contact Inquiries & Feedback (${adminData.feedbackTable?.length || 0})`}
+                        {activeTab === 'waitlist' && `Pro Waitlist (${adminData.waitlistEntries?.length ?? adminData.summary.waitlistCount ?? 0})`}
                       </h2>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                         {activeTab === 'overview' && 'Real-time performance metrics, tool breakdown, and tier distribution'}
@@ -1270,6 +1274,7 @@ export default function AdminPage() {
                         {activeTab === 'controls' && 'Live maintenance alert, top banner, and default credits controller'}
                         {activeTab === 'usage' && 'Audit sessions, client IPs, and tool invocation history'}
                         {activeTab === 'feedback' && 'Contact messages, feature suggestions, and community ratings'}
+                        {activeTab === 'waitlist' && 'Read-only list of users who joined the Pro launch waitlist'}
                       </p>
                     </div>
                   </div>
@@ -3398,6 +3403,50 @@ export default function AdminPage() {
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* TAB: PRO WAITLIST (READ-ONLY) */}
+              {activeTab === 'waitlist' && (
+                <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 overflow-hidden shadow-sm">
+                  <div className="px-5 py-4 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Clock className="size-4 text-emerald-500" />
+                      <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                        Pro Waitlist Signups ({adminData.waitlistEntries?.length ?? 0})
+                      </h3>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-white/10">
+                        <tr>
+                          <th className="py-3 px-4 font-semibold">Email</th>
+                          <th className="py-3 px-4 font-semibold">Source</th>
+                          <th className="py-3 px-4 font-semibold">Date</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200/70 dark:divide-white/5">
+                        {!adminData.waitlistEntries || adminData.waitlistEntries.length === 0 ? (
+                          <tr>
+                            <td colSpan={3} className="py-8 px-4 text-center text-slate-500 dark:text-slate-400">
+                              No waitlist signups yet.
+                            </td>
+                          </tr>
+                        ) : (
+                          adminData.waitlistEntries.map((entry) => (
+                            <tr key={entry.id} className="hover:bg-slate-50/70 dark:hover:bg-white/[0.02]">
+                              <td className="py-3 px-4 font-medium text-slate-800 dark:text-slate-100">{entry.email}</td>
+                              <td className="py-3 px-4 font-mono text-[11px] text-slate-600 dark:text-slate-300">{entry.source}</td>
+                              <td className="py-3 px-4 text-slate-500 dark:text-slate-400">
+                                {new Date(entry.created_at).toLocaleString()}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
 

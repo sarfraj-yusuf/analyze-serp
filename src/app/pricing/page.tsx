@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { FaqAccordion } from '@/components/FaqAccordion';
+import { WaitlistForm } from '@/components/WaitlistForm';
 import {
   Sparkles,
   Check,
@@ -24,6 +25,7 @@ import {
   Gauge,
   Compass,
   Star,
+  Clock,
 } from 'lucide-react';
 
 interface FaqItem {
@@ -172,6 +174,43 @@ export default function PricingPage() {
       ],
     },
   ];
+
+  const showPricing = process.env.NEXT_PUBLIC_SHOW_PRICING === 'true';
+
+  if (!showPricing) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-slate-900 dark:text-gray-100 selection:bg-emerald-500 selection:text-black transition-colors duration-200">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center px-4 py-16">
+          <div className="w-full max-w-md glass-panel rounded-2xl border border-slate-200/80 dark:border-white/10 p-6 sm:p-8 text-center space-y-5 shadow-sm">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+              <Clock className="w-3.5 h-3.5" />
+              <span>Pro Plan Coming Soon</span>
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                Pro plan coming soon
+              </h1>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                AnalyzeSERP is currently free to use. Join the waitlist to be notified when Pro plans launch.
+              </p>
+            </div>
+            <WaitlistForm source="pricing_page" />
+            <div className="pt-2">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+              >
+                <span>Back to SEO Audit Studio</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-main)] text-slate-900 dark:text-gray-100 selection:bg-emerald-500 selection:text-black transition-colors duration-200">

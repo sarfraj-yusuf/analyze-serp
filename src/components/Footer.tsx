@@ -4,6 +4,7 @@ import { ExternalLink } from 'lucide-react';
 import { Logo } from './Logo';
 
 export const Footer: React.FC = () => {
+  const showPricing = process.env.NEXT_PUBLIC_SHOW_PRICING === 'true';
   const currentYear = new Date().getFullYear();
 
   return (

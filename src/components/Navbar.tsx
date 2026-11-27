@@ -171,6 +171,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
+  const showPricing = process.env.NEXT_PUBLIC_SHOW_PRICING === 'true';
   const { data: session, status } = useSession();
   const liveCredits = useLiveCredits(
     session?.user?.credits?.remainingCredits ?? 5,
@@ -268,553 +269,544 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProModal }) => {
       <LiveAnnouncementBanner />
       <header className="glass-panel border-b border-slate-200/80 dark:border-white/10 px-4 lg:px-8 py-3 shadow-xs backdrop-blur-md">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        {/* AnalyzeSERP Brand Logo */}
-        <Link href="/" aria-label="AnalyzeSERP Home" className="flex items-center shrink-0">
-          <Logo size="md" variant="full" />
-        </Link>
-
-        {/* Desktop Navigation Links */}
-        <nav aria-label="Main Desktop Navigation" className="hidden md:flex items-center gap-1.5 text-xs font-semibold">
-          {/* Tools ▾ 2-Column Mega Flyout Dropdown */}
-          <div
-            ref={toolsMenuRef}
-            className="relative"
-            onMouseEnter={() => setIsToolsOpen(true)}
-            onMouseLeave={() => setIsToolsOpen(false)}
-          >
-            <button
-              type="button"
-              onClick={() => setIsToolsOpen((prev) => !prev)}
-              aria-expanded={isToolsOpen}
-              aria-haspopup="true"
-              className={`px-3 py-2 rounded-xl flex items-center gap-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                isToolsOpen || isAnyToolActive
-                  ? 'bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 font-bold shadow-xs'
-                  : 'text-slate-700 dark:text-gray-200 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/80 dark:hover:bg-white/5'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Tools</span>
-              <ChevronDown
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                  isToolsOpen ? 'rotate-180 text-emerald-500' : 'text-slate-400'
-                }`}
-              />
-            </button>
-
-            {/* Mega Flyout Menu */}
-            {isToolsOpen && (
-              <div
-                className="absolute top-full left-0 mt-1.5 w-[680px] -ml-20 lg:ml-0 rounded-2xl glass-panel p-5 border border-slate-200/90 dark:border-white/10 shadow-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150"
-                aria-label="SEO Tools Directory"
-              >
-                {/* Invisible Hover Bridge to prevent gap hover flicker */}
-                <div className="absolute -top-2 left-0 right-0 h-2" />
-
-                <div className="grid grid-cols-2 gap-5">
-                  {TOOL_CATEGORIES.map((category) => (
-                    <div key={category.title} className="space-y-2.5">
-                      <div className="pb-1.5 border-b border-slate-100 dark:border-white/5">
-                        <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200">
-                          {category.title}
-                        </h3>
-                        <p className="text-[10px] text-slate-500 dark:text-gray-400 leading-tight mt-0.5">
-                          {category.description}
-                        </p>
-                      </div>
-
-                      <div className="space-y-1">
-                        {category.tools.map((tool) => {
-                          const IconComponent = tool.icon;
-                          const isActive = pathname === tool.href;
-                          return (
-                            <Link
-                              key={tool.href}
-                              href={tool.href}
-                              className={`group/item flex items-start gap-3 p-2 rounded-xl transition-all ${
-                                isActive
-                                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'
-                                  : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-gray-200'
-                              }`}
-                            >
-                              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover/item:bg-emerald-500 group-hover/item:text-white transition-colors shrink-0 mt-0.5">
-                                <IconComponent className="w-3.5 h-3.5" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-xs font-bold truncate group-hover/item:text-emerald-600 dark:group-hover/item:text-emerald-400 transition-colors">
-                                    {tool.title}
-                                  </span>
-                                  {tool.badge && (
-                                    <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                                      {tool.badge}
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-[10.5px] text-slate-500 dark:text-gray-400 leading-snug line-clamp-2 mt-0.5">
-                                  {tool.description}
-                                </p>
-                              </div>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Bottom Callout in Mega Menu */}
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 text-slate-500 dark:text-gray-400 text-[11px]">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span>All 10 standalone utilities & competitor audits are <strong>100% Free</strong> during Public Beta.</span>
-                  </div>
-                  <Link
-                    href="/pricing"
-                    className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 shrink-0"
-                  >
-                    <span>View Beta Access</span>
-                    <span>→</span>
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* White-Label PDF Reports Link (Configuration 1) */}
-          <Link
-            href="/pdf-reports"
-            aria-current={pathname === '/pdf-reports' ? 'page' : undefined}
-            className={`px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all text-xs font-semibold ${
-              pathname === '/pdf-reports'
-                ? 'bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 font-bold shadow-xs'
-                : 'text-slate-700 dark:text-gray-200 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/80 dark:hover:bg-white/5'
-            }`}
-          >
-            <FileCheck className="w-3.5 h-3.5 text-emerald-500" />
-            <span>PDF Reports</span>
+          {/* AnalyzeSERP Brand Logo */}
+          <Link href="/" aria-label="AnalyzeSERP Home" className="flex items-center shrink-0">
+            <Logo size="md" variant="full" />
           </Link>
 
-          {/* Resources ▾ Flyout Dropdown */}
-          <div
-            ref={resourcesMenuRef}
-            className="relative"
-            onMouseEnter={() => setIsResourcesOpen(true)}
-            onMouseLeave={() => setIsResourcesOpen(false)}
-          >
-            <button
-              type="button"
-              onClick={() => setIsResourcesOpen((prev) => !prev)}
-              aria-expanded={isResourcesOpen}
-              aria-haspopup="true"
-              className={`px-3 py-2 rounded-xl flex items-center gap-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                isResourcesOpen || pathname?.startsWith('/blog') || pathname === '/about' || pathname === '/changelog'
-                  ? 'bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 font-bold shadow-xs'
-                  : 'text-slate-700 dark:text-gray-200 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/80 dark:hover:bg-white/5'
-              }`}
+          {/* Desktop Navigation Links */}
+          <nav aria-label="Main Desktop Navigation" className="hidden md:flex items-center gap-1.5 text-xs font-semibold">
+            {/* Tools ▾ 2-Column Mega Flyout Dropdown */}
+            <div
+              ref={toolsMenuRef}
+              className="relative"
+              onMouseEnter={() => setIsToolsOpen(true)}
+              onMouseLeave={() => setIsToolsOpen(false)}
             >
-              <span>Resources</span>
-              <ChevronDown
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                  isResourcesOpen ? 'rotate-180 text-emerald-500' : 'text-slate-400'
-                }`}
-              />
-            </button>
-
-            {/* Resources Dropdown Menu */}
-            {isResourcesOpen && (
-              <div
-                className="absolute top-full left-0 mt-1.5 w-[360px] rounded-2xl glass-panel p-3 border border-slate-200/90 dark:border-white/10 shadow-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150"
-                aria-label="Resources Directory"
-              >
-                {/* Invisible Hover Bridge */}
-                <div className="absolute -top-2 left-0 right-0 h-2" />
-
-                <div className="space-y-1">
-                  {RESOURCE_ITEMS.map((item) => {
-                    const IconComponent = item.icon;
-                    const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`group/item flex items-start gap-3 p-2.5 rounded-xl transition-all ${
-                          isActive
-                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'
-                            : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-gray-200'
-                        }`}
-                      >
-                        <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover/item:bg-emerald-500 group-hover/item:text-white transition-colors shrink-0 mt-0.5">
-                          <IconComponent className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold truncate group-hover/item:text-emerald-600 dark:group-hover/item:text-emerald-400 transition-colors">
-                              {item.title}
-                            </span>
-                            {item.badge && (
-                              <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                                {item.badge}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[10.5px] text-slate-500 dark:text-gray-400 leading-snug line-clamp-2 mt-0.5">
-                            {item.description}
-                          </p>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Pricing Link */}
-          <Link
-            href="/pricing"
-            aria-current={pathname === '/pricing' ? 'page' : undefined}
-            className={`px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all text-xs font-semibold ${
-              pathname === '/pricing'
-                ? 'bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 font-bold shadow-xs'
-                : 'text-slate-700 dark:text-gray-200 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/80 dark:hover:bg-white/5'
-            }`}
-          >
-            <span>Pricing</span>
-          </Link>
-        </nav>
-
-        {/* Right Utility Cluster: Theme Toggle, Auth / Credits & Mobile Button */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          {/* Light / Dark Mode Icon-Only Toggle Button */}
-          <Tooltip content={theme === 'dark' ? 'Light Mode' : 'Dark Mode'} side="bottom">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-              className="p-2 rounded-lg text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer flex items-center justify-center shrink-0 active:scale-95"
-            >
-              {theme === 'dark' ? (
-                <Sun className="w-4 h-4 text-amber-400 transition-transform duration-300 hover:rotate-90" />
-              ) : (
-                <Moon className="w-4 h-4 text-indigo-600 transition-transform duration-300 hover:-rotate-12" />
-              )}
-            </button>
-          </Tooltip>
-
-          {/* User Authentication & AI Credits Dock */}
-          {status === 'loading' ? (
-            <div className="h-[38px] w-[38px] rounded-full bg-slate-200/60 dark:bg-white/5 animate-pulse shrink-0" />
-          ) : session?.user ? (
-            <div ref={profileMenuRef} className="relative flex items-center gap-2">
-              {/* Live Desktop AI Credits Pill */}
-              <span
-                className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-mono font-bold border transition-all duration-300 ${
-                  liveCredits.isJustUpdated
-                    ? 'scale-105 bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 border-emerald-500/50 ring-2 ring-emerald-500/40 shadow-sm'
-                    : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
-                }`}
-                title="Daily AI generation credits remaining"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <span>{liveCredits.remaining} AI</span>
-              </span>
-
               <button
                 type="button"
-                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                aria-label="User account menu"
-                aria-expanded={isProfileMenuOpen}
-                className="relative h-[38px] w-[38px] rounded-full ring-2 ring-transparent hover:ring-emerald-500/40 dark:hover:ring-emerald-400/50 transition-all cursor-pointer active:scale-95 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500 flex items-center justify-center shrink-0"
+                onClick={() => setIsToolsOpen((prev) => !prev)}
+                aria-expanded={isToolsOpen}
+                aria-haspopup="true"
+                className={`px-3 py-2 rounded-xl flex items-center gap-1.5 text-xs font-semibold transition-all cursor-pointer ${isToolsOpen || isAnyToolActive
+                  ? 'bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 font-bold shadow-xs'
+                  : 'text-slate-700 dark:text-gray-200 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/80 dark:hover:bg-white/5'
+                  }`}
               >
-                {session.user.image ? (
-                  <img
-                    src={session.user.image}
-                    alt={session.user.name || 'User'}
-                    className="w-[32px] h-[32px] rounded-full object-cover border border-slate-200 dark:border-white/10 shadow-xs"
-                  />
-                ) : (
-                  <div className="w-[32px] h-[32px] rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xs uppercase shadow-xs">
-                    {session.user.name?.charAt(0) || 'U'}
-                  </div>
-                )}
+                <Layers className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Tools</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${isToolsOpen ? 'rotate-180 text-emerald-500' : 'text-slate-400'
+                    }`}
+                />
               </button>
 
-              {/* Profile Dropdown */}
-              {isProfileMenuOpen && (
+              {/* Mega Flyout Menu */}
+              {isToolsOpen && (
                 <div
-                  className="absolute right-0 mt-2 top-full w-64 rounded-2xl glass-panel p-3 border border-slate-200 dark:border-white/10 shadow-xl bg-white dark:bg-slate-900 space-y-3 z-50 animate-in fade-in zoom-in-95 duration-150"
-                  onClick={(e) => e.stopPropagation()}
+                  className="absolute top-full left-0 mt-1.5 w-[680px] -ml-20 lg:ml-0 rounded-2xl glass-panel p-5 border border-slate-200/90 dark:border-white/10 shadow-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150"
+                  aria-label="SEO Tools Directory"
                 >
-                  <div className="pb-2 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
-                        {session.user.name || 'Signed In User'}
-                      </p>
-                      <p className="text-[11px] text-slate-500 dark:text-gray-400 font-mono truncate">
-                        {session.user.email}
-                      </p>
-                    </div>
-                    {session.user.status === 'suspended' && (
-                      <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20 shrink-0">
-                        Suspended
-                      </span>
-                    )}
+                  {/* Invisible Hover Bridge to prevent gap hover flicker */}
+                  <div className="absolute -top-2 left-0 right-0 h-2" />
+
+                  <div className="grid grid-cols-2 gap-5">
+                    {TOOL_CATEGORIES.map((category) => (
+                      <div key={category.title} className="space-y-2.5">
+                        <div className="pb-1.5 border-b border-slate-100 dark:border-white/5">
+                          <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200">
+                            {category.title}
+                          </h3>
+                          <p className="text-[10px] text-slate-500 dark:text-gray-400 leading-tight mt-0.5">
+                            {category.description}
+                          </p>
+                        </div>
+
+                        <div className="space-y-1">
+                          {category.tools.map((tool) => {
+                            const IconComponent = tool.icon;
+                            const isActive = pathname === tool.href;
+                            return (
+                              <Link
+                                key={tool.href}
+                                href={tool.href}
+                                className={`group/item flex items-start gap-3 p-2 rounded-xl transition-all ${isActive
+                                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'
+                                  : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-gray-200'
+                                  }`}
+                              >
+                                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover/item:bg-emerald-500 group-hover/item:text-white transition-colors shrink-0 mt-0.5">
+                                  <IconComponent className="w-3.5 h-3.5" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-xs font-bold truncate group-hover/item:text-emerald-600 dark:group-hover/item:text-emerald-400 transition-colors">
+                                      {tool.title}
+                                    </span>
+                                    {tool.badge && (
+                                      <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                                        {tool.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[10.5px] text-slate-500 dark:text-gray-400 leading-snug line-clamp-2 mt-0.5">
+                                    {tool.description}
+                                  </p>
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
-                  {session.user.status === 'suspended' ? (
-                    <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-700 dark:text-rose-400">
-                      Account suspended by administrator.
-                    </div>
-                  ) : (
-                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5 space-y-1">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-600 dark:text-slate-400 font-medium">Daily AI Credits:</span>
-                        <strong
-                          className={`font-bold transition-all duration-300 ${
-                            liveCredits.isJustUpdated
-                              ? 'text-emerald-500 scale-110'
-                              : 'text-emerald-600 dark:text-emerald-400'
-                          }`}
-                        >
-                          {liveCredits.remaining} / {liveCredits.limit}
-                        </strong>
+                  {/* Bottom Callout in Mega Menu */}
+                  {showPricing && (
+                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2 text-slate-500 dark:text-gray-400 text-[11px]">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>All 10 standalone utilities & competitor audits are <strong>100% Free</strong> during Public Beta.</span>
                       </div>
-                      <p className="text-[9px] text-slate-500 dark:text-gray-400 leading-tight">
-                        Resets automatically every 24 hours.
-                      </p>
+                      <Link
+                        href="/pricing"
+                        className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 shrink-0"
+                      >
+                        <span>View Beta Access</span>
+                        <span>→</span>
+                      </Link>
                     </div>
                   )}
-
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                    className="w-full px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 flex items-center gap-2 transition-all"
-                  >
-                    <LayoutDashboard className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Workspace &amp; History</span>
-                  </Link>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsProfileMenuOpen(false);
-                      signOut();
-                    }}
-                    className="w-full px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition-all cursor-pointer"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>Sign Out</span>
-                  </button>
                 </div>
               )}
             </div>
-          ) : (
+
+            {/* White-Label PDF Reports Link (Configuration 1) */}
             <Link
-              href="/login"
-              className="hidden md:flex h-[38px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold items-center gap-2 transition-all cursor-pointer shadow-xs shadow-emerald-600/20 active:scale-95 shrink-0"
+              href="/pdf-reports"
+              aria-current={pathname === '/pdf-reports' ? 'page' : undefined}
+              className={`px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all text-xs font-semibold ${pathname === '/pdf-reports'
+                ? 'bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 font-bold shadow-xs'
+                : 'text-slate-700 dark:text-gray-200 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/80 dark:hover:bg-white/5'
+                }`}
             >
-              <User className="w-4 h-4 text-white" />
-              <span>Sign In</span>
+              <FileCheck className="w-3.5 h-3.5 text-emerald-500" />
+              <span>PDF Reports</span>
             </Link>
-          )}
 
-          {/* Mobile Hamburger Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label={isMobileMenuOpen ? 'Close mobile menu' : 'Open mobile menu'}
-            aria-expanded={isMobileMenuOpen}
-            className="md:hidden h-[38px] w-[38px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300 transition-all cursor-pointer flex items-center justify-center shrink-0"
-          >
-            {isMobileMenuOpen ? <X className="w-5 h-5 text-emerald-500" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-      </div>
+            {/* Resources ▾ Flyout Dropdown */}
+            <div
+              ref={resourcesMenuRef}
+              className="relative"
+              onMouseEnter={() => setIsResourcesOpen(true)}
+              onMouseLeave={() => setIsResourcesOpen(false)}
+            >
+              <button
+                type="button"
+                onClick={() => setIsResourcesOpen((prev) => !prev)}
+                aria-expanded={isResourcesOpen}
+                aria-haspopup="true"
+                className={`px-3 py-2 rounded-xl flex items-center gap-1.5 text-xs font-semibold transition-all cursor-pointer ${isResourcesOpen || pathname?.startsWith('/blog') || pathname === '/about' || pathname === '/changelog'
+                  ? 'bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 font-bold shadow-xs'
+                  : 'text-slate-700 dark:text-gray-200 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/80 dark:hover:bg-white/5'
+                  }`}
+              >
+                <span>Resources</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${isResourcesOpen ? 'rotate-180 text-emerald-500' : 'text-slate-400'
+                    }`}
+                />
+              </button>
 
-      {/* Responsive Mobile Navigation Drawer */}
-      {isMobileMenuOpen && (
-        <nav
-          aria-label="Mobile Navigation"
-          className="md:hidden pt-4 pb-3 px-2 border-t border-slate-200/80 dark:border-white/10 mt-3 space-y-3 animate-in fade-in duration-200 max-h-[80vh] overflow-y-auto"
-        >
-          {/* Mobile Auth Header (Prominently placed at the top of drawer) */}
-          <div className="pb-3 border-b border-slate-200/80 dark:border-white/10">
-            {session?.user ? (
-              <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/5 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    {session.user.image ? (
-                      <img src={session.user.image} alt={session.user.name || 'User'} className="w-8 h-8 rounded-lg object-cover shrink-0" />
+              {/* Resources Dropdown Menu */}
+              {isResourcesOpen && (
+                <div
+                  className="absolute top-full left-0 mt-1.5 w-[360px] rounded-2xl glass-panel p-3 border border-slate-200/90 dark:border-white/10 shadow-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150"
+                  aria-label="Resources Directory"
+                >
+                  {/* Invisible Hover Bridge */}
+                  <div className="absolute -top-2 left-0 right-0 h-2" />
+
+                  <div className="space-y-1">
+                    {RESOURCE_ITEMS.map((item) => {
+                      const IconComponent = item.icon;
+                      const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={`group/item flex items-start gap-3 p-2.5 rounded-xl transition-all ${isActive
+                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'
+                            : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-gray-200'
+                            }`}
+                        >
+                          <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover/item:bg-emerald-500 group-hover/item:text-white transition-colors shrink-0 mt-0.5">
+                            <IconComponent className="w-3.5 h-3.5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-bold truncate group-hover/item:text-emerald-600 dark:group-hover/item:text-emerald-400 transition-colors">
+                                {item.title}
+                              </span>
+                              {item.badge && (
+                                <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                                  {item.badge}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10.5px] text-slate-500 dark:text-gray-400 leading-snug line-clamp-2 mt-0.5">
+                              {item.description}
+                            </p>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Pricing Link */}
+            {showPricing && (
+              <Link
+                href="/pricing"
+                aria-current={pathname === '/pricing' ? 'page' : undefined}
+                className={`px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all text-xs font-semibold ${pathname === '/pricing'
+                  ? 'bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 font-bold shadow-xs'
+                  : 'text-slate-700 dark:text-gray-200 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/80 dark:hover:bg-white/5'
+                  }`}
+              >
+                <span>Pricing</span>
+              </Link>
+            )}
+          </nav>
+
+          {/* Right Utility Cluster: Theme Toggle, Auth / Credits & Mobile Button */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            {/* Light / Dark Mode Icon-Only Toggle Button */}
+            <Tooltip content={theme === 'dark' ? 'Light Mode' : 'Dark Mode'} side="bottom">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                className="p-2 rounded-lg text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer flex items-center justify-center shrink-0 active:scale-95"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="w-4 h-4 text-amber-400 transition-transform duration-300 hover:rotate-90" />
+                ) : (
+                  <Moon className="w-4 h-4 text-indigo-600 transition-transform duration-300 hover:-rotate-12" />
+                )}
+              </button>
+            </Tooltip>
+
+            {/* User Authentication & AI Credits Dock */}
+            {status === 'loading' ? (
+              <div className="h-[38px] w-[38px] rounded-full bg-slate-200/60 dark:bg-white/5 animate-pulse shrink-0" />
+            ) : session?.user ? (
+              <div ref={profileMenuRef} className="relative flex items-center gap-2">
+                {/* Live Desktop AI Credits Pill */}
+                <span
+                  className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-mono font-bold border transition-all duration-300 ${liveCredits.isJustUpdated
+                    ? 'scale-105 bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 border-emerald-500/50 ring-2 ring-emerald-500/40 shadow-sm'
+                    : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                    }`}
+                  title="Daily AI generation credits remaining"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span>{liveCredits.remaining} AI</span>
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  aria-label="User account menu"
+                  aria-expanded={isProfileMenuOpen}
+                  className="relative h-[38px] w-[38px] rounded-full ring-2 ring-transparent hover:ring-emerald-500/40 dark:hover:ring-emerald-400/50 transition-all cursor-pointer active:scale-95 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500 flex items-center justify-center shrink-0"
+                >
+                  {session.user.image ? (
+                    <img
+                      src={session.user.image}
+                      alt={session.user.name || 'User'}
+                      className="w-[32px] h-[32px] rounded-full object-cover border border-slate-200 dark:border-white/10 shadow-xs"
+                    />
+                  ) : (
+                    <div className="w-[32px] h-[32px] rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xs uppercase shadow-xs">
+                      {session.user.name?.charAt(0) || 'U'}
+                    </div>
+                  )}
+                </button>
+
+                {/* Profile Dropdown */}
+                {isProfileMenuOpen && (
+                  <div
+                    className="absolute right-0 mt-2 top-full w-64 rounded-2xl glass-panel p-3 border border-slate-200 dark:border-white/10 shadow-xl bg-white dark:bg-slate-900 space-y-3 z-50 animate-in fade-in zoom-in-95 duration-150"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="pb-2 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+                          {session.user.name || 'Signed In User'}
+                        </p>
+                        <p className="text-[11px] text-slate-500 dark:text-gray-400 font-mono truncate">
+                          {session.user.email}
+                        </p>
+                      </div>
+                      {session.user.status === 'suspended' && (
+                        <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20 shrink-0">
+                          Suspended
+                        </span>
+                      )}
+                    </div>
+
+                    {session.user.status === 'suspended' ? (
+                      <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-700 dark:text-rose-400">
+                        Account suspended by administrator.
+                      </div>
                     ) : (
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
-                        {session.user.name?.charAt(0) || 'U'}
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5 space-y-1">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-slate-600 dark:text-slate-400 font-medium">Daily AI Credits:</span>
+                          <strong
+                            className={`font-bold transition-all duration-300 ${liveCredits.isJustUpdated
+                              ? 'text-emerald-500 scale-110'
+                              : 'text-emerald-600 dark:text-emerald-400'
+                              }`}
+                          >
+                            {liveCredits.remaining} / {liveCredits.limit}
+                          </strong>
+                        </div>
+                        <p className="text-[9px] text-slate-500 dark:text-gray-400 leading-tight">
+                          Resets automatically every 24 hours.
+                        </p>
                       </div>
                     )}
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{session.user.name || 'User'}</p>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{session.user.email}</p>
-                    </div>
-                  </div>
-                  <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border shrink-0 transition-all duration-300 ${
-                      liveCredits.isJustUpdated
-                        ? 'bg-emerald-500/30 text-emerald-800 dark:text-emerald-200 border-emerald-500/50 scale-105 ring-1 ring-emerald-500/40'
-                        : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
-                    }`}
-                  >
-                    {liveCredits.remaining} AI
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 pt-1 border-t border-slate-200/60 dark:border-white/5">
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
-                  >
-                    <LayoutDashboard className="w-3.5 h-3.5" />
-                    <span>Dashboard</span>
-                  </Link>
 
-                  <button
-                    type="button"
-                    onClick={() => signOut()}
-                    className="py-1.5 px-3 text-xs font-semibold text-red-600 dark:text-red-400 hover:underline cursor-pointer"
-                  >
-                    Sign Out
-                  </button>
-                </div>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      className="w-full px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 flex items-center gap-2 transition-all"
+                    >
+                      <LayoutDashboard className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Workspace &amp; History</span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        signOut();
+                      }}
+                      className="w-full px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition-all cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <Link
                 href="/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95"
+                className="hidden md:flex h-[38px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold items-center gap-2 transition-all cursor-pointer shadow-xs shadow-emerald-600/20 active:scale-95 shrink-0"
               >
                 <User className="w-4 h-4 text-white" />
-                <span>Sign In to Unlock AI (Free)</span>
+                <span>Sign In</span>
               </Link>
             )}
-          </div>
 
-          {/* Categorized Tools on Mobile */}
-          <div className="space-y-3">
-            {TOOL_CATEGORIES.map((category) => (
-              <div key={category.title} className="space-y-1">
-                <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  {category.title}
-                </p>
-                {category.tools.map((tool) => {
-                  const IconComponent = tool.icon;
-                  const isActive = pathname === tool.href;
-                  return (
-                    <Link
-                      key={tool.href}
-                      href={tool.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-xs font-semibold transition-all ${
-                        isActive
-                          ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold'
-                          : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 truncate">
-                        <IconComponent className="w-4 h-4 text-emerald-500 shrink-0" />
-                        <span className="truncate">{tool.title}</span>
+            {/* Mobile Hamburger Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label={isMobileMenuOpen ? 'Close mobile menu' : 'Open mobile menu'}
+              aria-expanded={isMobileMenuOpen}
+              className="md:hidden h-[38px] w-[38px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300 transition-all cursor-pointer flex items-center justify-center shrink-0"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5 text-emerald-500" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Responsive Mobile Navigation Drawer */}
+        {
+          isMobileMenuOpen && (
+            <nav
+              aria-label="Mobile Navigation"
+              className="md:hidden pt-4 pb-3 px-2 border-t border-slate-200/80 dark:border-white/10 mt-3 space-y-3 animate-in fade-in duration-200 max-h-[80vh] overflow-y-auto"
+            >
+              {/* Mobile Auth Header (Prominently placed at the top of drawer) */}
+              <div className="pb-3 border-b border-slate-200/80 dark:border-white/10">
+                {session?.user ? (
+                  <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/5 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {session.user.image ? (
+                          <img src={session.user.image} alt={session.user.name || 'User'} className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+                            {session.user.name?.charAt(0) || 'U'}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{session.user.name || 'User'}</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{session.user.email}</p>
+                        </div>
                       </div>
-                      {tool.badge && (
-                        <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shrink-0">
-                          {tool.badge}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border shrink-0 transition-all duration-300 ${liveCredits.isJustUpdated
+                          ? 'bg-emerald-500/30 text-emerald-800 dark:text-emerald-200 border-emerald-500/50 scale-105 ring-1 ring-emerald-500/40'
+                          : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                          }`}
+                      >
+                        {liveCredits.remaining} AI
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 pt-1 border-t border-slate-200/60 dark:border-white/5">
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
+                      >
+                        <LayoutDashboard className="w-3.5 h-3.5" />
+                        <span>Dashboard</span>
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={() => signOut()}
+                        className="py-1.5 px-3 text-xs font-semibold text-red-600 dark:text-red-400 hover:underline cursor-pointer"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95"
+                  >
+                    <User className="w-4 h-4 text-white" />
+                    <span>Sign In to Unlock AI (Free)</span>
+                  </Link>
+                )}
               </div>
-            ))}
-          </div>
 
-          {/* Direct Navigation Links on Mobile */}
-          <div className="pt-2 border-t border-slate-200/80 dark:border-white/10 space-y-1">
-            <Link
-              href="/pdf-reports"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-xs font-semibold transition-all ${
-                pathname === '/pdf-reports'
-                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold'
-                  : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <FileCheck className="w-4 h-4 text-emerald-500" />
-                <span>White-Label PDF Reports</span>
+              {/* Categorized Tools on Mobile */}
+              <div className="space-y-3">
+                {TOOL_CATEGORIES.map((category) => (
+                  <div key={category.title} className="space-y-1">
+                    <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                      {category.title}
+                    </p>
+                    {category.tools.map((tool) => {
+                      const IconComponent = tool.icon;
+                      const isActive = pathname === tool.href;
+                      return (
+                        <Link
+                          key={tool.href}
+                          href={tool.href}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-xs font-semibold transition-all ${isActive
+                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold'
+                            : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
+                            }`}
+                        >
+                          <div className="flex items-center gap-2.5 truncate">
+                            <IconComponent className="w-4 h-4 text-emerald-500 shrink-0" />
+                            <span className="truncate">{tool.title}</span>
+                          </div>
+                          {tool.badge && (
+                            <span className="px-1.5 py-0.2 text-[8px] font-extrabold uppercase rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shrink-0">
+                              {tool.badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
-            </Link>
 
-            <Link
-              href="/pricing"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-xs font-semibold transition-all ${
-                pathname === '/pricing'
-                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold'
-                  : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Sparkles className="w-4 h-4 text-emerald-500" />
-                <span>Pricing Plans</span>
+              {/* Direct Navigation Links on Mobile */}
+              <div className="pt-2 border-t border-slate-200/80 dark:border-white/10 space-y-1">
+                <Link
+                  href="/pdf-reports"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-xs font-semibold transition-all ${pathname === '/pdf-reports'
+                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold'
+                    : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
+                    }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <FileCheck className="w-4 h-4 text-emerald-500" />
+                    <span>White-Label PDF Reports</span>
+                  </div>
+                </Link>
+
+                {showPricing && (
+                  <Link
+                    href="/pricing"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-xs font-semibold transition-all ${pathname === '/pricing'
+                      ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold'
+                      : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
+                      }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Sparkles className="w-4 h-4 text-emerald-500" />
+                      <span>Pricing Plans</span>
+                    </div>
+                  </Link>
+                )}
+
+                <Link
+                  href="/blog"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-xs font-semibold transition-all ${pathname?.startsWith('/blog')
+                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold'
+                    : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
+                    }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <BookOpen className="w-4 h-4 text-indigo-500" />
+                    <span>SEO Articles &amp; Blog</span>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/about"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-xs font-semibold transition-all ${pathname === '/about'
+                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold'
+                    : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
+                    }`}
+                >
+                  <Sparkles className="w-4 h-4 text-emerald-500" />
+                  <span>Why AnalyzeSERP</span>
+                </Link>
+
+                <Link
+                  href="/changelog"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-xs font-semibold transition-all ${pathname === '/changelog'
+                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold'
+                    : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
+                    }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <History className="w-4 h-4 text-emerald-500" />
+                    <span>Product Changelog</span>
+                  </div>
+                </Link>
               </div>
-            </Link>
+            </nav>
+          )
+        }
 
-            <Link
-              href="/blog"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-xs font-semibold transition-all ${
-                pathname?.startsWith('/blog')
-                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold'
-                  : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <BookOpen className="w-4 h-4 text-indigo-500" />
-                <span>SEO Articles &amp; Blog</span>
-              </div>
-            </Link>
-
-            <Link
-              href="/about"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-xs font-semibold transition-all ${
-                pathname === '/about'
-                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold'
-                  : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
-              }`}
-            >
-              <Sparkles className="w-4 h-4 text-emerald-500" />
-              <span>Why AnalyzeSERP</span>
-            </Link>
-
-            <Link
-              href="/changelog"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-xs font-semibold transition-all ${
-                pathname === '/changelog'
-                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold'
-                  : 'text-slate-800 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <History className="w-4 h-4 text-emerald-500" />
-                <span>Product Changelog</span>
-              </div>
-            </Link>
-          </div>
-        </nav>
-      )}
-
-      {/* 1-Click Google & GitHub Sign In Modal */}
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
-    </header>
-  </div>
+        {/* 1-Click Google & GitHub Sign In Modal */}
+        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      </header >
+    </div >
   );
 };

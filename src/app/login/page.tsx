@@ -104,10 +104,12 @@ export default function LoginPage() {
             <Logo size="md" variant="full" />
           </Link>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-500/30 shadow-xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
-            <span>Public Beta &bull; 100% Free</span>
-          </div>
+          {process.env.NEXT_PUBLIC_SHOW_PRICING === 'true' && (
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-500/30 shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
+              <span>Public Beta &bull; 100% Free</span>
+            </div>
+          )}
         </div>
 
         {/* Left Side: Central Narrative & Interactive Mockup */}

@@ -526,13 +526,15 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0">
-            <Link
-              href="/pricing"
-              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200/80 dark:border-white/10 cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Upgrade to Pro</span>
-            </Link>
+            {process.env.NEXT_PUBLIC_SHOW_PRICING === 'true' && (
+              <Link
+                href="/pricing"
+                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200/80 dark:border-white/10 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <span>Upgrade to Pro</span>
+              </Link>
+            )}
             <Link
               href="/"
               className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer"

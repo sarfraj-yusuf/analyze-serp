@@ -447,17 +447,19 @@ export default function Home() {
       <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* AnalyzeSERP Brand Hero */}
         <div className="text-center space-y-2.5 max-w-3xl mx-auto pt-2 pb-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 mb-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Public Beta: Free Multi-URL Audits &amp; PDF Reports</span>
-            <span className="text-emerald-500/40">•</span>
-            <button
-              onClick={() => setIsProModalOpen(true)}
-              className="text-emerald-700 dark:text-emerald-400 font-semibold hover:underline cursor-pointer"
-            >
-              $19/mo Free
-            </button>
-          </div>
+          {process.env.NEXT_PUBLIC_SHOW_PRICING === 'true' && (
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 mb-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Public Beta: Free Multi-URL Audits &amp; PDF Reports</span>
+              <span className="text-emerald-500/40">•</span>
+              <button
+                onClick={() => setIsProModalOpen(true)}
+                className="text-emerald-700 dark:text-emerald-400 font-semibold hover:underline cursor-pointer"
+              >
+                $19/mo Free
+              </button>
+            </div>
+          )}
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-800 dark:text-slate-100 [letter-spacing:-0.03em] leading-tight">
             See Why Your Competitors Outrank You
@@ -482,7 +484,10 @@ export default function Home() {
               </span>
             </p>
             <p className="text-xs text-slate-600 dark:text-slate-300 max-w-md mx-auto leading-relaxed">
-              <strong>AnalyzeSERP Pro ($19/mo value) is 100% free during public beta.</strong> While the timer counts down, feel free to submit feedback or test other utilities.
+              {process.env.NEXT_PUBLIC_SHOW_PRICING === 'true' && (
+                <><strong>AnalyzeSERP Pro ($19/mo value) is 100% free during public beta.</strong>{' '}</>
+              )}
+              While the timer counts down, feel free to submit feedback or test other utilities.
             </p>
           </div>
         )}

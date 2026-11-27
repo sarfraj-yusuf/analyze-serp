@@ -412,6 +412,15 @@ export async function initDatabaseTables(): Promise<void> {
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
+
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS waitlist (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          email VARCHAR(255) NOT NULL UNIQUE,
+          source VARCHAR(50) NOT NULL DEFAULT 'unknown',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
     } finally {
       connection.release();
     }
@@ -2402,5 +2411,87 @@ export async function updateSiteConfigurations(
 
   return cachedSiteConfig;
 }
+
+export interface WaitlistEntry {
+  id: number;
+  email: string;
+  source: string;
+  created_at: string | Date;
+}
+
+const memoryWaitlistStore: WaitlistEntry[] = [];
+let localWaitlistIdCounter = 1;
+
+/**
+ * Adds an email to the Pro waitlist (ignores duplicates via UNIQUE constraint)
+ */
+export async function addToWaitlist(
+  email: string,
+  source: string = 'unknown'
+): Promise<{ success: boolean; alreadyJoined: boolean }> {
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedSource = (source || 'unknown').trim().slice(0, 50) || 'unknown';
+  const db = getPool();
+
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        const [result] = await connection.execute(
+          `INSERT IGNORE INTO waitlist (email, source) VALUES (?, ?)`,
+          [normalizedEmail, normalizedSource]
+        );
+        const affectedRows = (result as { affectedRows?: number }).affectedRows ?? 0;
+        return { success: true, alreadyJoined: affectedRows === 0 };
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('[DB Error] Failed to add email to waitlist:', error);
+      return { success: false, alreadyJoined: false };
+    }
+  }
+
+  // Fallback memory store when DB pool is not configured
+  const exists = memoryWaitlistStore.some((item) => item.email === normalizedEmail);
+  if (exists) {
+    return { success: true, alreadyJoined: true };
+  }
+  memoryWaitlistStore.unshift({
+    id: localWaitlistIdCounter++,
+    email: normalizedEmail,
+    source: normalizedSource,
+    created_at: new Date().toISOString(),
+  });
+  return { success: true, alreadyJoined: false };
+}
+
+/**
+ * Fetches waitlist entries (read-only) for the Admin Panel
+ */
+export async function getWaitlistEntries(): Promise<WaitlistEntry[]> {
+  const db = getPool();
+
+  if (db) {
+    try {
+      await initDatabaseTables();
+      const connection = await db.getConnection();
+      try {
+        const [rows] = await connection.query(
+          `SELECT id, email, source, created_at FROM waitlist ORDER BY created_at DESC LIMIT 500`
+        );
+        return rows as WaitlistEntry[];
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('[DB Error] Failed to fetch waitlist entries:', error);
+    }
+  }
+
+  return memoryWaitlistStore;
+}
+
 
 

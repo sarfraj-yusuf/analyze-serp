@@ -106,6 +106,7 @@ class FreemiumLimiter {
 
   /**
    * Atomically reserves audit quota before scraping starts to eliminate multi-tab concurrent race conditions.
+   * Uses a single atomic check-and-reserve operation to prevent race conditions.
    */
   public reserve(
     ip: string,
@@ -117,13 +118,50 @@ class FreemiumLimiter {
     remaining: number;
     cooldownSeconds: number;
   } {
-    const status = this.check(ip, count);
-    if (!status.allowed) {
-      return status;
+    const now = Date.now();
+
+    // Get or create record atomically
+    let record = this.ipQuotas.get(ip);
+    if (!record) {
+      record = { usedCount: 0, cooldownUntil: 0, lastUpdated: now };
+      this.ipQuotas.set(ip, record);
     }
 
-    const now = Date.now();
-    const record = this.ipQuotas.get(ip)!;
+    // Cleanup stale entries periodically
+    if (now - this.lastCleanup > 10 * 60 * 1000 || this.ipQuotas.size > this.maxEntries) {
+      this.cleanup(now);
+    }
+
+    // Reset batch count if cooldown has passed
+    if (record.cooldownUntil > 0 && now >= record.cooldownUntil) {
+      record.usedCount = 0;
+      record.cooldownUntil = 0;
+    }
+
+    // If currently in active cooldown
+    if (record.cooldownUntil > 0 && now < record.cooldownUntil) {
+      const cooldownSeconds = Math.ceil((record.cooldownUntil - now) / 1000);
+      return {
+        allowed: false,
+        used: record.usedCount,
+        limit: this.maxBatchAudits,
+        remaining: 0,
+        cooldownSeconds,
+      };
+    }
+
+    // Atomic check-and-reserve: verify quota available then reserve in single operation
+    if (record.usedCount + count > this.maxBatchAudits) {
+      return {
+        allowed: false,
+        used: record.usedCount,
+        limit: this.maxBatchAudits,
+        remaining: 0,
+        cooldownSeconds: 0,
+      };
+    }
+
+    // Reserve the quota
     record.usedCount += count;
     record.lastUpdated = now;
 

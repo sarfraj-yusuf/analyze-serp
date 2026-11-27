@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
     if (!reservation.success) {
       return NextResponse.json(
         {
-          error: reservation.error || 'Daily free AI limit reached. Please wait for daily reset or upgrade to Pro!',
+          error: reservation.error || 'Daily limit reached. Credits reset tomorrow.',
           limitReached: true,
           remainingCredits: reservation.remainingCredits || 0,
         },

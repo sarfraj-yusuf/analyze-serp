@@ -121,18 +121,31 @@ export const DESKTOP_BROWSER_PROFILES: BrowserProfile[] = [
   },
 ];
 
-let globalRotationCounter = 0;
-
 /**
- * Returns an authentic desktop browser header profile.
- * Supports round-robin rotation or explicit profile index.
+ * Returns an authentic desktop browser header profile with explicit Host header.
+ * Uses per-request random selection to avoid cache poisoning in multi-tenant environments.
+ *
+ * @param targetUrl - The target URL to extract Host header from
+ * @param targetIndex - Optional explicit profile index for testing
  */
-export function getRotatingBrowserHeaders(targetIndex?: number): Record<string, string> {
+export function getRotatingBrowserHeaders(targetUrl: string, targetIndex?: number): Record<string, string> {
   const index =
     typeof targetIndex === 'number'
       ? Math.abs(targetIndex) % DESKTOP_BROWSER_PROFILES.length
-      : (globalRotationCounter++) % DESKTOP_BROWSER_PROFILES.length;
-  return { ...DESKTOP_BROWSER_PROFILES[index].headers };
+      : Math.floor(Math.random() * DESKTOP_BROWSER_PROFILES.length);
+
+  const headers = { ...DESKTOP_BROWSER_PROFILES[index].headers };
+
+  // Explicitly set Host header to prevent cache poisoning
+  // This ensures upstream CDNs/proxies cache correctly per hostname
+  try {
+    const url = new URL(targetUrl);
+    headers.Host = url.host;
+  } catch {
+    // If URL parsing fails, don't set Host header (will use default)
+  }
+
+  return headers;
 }
 
 function formatNetworkError(err: any, url: string): Error {
@@ -183,7 +196,7 @@ async function readBodyWithLimit(
         if (totalBytes > maxBytes) {
           try {
             await reader.cancel();
-          } catch {}
+          } catch { }
           throw new Error(
             `Payload Too Large: Webpage stream size exceeded the ${(maxBytes / 1024 / 1024).toFixed(0)}MB crawl limit.`
           );
@@ -194,7 +207,7 @@ async function readBodyWithLimit(
   } finally {
     try {
       reader.releaseLock();
-    } catch {}
+    } catch { }
   }
 
   const merged = new Uint8Array(totalBytes);
@@ -217,7 +230,7 @@ export async function scrapePage(targetUrl: string, profileIndex?: number): Prom
   await validateUrlSafety(formattedUrl);
 
   const startTime = Date.now();
-  const browserHeaders = getRotatingBrowserHeaders(profileIndex);
+  const browserHeaders = getRotatingBrowserHeaders(formattedUrl, profileIndex);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 8000); // Strict 8-second independent per-URL timeout
@@ -239,10 +252,12 @@ export async function scrapePage(targetUrl: string, profileIndex?: number): Prom
     // If https connection failed (e.g. SSL/TLS handshake error) and user entered bare domain without protocol, try http fallback
     if (formattedUrl.startsWith('https://') && !/^https:\/\//i.test(targetUrl.trim())) {
       const fallbackUrl = `http://${targetUrl.trim().replace(/^https?:\/\//i, '')}`;
+      // Generate new headers with correct Host for fallback URL
+      const fallbackHeaders = getRotatingBrowserHeaders(fallbackUrl, profileIndex);
       try {
         response = await safeFetchWithSsrf(fallbackUrl, {
           signal: controller.signal,
-          headers: browserHeaders,
+          headers: fallbackHeaders,
           maxRedirects: 5,
         });
       } catch (fallbackErr: any) {
@@ -253,50 +268,50 @@ export async function scrapePage(targetUrl: string, profileIndex?: number): Prom
     }
   }
 
-    const ttfbMs = Date.now() - ttfbStart;
+  const ttfbMs = Date.now() - ttfbStart;
 
-    if (!response.ok) {
-      const serverHeader = response.headers.get('server') || '';
-      const cfRay = response.headers.get('cf-ray');
-      if (response.status === 403 || response.status === 503) {
-        if (cfRay || serverHeader.toLowerCase().includes('cloudflare')) {
-          throw new Error(
-            `Cloudflare Bot Protection: The website at ${formattedUrl} requires an interactive browser challenge (HTTP ${response.status}). Automated crawling was declined by their security policy.`
-          );
-        }
+  if (!response.ok) {
+    const serverHeader = response.headers.get('server') || '';
+    const cfRay = response.headers.get('cf-ray');
+    if (response.status === 403 || response.status === 503) {
+      if (cfRay || serverHeader.toLowerCase().includes('cloudflare')) {
         throw new Error(
-          `Access Denied (HTTP ${response.status}): The website at ${formattedUrl} blocked automated crawling requests.`
+          `Cloudflare Bot Protection: The website at ${formattedUrl} requires an interactive browser challenge (HTTP ${response.status}). Automated crawling was declined by their security policy.`
         );
       }
-      if (response.status === 404) {
-        throw new Error(`Page Not Found (HTTP 404): The webpage at ${formattedUrl} does not exist or has been removed.`);
-      }
-      throw new Error(`HTTP Error ${response.status}: ${response.statusText} while fetching ${formattedUrl}`);
-    }
-
-    // Validate Content-Type
-    const contentType = response.headers.get('content-type') || '';
-    if (contentType && !contentType.includes('text/html') && !contentType.includes('application/xhtml+xml')) {
       throw new Error(
-        `Unsupported Content-Type: Target URL returned "${contentType}". AnalyzeSERP only audits HTML webpages.`
+        `Access Denied (HTTP ${response.status}): The website at ${formattedUrl} blocked automated crawling requests.`
       );
     }
-
-    // Content Length Guard (Max 5MB)
-    const contentLength = Number(response.headers.get('content-length'));
-    if (contentLength && contentLength > 5 * 1024 * 1024) {
-      throw new Error(
-        `Payload Too Large: Webpage size (${(contentLength / 1024 / 1024).toFixed(1)}MB) exceeds the 5MB crawl limit.`
-      );
+    if (response.status === 404) {
+      throw new Error(`Page Not Found (HTTP 404): The webpage at ${formattedUrl} does not exist or has been removed.`);
     }
+    throw new Error(`HTTP Error ${response.status}: ${response.statusText} while fetching ${formattedUrl}`);
+  }
 
-    const finalUrl = response.url || formattedUrl;
+  // Validate Content-Type
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType && !contentType.includes('text/html') && !contentType.includes('application/xhtml+xml')) {
+    throw new Error(
+      `Unsupported Content-Type: Target URL returned "${contentType}". AnalyzeSERP only audits HTML webpages.`
+    );
+  }
 
-    // Body download stream is protected by 8-second global timeout and strict 5MB chunked stream limit
-    const html = await readBodyWithLimit(response, 5 * 1024 * 1024);
-    const fetchTimeMs = Date.now() - startTime;
-    clearTimeout(timeoutId);
-    const $ = cheerio.load(html);
+  // Content Length Guard (Max 5MB)
+  const contentLength = Number(response.headers.get('content-length'));
+  if (contentLength && contentLength > 5 * 1024 * 1024) {
+    throw new Error(
+      `Payload Too Large: Webpage size (${(contentLength / 1024 / 1024).toFixed(1)}MB) exceeds the 5MB crawl limit.`
+    );
+  }
+
+  const finalUrl = response.url || formattedUrl;
+
+  // Body download stream is protected by 8-second global timeout and strict 5MB chunked stream limit
+  const html = await readBodyWithLimit(response, 5 * 1024 * 1024);
+  const fetchTimeMs = Date.now() - startTime;
+  clearTimeout(timeoutId);
+  const $ = cheerio.load(html);
 
   // Clean junk meta tags from DOM inspection
   $('meta[name="next-size-adjust"]').remove();

@@ -17,6 +17,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     };
   });
 
+  const showPricing = process.env.NEXT_PUBLIC_SHOW_PRICING === 'true';
+
   // Static URLs omit lastModified because we do not have an automated, trustworthy
   // content-revision timestamp for them. Omitting lastmod is strictly preferred over
   // emitting artificial deployment dates or arbitrary timestamps.
@@ -33,7 +35,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/affiliate-link-checker` },
     { url: `${baseUrl}/readability` },
     { url: `${baseUrl}/pdf-reports` },
-    { url: `${baseUrl}/pricing` },
+    ...(showPricing ? [{ url: `${baseUrl}/pricing` }] : []),
     { url: `${baseUrl}/blog` },
     { url: `${baseUrl}/changelog` },
     { url: `${baseUrl}/about` },
